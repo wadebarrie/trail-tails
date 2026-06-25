@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
+import { applyStopReorder } from "@/features/hikes/reorder-stops";
 
 export async function assignDriverAction(hikeId: string, driverId: string | null) {
   await requireRole("admin");
@@ -29,29 +30,12 @@ export async function reorderStopsAction(
   await requireRole("admin");
 
   const supabase = await createClient();
-
-  for (let i = 0; i < orderedStopIds.length; i++) {
-    const { error } = await supabase
-      .from("stops")
-      .update({ sort_order: 1000 + i })
-      .eq("id", orderedStopIds[i])
-      .eq("hike_id", hikeId)
-      .eq("stop_type", stopType);
-    if (error) return { error: error.message };
-  }
-
-  for (let i = 0; i < orderedStopIds.length; i++) {
-    const { error } = await supabase
-      .from("stops")
-      .update({ sort_order: i })
-      .eq("id", orderedStopIds[i])
-      .eq("hike_id", hikeId)
-      .eq("stop_type", stopType);
-    if (error) return { error: error.message };
-  }
+  const error = await applyStopReorder(supabase, hikeId, stopType, orderedStopIds);
+  if (error) return { error };
 
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
   return { success: true };
 }
 

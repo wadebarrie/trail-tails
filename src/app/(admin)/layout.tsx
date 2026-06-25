@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { AdminNav } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 
@@ -21,7 +22,8 @@ export default async function AdminLayout({
             >
               Trail Tails
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <RoleSwitchLink profile={profile} variant="admin" />
               <span className="hidden text-sm text-stone-600 sm:inline">
                 {profile.full_name}
               </span>

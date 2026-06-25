@@ -12,7 +12,13 @@ export type DriverStopView = {
   windowEnd: string;
   sortOrder: number;
   dogName: string;
+  dogBreed: string | null;
+  dogNotes: string | null;
   ownerName: string;
+  phone: string;
+  email: string | null;
+  address: string;
+  customerNotes: string | null;
   destinationLat: number | null;
   destinationLng: number | null;
 };
@@ -30,21 +36,73 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
     raw.dogs as
       | {
           name: string;
+          breed: string | null;
+          notes: string | null;
           customers:
-            | { owner_name: string; address_lat: number | null; address_lng: number | null }
-            | { owner_name: string; address_lat: number | null; address_lng: number | null }[];
+            | {
+                owner_name: string;
+                phone: string;
+                email: string | null;
+                address: string;
+                address_lat: number | null;
+                address_lng: number | null;
+                notes: string | null;
+              }
+            | {
+                owner_name: string;
+                phone: string;
+                email: string | null;
+                address: string;
+                address_lat: number | null;
+                address_lng: number | null;
+                notes: string | null;
+              }[];
         }
       | {
           name: string;
+          breed: string | null;
+          notes: string | null;
           customers:
-            | { owner_name: string; address_lat: number | null; address_lng: number | null }
-            | { owner_name: string; address_lat: number | null; address_lng: number | null }[];
+            | {
+                owner_name: string;
+                phone: string;
+                email: string | null;
+                address: string;
+                address_lat: number | null;
+                address_lng: number | null;
+                notes: string | null;
+              }
+            | {
+                owner_name: string;
+                phone: string;
+                email: string | null;
+                address: string;
+                address_lat: number | null;
+                address_lng: number | null;
+                notes: string | null;
+              }[];
         }[]
   );
   const customer = one(
     dog?.customers as
-      | { owner_name: string; address_lat: number | null; address_lng: number | null }
-      | { owner_name: string; address_lat: number | null; address_lng: number | null }[]
+      | {
+          owner_name: string;
+          phone: string;
+          email: string | null;
+          address: string;
+          address_lat: number | null;
+          address_lng: number | null;
+          notes: string | null;
+        }
+      | {
+          owner_name: string;
+          phone: string;
+          email: string | null;
+          address: string;
+          address_lat: number | null;
+          address_lng: number | null;
+          notes: string | null;
+        }[]
       | undefined
   );
 
@@ -56,7 +114,13 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
     windowEnd: raw.window_end as string,
     sortOrder: raw.sort_order as number,
     dogName: dog?.name ?? "Unknown",
+    dogBreed: dog?.breed ?? null,
+    dogNotes: dog?.notes ?? null,
     ownerName: customer?.owner_name ?? "",
+    phone: customer?.phone ?? "",
+    email: customer?.email ?? null,
+    address: customer?.address ?? "",
+    customerNotes: customer?.notes ?? null,
     destinationLat: customer?.address_lat ?? null,
     destinationLng: customer?.address_lng ?? null,
   };

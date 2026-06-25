@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey } from "@/lib/env";
 import type { UserRole } from "@/types";
+import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import {
   AUTH_ROUTES,
   getHomeRouteForRole,
@@ -13,6 +14,7 @@ import {
 type ProfileRow = {
   role: UserRole;
   is_active: boolean;
+  can_drive: boolean;
 };
 
 export async function handleAuth(request: NextRequest) {
@@ -69,11 +71,11 @@ export async function handleAuth(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
-  if (isAdminPath(pathname) && profile.role !== "admin") {
+  if (isAdminPath(pathname) && !canAccessAdmin(profile)) {
     return redirectTo(request, getHomeRouteForRole(profile.role));
   }
 
-  if (isDriverPath(pathname) && profile.role !== "driver") {
+  if (isDriverPath(pathname) && !canAccessDriver(profile)) {
     return redirectTo(request, getHomeRouteForRole(profile.role));
   }
 
@@ -86,7 +88,7 @@ async function fetchProfile(
 ): Promise<ProfileRow | null> {
   const { data } = await supabase
     .from("profiles")
-    .select("role, is_active")
+    .select("role, is_active, can_drive")
     .eq("id", userId)
     .maybeSingle();
 

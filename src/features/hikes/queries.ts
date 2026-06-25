@@ -153,7 +153,9 @@ export async function getHikeWithStops(companyId: string, date: string) {
         sort_order,
         dogs (
           name,
-          customers ( owner_name, address_lat, address_lng )
+          breed,
+          notes,
+          customers ( owner_name, phone, email, address, address_lat, address_lng, notes )
         )
       )
     `

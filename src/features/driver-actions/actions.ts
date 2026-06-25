@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireRole } from "@/features/auth/queries";
+import { requireDriverAccess } from "@/features/auth/queries";
 import {
   buildArrivedMessage,
   buildDroppedOffMessage,
@@ -10,6 +10,7 @@ import {
   buildPickedUpMessage,
   logNotification,
 } from "@/features/notifications/log";
+import { applyStopReorder } from "@/features/hikes/reorder-stops";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
 
@@ -62,7 +63,7 @@ export async function enRouteAction(
   lat: number | null,
   lng: number | null
 ) {
-  await requireRole("driver");
+  await requireDriverAccess();
   const stop = await loadStop(stopId);
   if (!stop) return { error: "Stop not found." };
 
@@ -122,7 +123,7 @@ export async function arrivedAction(
   lat: number | null = null,
   lng: number | null = null
 ) {
-  await requireRole("driver");
+  await requireDriverAccess();
   const stop = await loadStop(stopId);
   if (!stop) return { error: "Stop not found." };
 
@@ -176,7 +177,7 @@ export async function arrivedAction(
 }
 
 export async function completePickupAction(stopId: string) {
-  await requireRole("driver");
+  await requireDriverAccess();
   const stop = await loadStop(stopId);
   if (!stop) return { error: "Stop not found." };
   if (stop.stop_type !== "pickup") return { error: "Not a pickup stop." };
@@ -218,7 +219,7 @@ export async function completePickupAction(stopId: string) {
 }
 
 export async function completeDropoffAction(stopId: string) {
-  await requireRole("driver");
+  await requireDriverAccess();
   const stop = await loadStop(stopId);
   if (!stop) return { error: "Stop not found." };
   if (stop.stop_type !== "dropoff") return { error: "Not a drop-off stop." };
@@ -280,4 +281,85 @@ async function markHikeCompletedIfDone(hikeId: string) {
 function revalidateDriverPaths() {
   revalidatePath("/today");
   revalidatePath("/dashboard/hikes/today");
+}
+
+/** Reorder today's pickup route before any stops begin. Syncs drop-off order to match. */
+export async function reorderDriverPickupsAction(
+  hikeId: string,
+  orderedPickupStopIds: string[]
+) {
+  await requireDriverAccess();
+  const supabase = await createClient();
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id")
+    .eq("id", hikeId)
+    .maybeSingle();
+
+  if (!hike) return { error: "Hike not found." };
+
+  const { data: pickups } = await supabase
+    .from("stops")
+    .select("id, status")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "pickup");
+
+  const pickupRows = pickups ?? [];
+  if (pickupRows.length !== orderedPickupStopIds.length) {
+    return { error: "Invalid pickup order." };
+  }
+
+  const pickupIds = new Set(pickupRows.map((p) => p.id));
+  if (!orderedPickupStopIds.every((id) => pickupIds.has(id))) {
+    return { error: "Invalid pickup order." };
+  }
+
+  if (pickupRows.some((p) => p.status !== "scheduled")) {
+    return { error: "Pickup order can only be changed before the route starts." };
+  }
+
+  const error = await applyStopReorder(
+    supabase,
+    hikeId,
+    "pickup",
+    orderedPickupStopIds
+  );
+  if (error) return { error };
+
+  const dropoffStopIds: string[] = [];
+  for (const pickupId of orderedPickupStopIds) {
+    const { data: pickup } = await supabase
+      .from("stops")
+      .select("dog_id")
+      .eq("id", pickupId)
+      .eq("hike_id", hikeId)
+      .eq("stop_type", "pickup")
+      .maybeSingle();
+
+    if (!pickup?.dog_id) continue;
+
+    const { data: dropoff } = await supabase
+      .from("stops")
+      .select("id")
+      .eq("hike_id", hikeId)
+      .eq("dog_id", pickup.dog_id)
+      .eq("stop_type", "dropoff")
+      .maybeSingle();
+
+    if (dropoff?.id) dropoffStopIds.push(dropoff.id);
+  }
+
+  if (dropoffStopIds.length > 0) {
+    const dropoffError = await applyStopReorder(
+      supabase,
+      hikeId,
+      "dropoff",
+      dropoffStopIds
+    );
+    if (dropoffError) return { error: dropoffError };
+  }
+
+  revalidateDriverPaths();
+  return { success: true };
 }

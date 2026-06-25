@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   arrivedAction,
@@ -8,6 +8,7 @@ import {
   completePickupAction,
   enRouteAction,
 } from "@/features/driver-actions/actions";
+import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/driver-customer-info-sheet";
 import { useAutoArrival } from "@/features/driver-actions/use-auto-arrival";
 import { formatTime } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
@@ -118,6 +119,7 @@ function getLocation(): Promise<{ lat: number; lng: number } | null> {
 function StopCard({ stop }: { stop: DriverStopView }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const isPickup = stop.stopType === "pickup";
   const isDone =
@@ -180,10 +182,16 @@ function StopCard({ stop }: { stop: DriverStopView }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xl font-semibold">{stop.dogName}</p>
-          {stop.ownerName ? (
-            <p className="mt-0.5 text-sm text-white/60">{stop.ownerName}</p>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => setInfoOpen(true)}
+            className="text-left underline-offset-2 hover:underline"
+          >
+            <p className="text-xl font-semibold">{stop.dogName}</p>
+            {stop.ownerName ? (
+              <p className="mt-0.5 text-sm text-white/60">{stop.ownerName}</p>
+            ) : null}
+          </button>
           <p className="mt-1 text-xs text-white/40">
             {formatTime(stop.windowStart)}–{formatTime(stop.windowEnd)}
           </p>
@@ -257,6 +265,12 @@ function StopCard({ stop }: { stop: DriverStopView }) {
           )}
         </div>
       ) : null}
+
+      <DriverCustomerInfoSheet
+        stop={stop}
+        open={infoOpen}
+        onClose={() => setInfoOpen(false)}
+      />
     </div>
   );
 }

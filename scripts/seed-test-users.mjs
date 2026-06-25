@@ -35,12 +35,14 @@ export const TEST_USERS = [
     password: "TrailTailsDev1!",
     role: "admin",
     full_name: "Test Admin",
+    can_drive: true,
   },
   {
     email: "driver@trailtails.test",
     password: "TrailTailsDev1!",
     role: "driver",
     full_name: "Test Driver",
+    can_drive: false,
   },
 ];
 
@@ -60,12 +62,47 @@ async function createUser(user) {
         company_id: COMPANY_ID,
         role: user.role,
         full_name: user.full_name,
+        can_drive: user.can_drive ?? false,
       },
     }),
   });
 
   const body = await res.json().catch(() => ({}));
   return { status: res.status, body };
+}
+
+async function syncProfileFlags(user) {
+  const listRes = await fetch(
+    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(user.email)}`,
+    {
+      headers: {
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        apikey: SERVICE_KEY,
+      },
+    }
+  );
+  const listBody = await listRes.json().catch(() => ({}));
+  const authUser = listBody?.users?.[0];
+  if (!authUser?.id) return;
+
+  const patchRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${authUser.id}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        apikey: SERVICE_KEY,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({ can_drive: user.can_drive ?? false }),
+    }
+  );
+
+  if (!patchRes.ok) {
+    const body = await patchRes.json().catch(() => ({}));
+    console.warn(`  ! Profile sync ${user.email}:`, body?.message || patchRes.status);
+  }
 }
 
 async function main() {
@@ -88,10 +125,12 @@ async function main() {
     } else {
       console.error(`✗ Failed   ${user.email}:`, body?.msg || body?.message || body);
     }
+
+    await syncProfileFlags(user);
   }
 
   console.log("\n--- Dev credentials ---");
-  console.log("Admin:  admin@trailtails.test  /  TrailTailsDev1!");
+  console.log("Admin:  admin@trailtails.test  /  TrailTailsDev1!  (admin + driver view)");
   console.log("Driver: driver@trailtails.test /  TrailTailsDev1!");
   console.log("\nSign in at http://localhost:3000/login");
 }

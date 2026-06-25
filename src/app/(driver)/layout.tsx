@@ -1,12 +1,13 @@
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
-import { requireRole } from "@/features/auth/queries";
+import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
+import { requireDriverAccess } from "@/features/auth/queries";
 
 export default async function DriverLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await requireRole("driver");
+  const profile = await requireDriverAccess();
 
   return (
     <div className="min-h-dvh bg-[var(--color-trail-800)] text-white">
@@ -17,9 +18,12 @@ export default async function DriverLayout({
           </p>
           <p className="mt-0.5 text-sm text-white/80">{profile.full_name}</p>
         </div>
-        <SignOutButton
-          className="text-sm text-white/70 underline-offset-2 hover:text-white hover:underline"
-        />
+        <div className="flex flex-col items-end gap-2">
+          <RoleSwitchLink profile={profile} variant="driver" />
+          <SignOutButton
+            className="text-sm text-white/70 underline-offset-2 hover:text-white hover:underline"
+          />
+        </div>
       </header>
       <main className="px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {children}

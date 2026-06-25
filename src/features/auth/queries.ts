@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/types";
 import { AUTH_ROUTES, getHomeRouteForRole } from "./constants";
+import { canAccessAdmin, canAccessDriver } from "./access";
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -26,7 +27,10 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .maybeSingle();
 
   if (error || !profile) return null;
-  return profile as Profile;
+  return {
+    ...(profile as Profile),
+    can_drive: (profile as Profile).can_drive ?? false,
+  };
 }
 
 export async function requireProfile(): Promise<Profile> {
@@ -42,7 +46,22 @@ export async function requireProfile(): Promise<Profile> {
 export async function requireRole(role: UserRole): Promise<Profile> {
   const profile = await requireProfile();
 
-  if (profile.role !== role) {
+  if (role === "admin" && !canAccessAdmin(profile)) {
+    redirect(getHomeRouteForRole(profile.role));
+  }
+
+  if (role === "driver" && !canAccessDriver(profile)) {
+    redirect(getHomeRouteForRole(profile.role));
+  }
+
+  return profile;
+}
+
+/** Driver routes and actions — includes admins with can_drive. */
+export async function requireDriverAccess(): Promise<Profile> {
+  const profile = await requireProfile();
+
+  if (!canAccessDriver(profile)) {
     redirect(getHomeRouteForRole(profile.role));
   }
 

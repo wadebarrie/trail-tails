@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getSafeRedirect } from "@/features/auth/constants";
-import type { UserRole } from "@/types";
+import { getLoginRedirect } from "@/features/auth/access";
 
 type LoginFormProps = {
   nextPath?: string;
@@ -54,7 +53,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, is_active")
+      .select("role, is_active, can_drive")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -74,7 +73,12 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return;
     }
 
-    router.replace(getSafeRedirect(profile.role as UserRole, nextPath));
+    router.replace(
+      getLoginRedirect(
+        profile as { role: "admin" | "driver"; can_drive: boolean },
+        nextPath
+      )
+    );
     router.refresh();
   }
 

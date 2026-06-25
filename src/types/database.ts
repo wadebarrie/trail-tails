@@ -39,6 +39,7 @@ export interface Profile {
   full_name: string;
   phone: string | null;
   is_active: boolean;
+  can_drive: boolean;
   created_at: string;
   updated_at: string;
 }
