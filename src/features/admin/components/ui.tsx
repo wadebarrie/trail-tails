@@ -1,39 +1,5 @@
 import Link from "next/link";
 
-const links = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/hikes/today", label: "Today" },
-  { href: "/dashboard/hikes/tomorrow", label: "Tomorrow" },
-  { href: "/dashboard/route", label: "Route" },
-  { href: "/dashboard/customers", label: "Customers" },
-  { href: "/dashboard/dogs", label: "Dogs" },
-  { href: "/dashboard/pending-requests", label: "Requests" },
-  { href: "/dashboard/drivers", label: "Drivers" },
-  { href: "/dashboard/exceptions", label: "Exceptions" },
-  { href: "/dashboard/sms", label: "SMS" },
-  { href: "/dashboard/notifications", label: "Notifications" },
-  { href: "/dashboard/logs", label: "Logs" },
-];
-
-export function AdminNav() {
-  return (
-    <nav
-      className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 text-sm text-stone-600 sm:mx-0 sm:flex-wrap sm:gap-x-4 sm:gap-y-2 sm:px-0 sm:pb-0"
-      aria-label="Admin navigation"
-    >
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className="shrink-0 rounded-lg px-3 py-2 hover:bg-stone-100 hover:text-[var(--color-trail-700)] sm:px-0 sm:py-0 sm:hover:bg-transparent sm:hover:underline"
-        >
-          {link.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
 export function TableShell({
   children,
   minWidth = "36rem",
