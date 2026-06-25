@@ -36,3 +36,14 @@ export function formatDistanceMeters(meters: number): string {
   if (meters < 1000) return `${Math.round(meters)} m`;
   return `${(meters / 1000).toFixed(1)} km`;
 }
+
+/** 0 at departure, 1 when within arrival radius. */
+export function travelProgressToArrival(
+  distanceMeters: number,
+  initialDistanceMeters: number,
+  arrivalRadiusMeters = ARRIVAL_RADIUS_METERS
+): number {
+  const travelSpan = Math.max(initialDistanceMeters - arrivalRadiusMeters, 1);
+  const remaining = Math.max(distanceMeters - arrivalRadiusMeters, 0);
+  return Math.min(1, Math.max(0, 1 - remaining / travelSpan));
+}

@@ -5,6 +5,7 @@ import {
   ARRIVAL_RADIUS_METERS,
   distanceMeters,
   isWithinArrivalRadius,
+  travelProgressToArrival,
 } from "@/lib/geo";
 
 type Destination = {
@@ -25,15 +26,19 @@ export function useAutoArrival({
 }: UseAutoArrivalOptions) {
   const onArriveRef = useRef(onArrive);
   const triggeredRef = useRef(false);
+  const initialDistanceRef = useRef<number | null>(null);
   const [distanceMetersAway, setDistanceMetersAway] = useState<number | null>(
     null
   );
+  const [travelProgress, setTravelProgress] = useState<number | null>(null);
 
   onArriveRef.current = onArrive;
 
   useEffect(() => {
     triggeredRef.current = false;
+    initialDistanceRef.current = null;
     setDistanceMetersAway(null);
+    setTravelProgress(null);
 
     if (!enabled || !destination) return;
     if (!navigator.geolocation) return;
@@ -51,6 +56,23 @@ export function useAutoArrival({
         );
         setDistanceMetersAway(distance);
 
+        if (initialDistanceRef.current === null) {
+          initialDistanceRef.current = distance;
+        } else {
+          initialDistanceRef.current = Math.max(
+            initialDistanceRef.current,
+            distance
+          );
+        }
+
+        const progress = travelProgressToArrival(
+          distance,
+          initialDistanceRef.current
+        );
+        setTravelProgress((prev) =>
+          prev == null ? progress : Math.max(prev, progress)
+        );
+
         if (
           isWithinArrivalRadius(
             latitude,
@@ -61,10 +83,14 @@ export function useAutoArrival({
           )
         ) {
           triggeredRef.current = true;
+          setTravelProgress(1);
           onArriveRef.current();
         }
       },
-      () => setDistanceMetersAway(null),
+      () => {
+        setDistanceMetersAway(null);
+        setTravelProgress(null);
+      },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }
     );
 
@@ -74,5 +100,6 @@ export function useAutoArrival({
   return {
     canAutoDetect: destination != null,
     distanceMetersAway,
+    travelProgress,
   };
 }

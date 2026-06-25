@@ -34,14 +34,59 @@ function getStepState(status: StopStatus): {
   }
 }
 
+function TravelConnector({
+  progress,
+  complete,
+}: {
+  progress: number | null;
+  complete: boolean;
+}) {
+  if (complete) {
+    return (
+      <div
+        className="mx-1 mt-3.5 h-0.5 min-w-3 flex-1 rounded-full bg-green-500/40 sm:mx-2"
+        aria-hidden
+      />
+    );
+  }
+
+  if (progress != null) {
+    return (
+      <div
+        className="relative mx-1 mt-3.5 h-1 min-w-3 flex-1 overflow-hidden rounded-full bg-white/10 sm:mx-2"
+        aria-hidden
+        role="progressbar"
+        aria-valuenow={Math.round(progress * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Travel progress to destination"
+      >
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400/90 to-sky-400/90 transition-[width] duration-700 ease-out"
+          style={{ width: `${Math.round(progress * 100)}%` }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="mx-1 mt-3.5 h-0.5 min-w-3 flex-1 rounded-full bg-white/10 sm:mx-2"
+      aria-hidden
+    />
+  );
+}
+
 function StopProgressSteps({
   stopType,
   status,
   readOnly = false,
+  travelProgress = null,
 }: {
   stopType: StopType;
   status: StopStatus;
   readOnly?: boolean;
+  travelProgress?: number | null;
 }) {
   const completeLabel = stopType === "pickup" ? "Picked Up" : "Dropped Off";
   const steps = ["En Route", "Arrived", completeLabel];
@@ -93,12 +138,17 @@ function StopProgressSteps({
                 </span>
               </div>
               {!isLast ? (
-                <div
-                  className={`mx-1 mt-3.5 h-0.5 min-w-3 flex-1 rounded-full sm:mx-2 ${
-                    index < completedSteps ? "bg-green-500/40" : "bg-white/10"
-                  }`}
-                  aria-hidden
-                />
+                index === 0 && status === "en_route" ? (
+                  <TravelConnector
+                    progress={travelProgress}
+                    complete={false}
+                  />
+                ) : (
+                  <TravelConnector
+                    progress={null}
+                    complete={index < completedSteps}
+                  />
+                )
               ) : null}
             </li>
           );
@@ -162,7 +212,7 @@ function StopCard({
     });
   }, [stop.id]);
 
-  const { canAutoDetect, distanceMetersAway } = useAutoArrival({
+  const { canAutoDetect, distanceMetersAway, travelProgress } = useAutoArrival({
     enabled: stop.status === "en_route" && !pending,
     destination,
     onArrive: handleArrived,
@@ -221,6 +271,9 @@ function StopCard({
         stopType={stop.stopType}
         status={stop.status}
         readOnly={readOnly}
+        travelProgress={
+          stop.status === "en_route" ? travelProgress : null
+        }
       />
 
       {!isDone && !readOnly ? (
