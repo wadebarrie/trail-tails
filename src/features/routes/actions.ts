@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { getDateInTimezone, parseScheduleDays } from "@/lib/dates";
-import { syncStopsForDate } from "@/features/hikes/sync-stops";
+import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
 
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
@@ -139,6 +139,111 @@ export async function updateRouteAction(
   }
 
   return { ok: true };
+}
+
+async function syncAffectedRoutes(
+  companyId: string,
+  routeIds: (string | null | undefined)[]
+) {
+  const supabase = await createClient();
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", companyId)
+    .single();
+
+  const tz = company?.timezone ?? "America/Los_Angeles";
+  const today = getDateInTimezone(tz, 0);
+  const tomorrow = getDateInTimezone(tz, 1);
+
+  for (const routeId of new Set(routeIds.filter(Boolean) as string[])) {
+    await syncStopsForRouteDate(companyId, routeId, today);
+    await syncStopsForRouteDate(companyId, routeId, tomorrow);
+  }
+}
+
+function revalidateRouteDogPaths() {
+  revalidatePath("/dashboard/route");
+  revalidatePath("/dashboard/dogs");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+}
+
+export async function addDogToRouteAction(routeId: string, dogId: string) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: route } = await supabase
+    .from("routes")
+    .select("id")
+    .eq("id", routeId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!route) return { error: "Route not found" };
+
+  const { data: dog } = await supabase
+    .from("dogs")
+    .select("id, route_id")
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!dog) return { error: "Dog not found" };
+  if (dog.route_id === routeId) return { success: true };
+
+  const previousRouteId = dog.route_id;
+
+  const { count } = await supabase
+    .from("dogs")
+    .select("*", { count: "exact", head: true })
+    .eq("route_id", routeId);
+
+  const { error } = await supabase
+    .from("dogs")
+    .update({
+      route_id: routeId,
+      route_sort_order: count ?? 0,
+    })
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  await syncAffectedRoutes(profile.company_id, [previousRouteId, routeId]);
+  revalidateRouteDogPaths();
+
+  return { success: true };
+}
+
+export async function removeDogFromRouteAction(routeId: string, dogId: string) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: dog } = await supabase
+    .from("dogs")
+    .select("id, route_id")
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId)
+    .maybeSingle();
+
+  if (!dog) return { error: "Dog is not on this route" };
+
+  const { error } = await supabase
+    .from("dogs")
+    .update({ route_id: null })
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  await syncAffectedRoutes(profile.company_id, [routeId]);
+  revalidateRouteDogPaths();
+
+  return { success: true };
 }
 
 export async function assignRouteDriverAction(

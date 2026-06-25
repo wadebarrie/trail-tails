@@ -28,6 +28,7 @@ type SortableItem = {
 type SortableListProps = {
   items: SortableItem[];
   onReorder: (orderedIds: string[]) => Promise<{ error?: string } | { success?: boolean }>;
+  onRemove?: (id: string) => void | Promise<{ error?: string } | { success?: boolean }>;
   variant?: "light" | "dark";
 };
 
@@ -45,9 +46,13 @@ function rowClassName(variant: "light" | "dark", isDragging: boolean) {
 function SortableRow({
   item,
   variant,
+  onRemove,
+  removing,
 }: {
   item: SortableItem;
   variant: "light" | "dark";
+  onRemove?: (id: string) => void | Promise<{ error?: string } | { success?: boolean }>;
+  removing: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id });
@@ -86,6 +91,20 @@ function SortableRow({
           </p>
         ) : null}
       </div>
+      {onRemove ? (
+        <button
+          type="button"
+          disabled={removing}
+          onClick={() => void onRemove(item.id)}
+          className={`shrink-0 rounded-lg px-2 py-1 text-sm ${
+            variant === "dark"
+              ? "text-red-300 hover:bg-white/10"
+              : "text-red-600 hover:bg-red-50"
+          } disabled:opacity-50`}
+        >
+          Remove
+        </button>
+      ) : null}
     </li>
   );
 }
@@ -93,11 +112,13 @@ function SortableRow({
 export function SortableList({
   items: initialItems,
   onReorder,
+  onRemove,
   variant = "light",
 }: SortableListProps) {
   const [items, setItems] = useState(initialItems);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -122,6 +143,23 @@ export function SortableList({
         setItems(initialItems);
       } else {
         setError(null);
+      }
+    });
+  }
+
+  function handleRemove(id: string) {
+    if (!onRemove) return;
+
+    startTransition(async () => {
+      setRemovingId(id);
+      const result = await onRemove(id);
+      setRemovingId(null);
+
+      if (result && "error" in result && result.error) {
+        setError(result.error);
+      } else {
+        setError(null);
+        setItems((prev) => prev.filter((item) => item.id !== id));
       }
     });
   }
@@ -152,7 +190,13 @@ export function SortableList({
         >
           <ul className="space-y-2">
             {items.map((item) => (
-              <SortableRow key={item.id} item={item} variant={variant} />
+              <SortableRow
+                key={item.id}
+                item={item}
+                variant={variant}
+                onRemove={onRemove ? handleRemove : undefined}
+                removing={removingId === item.id}
+              />
             ))}
           </ul>
         </SortableContext>

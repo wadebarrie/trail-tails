@@ -1,4 +1,5 @@
 import { PageHeader, Card } from "@/features/admin/components/ui";
+import { RouteAddDogSelect } from "@/features/routes/components/route-add-dog-select";
 import { RouteDogsList } from "@/features/routes/components/route-dogs-list";
 import { RouteDriverSelect } from "@/features/routes/components/route-driver-select";
 import {
@@ -19,10 +20,12 @@ export default async function RouteOrderPage() {
   const [{ data: dogs }, { data: drivers }] = await Promise.all([
     supabase
       .from("dogs")
-      .select("id, name, route_id, customers(owner_name)")
+      .select(
+        "id, name, route_id, route_sort_order, customers(owner_name), routes(name)"
+      )
       .eq("company_id", profile.company_id)
       .eq("is_active", true)
-      .order("route_sort_order"),
+      .order("name"),
     supabase
       .from("profiles")
       .select("id, full_name")
@@ -32,11 +35,13 @@ export default async function RouteOrderPage() {
       .order("full_name"),
   ]);
 
+  const allDogs = dogs ?? [];
+
   return (
     <div>
       <PageHeader
         title="Routes"
-        description="Set which days each route runs, assign a default driver, and order pickups. Routes appear on Today and Tomorrow only on their scheduled days."
+        description="Set which days each route runs, assign dogs and a default driver, and order pickups. Each dog belongs to one route at a time."
       />
 
       <Card className="mb-10">
@@ -55,8 +60,27 @@ export default async function RouteOrderPage() {
       ) : (
         <div className="space-y-10">
           {routes.map((route) => {
-            const routeDogs = (dogs ?? []).filter((d) => d.route_id === route.id);
-            const scheduleDays = getRouteScheduleDays(route);
+            const routeDogs = allDogs
+              .filter((d) => d.route_id === route.id)
+              .sort((a, b) => a.route_sort_order - b.route_sort_order);
+
+            const addableDogs = allDogs
+              .filter((d) => d.route_id !== route.id)
+              .map((dog) => ({
+                id: dog.id,
+                name: dog.name,
+                ownerName:
+                  one(
+                    dog.customers as
+                      | { owner_name: string }
+                      | { owner_name: string }[]
+                  )?.owner_name ?? "",
+                currentRouteName: one(
+                  dog.routes as { name: string } | { name: string }[] | null
+                )?.name,
+              }))
+              .sort((a, b) => a.name.localeCompare(b.name));
+
             const items = routeDogs.map((dog) => ({
               id: dog.id,
               label: dog.name,
@@ -66,6 +90,8 @@ export default async function RouteOrderPage() {
                   | { owner_name: string }[]
               )?.owner_name,
             }));
+
+            const scheduleDays = getRouteScheduleDays(route);
 
             return (
               <section
@@ -94,17 +120,23 @@ export default async function RouteOrderPage() {
                   defaultDays={scheduleDays}
                 />
 
-                <div className="mt-6 border-t border-stone-100 pt-4">
-                  <h3 className="mb-3 text-sm font-medium text-stone-700">
-                    Pickup order
-                  </h3>
-                  {items.length > 0 ? (
-                    <RouteDogsList routeId={route.id} items={items} />
-                  ) : (
-                    <p className="text-sm text-stone-500">
-                      No dogs assigned to this route yet.
-                    </p>
-                  )}
+                <div className="mt-6 space-y-4 border-t border-stone-100 pt-4">
+                  <h3 className="text-sm font-medium text-stone-700">Dogs</h3>
+
+                  <RouteAddDogSelect routeId={route.id} dogs={addableDogs} />
+
+                  <div>
+                    <h4 className="mb-3 text-sm font-medium text-stone-600">
+                      Pickup order
+                    </h4>
+                    {items.length > 0 ? (
+                      <RouteDogsList routeId={route.id} items={items} />
+                    ) : (
+                      <p className="text-sm text-stone-500">
+                        No dogs on this route yet.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </section>
             );

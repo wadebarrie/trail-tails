@@ -14,7 +14,10 @@ import { parseScheduleDays } from "@/lib/dates";
 
 const dogSchema = z.object({
   customer_id: z.string().uuid(),
-  route_id: z.string().uuid(),
+  route_id: z.preprocess(
+    (v) => (typeof v === "string" && v.length > 0 ? v : null),
+    z.string().uuid().nullable()
+  ),
   name: z.string().min(1, "Dog name is required"),
   breed: z.string().optional(),
   notes: z.string().optional(),
@@ -45,10 +48,15 @@ export async function createDogAction(
 
   const supabase = await createClient();
 
-  const { count } = await supabase
-    .from("dogs")
-    .select("*", { count: "exact", head: true })
-    .eq("route_id", parsed.data.route_id);
+  const sortOrder =
+    parsed.data.route_id != null
+      ? ((
+          await supabase
+            .from("dogs")
+            .select("*", { count: "exact", head: true })
+            .eq("route_id", parsed.data.route_id)
+        ).count ?? 0)
+      : 0;
 
   const { data: dog, error } = await supabase
     .from("dogs")
@@ -62,7 +70,7 @@ export async function createDogAction(
       pickup_window_start: parsed.data.pickup_window_start,
       pickup_window_end: parsed.data.pickup_window_end,
       is_active: parsed.data.is_active ?? true,
-      route_sort_order: count ?? 0,
+      route_sort_order: sortOrder,
       hike_rate_cents: parseHikeRateCents(parsed.data.hike_rate),
     })
     .select("id")

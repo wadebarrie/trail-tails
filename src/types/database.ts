@@ -92,7 +92,7 @@ export interface Dog {
   id: string;
   company_id: string;
   customer_id: string;
-  route_id: string;
+  route_id: string | null;
   name: string;
   breed: string | null;
   notes: string | null;

@@ -51,10 +51,10 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
         <select
           id="route_id"
           name="route_id"
-          defaultValue={dog?.route_id ?? routes[0]?.id}
-          required
+          defaultValue={dog?.route_id ?? ""}
           className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
         >
+          <option value="">Unassigned</option>
           {routes.map((r) => (
             <option key={r.id} value={r.id}>
               {r.name}
