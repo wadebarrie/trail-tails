@@ -20,7 +20,15 @@ const dogSchema = z.object({
   pickup_window_end: z.string().min(1),
   is_active: z.coerce.boolean().optional(),
   schedule_days: z.string().optional(),
+  hike_rate: z.string().optional(),
 });
+
+function parseHikeRateCents(raw?: string): number | null {
+  if (!raw?.trim()) return null;
+  const n = Number.parseFloat(raw.replace(/[$,\s]/g, ""));
+  if (Number.isNaN(n) || n < 0) return null;
+  return Math.round(n * 100);
+}
 
 function parseScheduleDays(raw?: string): number[] {
   if (!raw) return [];
@@ -60,6 +68,7 @@ export async function createDogAction(
       pickup_window_end: parsed.data.pickup_window_end,
       is_active: parsed.data.is_active ?? true,
       route_sort_order: count ?? 0,
+      hike_rate_cents: parseHikeRateCents(parsed.data.hike_rate),
     })
     .select("id")
     .single();
@@ -101,6 +110,7 @@ export async function updateDogAction(
       pickup_window_start: parsed.data.pickup_window_start,
       pickup_window_end: parsed.data.pickup_window_end,
       is_active: parsed.data.is_active ?? true,
+      hike_rate_cents: parseHikeRateCents(parsed.data.hike_rate),
     })
     .eq("id", id);
 

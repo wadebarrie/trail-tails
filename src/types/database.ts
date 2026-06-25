@@ -50,6 +50,7 @@ export interface Company {
   timezone: string;
   default_pickup_window_start: string | null;
   default_pickup_window_end: string | null;
+  default_hike_rate_cents: number | null;
   twilio_phone_number: string | null;
   created_at: string;
   updated_at: string;
@@ -81,6 +82,7 @@ export interface Dog {
   pickup_window_start: string;
   pickup_window_end: string;
   route_sort_order: number;
+  hike_rate_cents: number | null;
   created_at: string;
   updated_at: string;
 }

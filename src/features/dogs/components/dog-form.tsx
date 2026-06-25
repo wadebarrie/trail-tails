@@ -65,6 +65,20 @@ export function DogForm({ customers, dog, scheduleDays = [] }: DogFormProps) {
 
       <ScheduleDaysField defaultDays={scheduleDays} />
 
+      <Field
+        label="Hike rate ($)"
+        name="hike_rate"
+        type="number"
+        step="0.01"
+        min="0"
+        placeholder="Uses company default if blank"
+        defaultValue={
+          dog?.hike_rate_cents != null
+            ? (dog.hike_rate_cents / 100).toFixed(2)
+            : ""
+        }
+      />
+
       <div>
         <label htmlFor="notes" className="block text-sm font-medium text-stone-700">
           Notes
@@ -107,12 +121,18 @@ function Field({
   defaultValue,
   required,
   type = "text",
+  step,
+  min,
+  placeholder,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
   required?: boolean;
   type?: string;
+  step?: string;
+  min?: string;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -125,6 +145,9 @@ function Field({
         type={type}
         defaultValue={defaultValue}
         required={required}
+        step={step}
+        min={min}
+        placeholder={placeholder}
         className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
       />
     </div>

@@ -20,6 +20,7 @@ const allLinks: NavLink[] = [
   { href: "/dashboard/pending-requests", label: "Requests" },
   { href: "/dashboard/drivers", label: "Drivers" },
   { href: "/dashboard/exceptions", label: "Exceptions" },
+  { href: "/dashboard/billing", label: "Billing" },
   { href: "/dashboard/sms", label: "SMS" },
   { href: "/dashboard/notifications", label: "Notifications" },
   { href: "/dashboard/logs", label: "Logs" },

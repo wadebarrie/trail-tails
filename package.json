@@ -15,6 +15,8 @@
     "test:geocode": "node scripts/test-geocode.mjs",
     "test:eta": "node scripts/test-eta.mjs",
     "test:sms-parser": "npx --yes tsx scripts/test-sms-parser.ts",
+    "test:billing": "npx --yes tsx scripts/test-billing-status.ts",
+    "test:inbound-sms": "node scripts/test-inbound-sms.mjs",
     "test:twilio": "node scripts/test-twilio.mjs"
   },
   "dependencies": {
