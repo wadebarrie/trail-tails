@@ -15,32 +15,39 @@ import { formatDistanceMeters } from "@/lib/geo";
 import type { DriverStopView } from "@/features/driver-actions/queries";
 import type { StopStatus, StopType } from "@/types";
 
-function getStepProgress(status: StopStatus): number {
+function getStepState(status: StopStatus): {
+  completedSteps: number;
+  activeStep: number | null;
+} {
   switch (status) {
     case "scheduled":
-      return 0;
+      return { completedSteps: 0, activeStep: null };
     case "en_route":
-      return 1;
+      return { completedSteps: 1, activeStep: 1 };
     case "arrived":
-      return 2;
+      return { completedSteps: 2, activeStep: 2 };
     case "picked_up":
     case "dropped_off":
-      return 3;
+      return { completedSteps: 3, activeStep: null };
     default:
-      return 0;
+      return { completedSteps: 0, activeStep: null };
   }
 }
 
 function StopProgressSteps({
   stopType,
   status,
+  readOnly = false,
 }: {
   stopType: StopType;
   status: StopStatus;
+  readOnly?: boolean;
 }) {
   const completeLabel = stopType === "pickup" ? "Picked Up" : "Dropped Off";
   const steps = ["En Route", "Arrived", completeLabel];
-  const progress = getStepProgress(status);
+  const { completedSteps, activeStep } = readOnly
+    ? { completedSteps: 0, activeStep: null }
+    : getStepState(status);
 
   return (
     <nav
@@ -49,8 +56,8 @@ function StopProgressSteps({
     >
       <ol className="flex items-start">
         {steps.map((label, index) => {
-          const isComplete = progress > index;
-          const isCurrent = progress === index;
+          const isComplete = index < completedSteps;
+          const isCurrent = activeStep !== null && index === activeStep;
           const isLast = index === steps.length - 1;
 
           return (
@@ -65,11 +72,9 @@ function StopProgressSteps({
                     isComplete
                       ? "bg-green-500/30 text-green-200"
                       : isCurrent
-                        ? index === 0
-                          ? "bg-amber-400 text-stone-900 ring-2 ring-amber-200/60"
-                          : index === 1
-                            ? "bg-sky-400 text-stone-900 ring-2 ring-sky-200/60"
-                            : "bg-white text-[var(--color-trail-800)] ring-2 ring-white/60"
+                        ? index === 1
+                          ? "bg-sky-400 text-stone-900 ring-2 ring-sky-200/60"
+                          : "bg-white text-[var(--color-trail-800)] ring-2 ring-white/60"
                         : "bg-white/10 text-white/35"
                   }`}
                 >
@@ -90,7 +95,7 @@ function StopProgressSteps({
               {!isLast ? (
                 <div
                   className={`mx-1 mt-3.5 h-0.5 min-w-3 flex-1 rounded-full sm:mx-2 ${
-                    progress > index ? "bg-green-500/40" : "bg-white/10"
+                    index < completedSteps ? "bg-green-500/40" : "bg-white/10"
                   }`}
                   aria-hidden
                 />
@@ -212,7 +217,11 @@ function StopCard({
         ) : null}
       </div>
 
-      <StopProgressSteps stopType={stop.stopType} status={stop.status} />
+      <StopProgressSteps
+        stopType={stop.stopType}
+        status={stop.status}
+        readOnly={readOnly}
+      />
 
       {!isDone && !readOnly ? (
         <div className="mt-5 flex flex-col gap-3">
