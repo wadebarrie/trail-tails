@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
-import { getTwilioConfig, sendSms } from "@/lib/twilio";
+import { getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
 import type { NotificationType } from "@/types";
 
 type LogNotificationInput = {
@@ -12,19 +12,48 @@ type LogNotificationInput = {
   body: string;
 };
 
-async function resolveCustomerPhone(
+async function resolveCustomerContact(
   customerId: string | undefined
-): Promise<string | null> {
+): Promise<{ phone: string; ownerName: string } | null> {
   if (!customerId) return null;
 
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("customers")
-    .select("phone")
+    .select("phone, owner_name")
     .eq("id", customerId)
     .maybeSingle();
 
-  return data?.phone ?? null;
+  if (!data?.phone) return null;
+  return { phone: data.phone, ownerName: data.owner_name };
+}
+
+async function resolveDogName(dogId: string | undefined): Promise<string | null> {
+  if (!dogId) return null;
+
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from("dogs")
+    .select("name")
+    .eq("id", dogId)
+    .maybeSingle();
+
+  return data?.name ?? null;
+}
+
+function resolveSmsDelivery(
+  customerPhone: string,
+  ownerName: string,
+  dogName: string | null
+): { to: string; body: string; redirected: boolean } {
+  const redirectTo = getSmsRedirectTo();
+  if (!redirectTo) {
+    return { to: customerPhone, body: "", redirected: false };
+  }
+
+  const label = [ownerName.split(" ")[0], dogName].filter(Boolean).join(" / ");
+  const prefix = label ? `[${label}] ` : "[TEST] ";
+  return { to: redirectTo, body: prefix, redirected: true };
 }
 
 function smsContext(input: LogNotificationInput, extra?: Record<string, unknown>) {
@@ -96,8 +125,8 @@ export async function logNotification(input: LogNotificationInput) {
       return;
     }
 
-    const phone = await resolveCustomerPhone(input.customerId);
-    if (!phone) {
+    const contact = await resolveCustomerContact(input.customerId);
+    if (!contact) {
       await supabase
         .from("notification_log")
         .update({
@@ -110,7 +139,10 @@ export async function logNotification(input: LogNotificationInput) {
       return;
     }
 
-    const result = await sendSms(phone, input.body);
+    const dogName = await resolveDogName(input.dogId);
+    const delivery = resolveSmsDelivery(contact.phone, contact.ownerName, dogName);
+    const smsBody = delivery.body + input.body;
+    const result = await sendSms(delivery.to, smsBody);
 
     if (!result.ok) {
       await supabase
@@ -123,7 +155,13 @@ export async function logNotification(input: LogNotificationInput) {
 
       logError("sms", "Twilio send failed", {
         ...smsContext(input),
-        context: { ...smsContext(input).context, twilioError: result.error, to: phone },
+        context: {
+          ...smsContext(input).context,
+          twilioError: result.error,
+          to: delivery.to,
+          redirected: delivery.redirected,
+          intendedPhone: contact.phone,
+        },
       });
       return;
     }
@@ -135,8 +173,8 @@ export async function logNotification(input: LogNotificationInput) {
         customer_id: input.customerId ?? null,
         direction: "outbound",
         from_number: twilio.fromNumber,
-        to_number: phone,
-        body: input.body,
+        to_number: delivery.to,
+        body: smsBody,
         twilio_sid: result.sid,
         status: "queued",
       })
