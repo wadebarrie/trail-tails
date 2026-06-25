@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Badge,
   Card,
@@ -64,12 +65,20 @@ export default async function BillingPage({
         title="Billing"
         description="Hike-day report for invoicing. One row per dog per day (pickup stop)."
         action={
-          <a
-            href={exportUrl}
-            className="inline-flex rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-trail-800)]"
-          >
-            Export CSV
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/settings"
+              className="inline-flex rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Hike price
+            </Link>
+            <a
+              href={exportUrl}
+              className="inline-flex rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-trail-800)]"
+            >
+              Export CSV
+            </a>
+          </div>
         }
       />
 
@@ -124,7 +133,9 @@ export default async function BillingPage({
             </p>
           ) : company?.default_hike_rate_cents == null ? (
             <p className="mt-1 text-xs text-stone-500">
-              Set rates on dogs for dollar totals
+              <Link href="/dashboard/settings" className="text-[var(--color-trail-700)] hover:underline">
+                Set default hike price
+              </Link>
             </p>
           ) : null}
         </Card>

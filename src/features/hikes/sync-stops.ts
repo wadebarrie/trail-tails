@@ -28,9 +28,9 @@ type DogSchedule = {
   dog_schedule_days: { day_of_week: number }[];
 };
 
-/** Ensure hike row exists; returns hike id. */
 async function ensureHikeRow(
   companyId: string,
+  routeId: string,
   date: string
 ): Promise<string> {
   const supabase = createServiceClient();
@@ -39,6 +39,7 @@ async function ensureHikeRow(
     .from("hikes")
     .select("id")
     .eq("company_id", companyId)
+    .eq("route_id", routeId)
     .eq("date", date)
     .maybeSingle();
 
@@ -46,7 +47,7 @@ async function ensureHikeRow(
 
   const { data: created, error } = await supabase
     .from("hikes")
-    .insert({ company_id: companyId, date })
+    .insert({ company_id: companyId, route_id: routeId, date })
     .select("id")
     .single();
 
@@ -57,11 +58,28 @@ async function ensureHikeRow(
   return created.id;
 }
 
-/**
- * Add missing stops and cancel scheduled stops for ineligible dogs.
- * Uses service role — call from webhooks, cron, or after admin approval.
- */
+/** Sync stops for every route on a given date. */
 export async function syncStopsForDate(companyId: string, date: string) {
+  const supabase = createServiceClient();
+  const { data: routes } = await supabase
+    .from("routes")
+    .select("id")
+    .eq("company_id", companyId)
+    .order("sort_order");
+
+  const ids: string[] = [];
+  for (const route of routes ?? []) {
+    ids.push(await syncStopsForRouteDate(companyId, route.id, date));
+  }
+  return ids;
+}
+
+/** Add/cancel stops for one route on one date. */
+export async function syncStopsForRouteDate(
+  companyId: string,
+  routeId: string,
+  date: string
+) {
   const supabase = createServiceClient();
 
   const { data: company } = await supabase
@@ -72,7 +90,7 @@ export async function syncStopsForDate(companyId: string, date: string) {
 
   const timeZone = company?.timezone ?? "America/Los_Angeles";
   const dayOfWeek = getDayOfWeek(date, timeZone);
-  const hikeId = await ensureHikeRow(companyId, date);
+  const hikeId = await ensureHikeRow(companyId, routeId, date);
 
   const { data: dogs } = await supabase
     .from("dogs")
@@ -86,6 +104,7 @@ export async function syncStopsForDate(companyId: string, date: string) {
     `
     )
     .eq("company_id", companyId)
+    .eq("route_id", routeId)
     .eq("is_active", true);
 
   const scheduledDogs = ((dogs ?? []) as DogSchedule[]).filter((dog) =>
@@ -114,10 +133,7 @@ export async function syncStopsForDate(companyId: string, date: string) {
     .eq("hike_id", hikeId);
 
   for (const stop of existingStops ?? []) {
-    if (
-      stop.status === "scheduled" &&
-      !eligibleIds.has(stop.dog_id)
-    ) {
+    if (stop.status === "scheduled" && !eligibleIds.has(stop.dog_id)) {
       await supabase
         .from("stops")
         .update({ status: "cancelled" })

@@ -3,15 +3,16 @@
 import { useActionState } from "react";
 import { createDogAction, updateDogAction } from "@/features/dogs/actions";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
-import type { Customer, Dog } from "@/types";
+import type { Customer, Dog, Route } from "@/types";
 
 type DogFormProps = {
   customers: Pick<Customer, "id" | "owner_name">[];
+  routes: Pick<Route, "id" | "name">[];
   dog?: Dog;
   scheduleDays?: number[];
 };
 
-export function DogForm({ customers, dog, scheduleDays = [] }: DogFormProps) {
+export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormProps) {
   const action = dog ? updateDogAction.bind(null, dog.id) : createDogAction;
   const [state, formAction, pending] = useActionState(action, {} as { error?: string });
 
@@ -38,6 +39,25 @@ export function DogForm({ customers, dog, scheduleDays = [] }: DogFormProps) {
           {customers.map((c) => (
             <option key={c.id} value={c.id}>
               {c.owner_name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="route_id" className="block text-sm font-medium text-stone-700">
+          Route
+        </label>
+        <select
+          id="route_id"
+          name="route_id"
+          defaultValue={dog?.route_id ?? routes[0]?.id}
+          required
+          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+        >
+          {routes.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
             </option>
           ))}
         </select>

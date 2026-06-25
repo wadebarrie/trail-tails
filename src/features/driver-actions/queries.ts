@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getHikeWithStops } from "@/features/hikes/queries";
+import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import type { StopStatus, StopType } from "@/types";
@@ -23,12 +23,18 @@ export type DriverStopView = {
   destinationLng: number | null;
 };
 
-export type DriverDayView = {
+export type DriverRouteView = {
+  routeId: string;
+  routeName: string;
   hikeId: string;
-  date: string;
-  dateLabel: string;
   pickups: DriverStopView[];
   dropoffs: DriverStopView[];
+};
+
+export type DriverDayView = {
+  date: string;
+  dateLabel: string;
+  routes: DriverRouteView[];
 };
 
 function mapStop(raw: Record<string, unknown>): DriverStopView {
@@ -38,49 +44,13 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
           name: string;
           breed: string | null;
           notes: string | null;
-          customers:
-            | {
-                owner_name: string;
-                phone: string;
-                email: string | null;
-                address: string;
-                address_lat: number | null;
-                address_lng: number | null;
-                notes: string | null;
-              }
-            | {
-                owner_name: string;
-                phone: string;
-                email: string | null;
-                address: string;
-                address_lat: number | null;
-                address_lng: number | null;
-                notes: string | null;
-              }[];
+          customers: unknown;
         }
       | {
           name: string;
           breed: string | null;
           notes: string | null;
-          customers:
-            | {
-                owner_name: string;
-                phone: string;
-                email: string | null;
-                address: string;
-                address_lat: number | null;
-                address_lng: number | null;
-                notes: string | null;
-              }
-            | {
-                owner_name: string;
-                phone: string;
-                email: string | null;
-                address: string;
-                address_lat: number | null;
-                address_lng: number | null;
-                notes: string | null;
-              }[];
+          customers: unknown;
         }[]
   );
   const customer = one(
@@ -144,17 +114,27 @@ export async function getDriverTodayView(
   timeZone: string
 ): Promise<DriverDayView> {
   const date = getDateInTimezone(timeZone, 0);
-  const hike = await getHikeWithStops(companyId, date);
+  const hikes = await getHikesWithStopsForDate(companyId, date);
 
-  const rawStops = (hike?.stops ?? []) as Record<string, unknown>[];
-  const mapped = rawStops.map(mapStop);
+  const routes: DriverRouteView[] = hikes
+    .filter((entry) => entry.hike)
+    .map((entry) => {
+      const rawStops = (entry.hike?.stops ?? []) as Record<string, unknown>[];
+      const mapped = rawStops.map(mapStop);
+      return {
+        routeId: entry.route.id,
+        routeName: entry.route.name,
+        hikeId: entry.hike!.id,
+        pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
+        dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),
+      };
+    })
+    .filter((r) => r.pickups.length > 0 || r.dropoffs.length > 0);
 
   return {
-    hikeId: hike?.id ?? "",
     date,
     dateLabel: formatDateLabel(date, timeZone),
-    pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
-    dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),
+    routes,
   };
 }
 

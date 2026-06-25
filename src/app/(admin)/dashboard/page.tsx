@@ -6,7 +6,7 @@ import {
   PrimaryLink,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
-import { getHikeWithStops } from "@/features/hikes/queries";
+import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getDateInTimezone } from "@/lib/dates";
 
@@ -24,15 +24,17 @@ export default async function DashboardPage() {
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
-  await getHikeWithStops(profile.company_id, today);
-  await getHikeWithStops(profile.company_id, tomorrow);
+  const todayEntries = await getHikesWithStopsForDate(profile.company_id, today);
+  const tomorrowEntries = await getHikesWithStopsForDate(
+    profile.company_id,
+    tomorrow
+  );
 
   const [
     { count: pendingCount },
     { count: customerCount },
     { count: dogCount },
-    { data: todayHike },
-    { data: tomorrowHike },
+    { count: routeCount },
   ] = await Promise.all([
     supabase
       .from("pending_requests")
@@ -50,21 +52,19 @@ export default async function DashboardPage() {
       .eq("company_id", profile.company_id)
       .eq("is_active", true),
     supabase
-      .from("hikes")
-      .select("id, stops(id)")
-      .eq("company_id", profile.company_id)
-      .eq("date", today)
-      .maybeSingle(),
-    supabase
-      .from("hikes")
-      .select("id, stops(id)")
-      .eq("company_id", profile.company_id)
-      .eq("date", tomorrow)
-      .maybeSingle(),
+      .from("routes")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", profile.company_id),
   ]);
 
-  const todayStops = todayHike?.stops?.length ?? 0;
-  const tomorrowStops = tomorrowHike?.stops?.length ?? 0;
+  const todayStops = todayEntries.reduce(
+    (n, e) => n + (e.hike?.stops?.length ?? 0),
+    0
+  );
+  const tomorrowStops = tomorrowEntries.reduce(
+    (n, e) => n + (e.hike?.stops?.length ?? 0),
+    0
+  );
 
   const cards = [
     {
@@ -99,10 +99,10 @@ export default async function DashboardPage() {
       hint: "Active dogs",
     },
     {
-      title: "Route order",
-      value: "Edit",
+      title: "Routes",
+      value: String(routeCount ?? 0),
       href: "/dashboard/route",
-      hint: "Default pickup sequence",
+      hint: "Pickup order per route",
     },
   ];
 

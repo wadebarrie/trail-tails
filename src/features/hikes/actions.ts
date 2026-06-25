@@ -39,7 +39,10 @@ export async function reorderStopsAction(
   return { success: true };
 }
 
-export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
+export async function reorderRouteDogsAction(
+  routeId: string,
+  orderedDogIds: string[]
+) {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
@@ -48,7 +51,8 @@ export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
       .from("dogs")
       .update({ route_sort_order: 1000 + i })
       .eq("id", orderedDogIds[i])
-      .eq("company_id", profile.company_id);
+      .eq("company_id", profile.company_id)
+      .eq("route_id", routeId);
     if (error) return { error: error.message };
   }
 
@@ -57,7 +61,8 @@ export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
       .from("dogs")
       .update({ route_sort_order: i })
       .eq("id", orderedDogIds[i])
-      .eq("company_id", profile.company_id);
+      .eq("company_id", profile.company_id)
+      .eq("route_id", routeId);
     if (error) return { error: error.message };
   }
 
@@ -65,4 +70,20 @@ export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   return { success: true };
+}
+
+/** @deprecated Use reorderRouteDogsAction */
+export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+  const { data: route } = await supabase
+    .from("routes")
+    .select("id")
+    .eq("company_id", profile.company_id)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+
+  if (!route) return { error: "No routes configured" };
+  return reorderRouteDogsAction(route.id, orderedDogIds);
 }

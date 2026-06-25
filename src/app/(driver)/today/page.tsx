@@ -11,8 +11,14 @@ export default async function DriverTodayPage() {
   const timeZone = await getDriverCompanyTimezone(profile.company_id);
   const day = await getDriverTodayView(profile.company_id, timeZone);
 
-  const pendingPickups = day.pickups.filter((s) => s.status !== "picked_up").length;
-  const pendingDropoffs = day.dropoffs.filter((s) => s.status !== "dropped_off").length;
+  const totalPickups = day.routes.reduce(
+    (n, r) => n + r.pickups.filter((s) => s.status !== "picked_up").length,
+    0
+  );
+  const totalDropoffs = day.routes.reduce(
+    (n, r) => n + r.dropoffs.filter((s) => s.status !== "dropped_off").length,
+    0
+  );
 
   return (
     <div>
@@ -21,26 +27,42 @@ export default async function DriverTodayPage() {
 
       <div className="mt-4 flex gap-3 text-sm">
         <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">
-          {pendingPickups} pickup{pendingPickups === 1 ? "" : "s"} left
+          {totalPickups} pickup{totalPickups === 1 ? "" : "s"} left
         </span>
         <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">
-          {pendingDropoffs} drop-off{pendingDropoffs === 1 ? "" : "s"} left
+          {totalDropoffs} drop-off{totalDropoffs === 1 ? "" : "s"} left
         </span>
       </div>
 
-      <div className="mt-8 space-y-10">
-        <DriverPickupReorder hikeId={day.hikeId} pickups={day.pickups} />
-        <DriverStopList
-          title="Morning pickups"
-          stops={day.pickups}
-          emptyMessage="No pickups scheduled today."
-        />
-        <DriverStopList
-          title="Afternoon drop-offs"
-          stops={day.dropoffs}
-          emptyMessage="No drop-offs scheduled today."
-        />
-      </div>
+      {day.routes.length > 0 ? (
+        <div className="mt-8 space-y-12">
+          {day.routes.map((route) => (
+            <section key={route.routeId}>
+              <h2 className="mb-4 text-lg font-semibold text-white/90">
+                {route.routeName}
+              </h2>
+              <div className="space-y-10">
+                <DriverPickupReorder
+                  hikeId={route.hikeId}
+                  pickups={route.pickups}
+                />
+                <DriverStopList
+                  title="Morning pickups"
+                  stops={route.pickups}
+                  emptyMessage="No pickups scheduled today."
+                />
+                <DriverStopList
+                  title="Afternoon drop-offs"
+                  stops={route.dropoffs}
+                  emptyMessage="No drop-offs scheduled today."
+                />
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-8 text-white/60">No hikes scheduled today.</p>
+      )}
     </div>
   );
 }

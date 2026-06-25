@@ -13,6 +13,7 @@ import { requireRole } from "@/features/auth/queries";
 
 const dogSchema = z.object({
   customer_id: z.string().uuid(),
+  route_id: z.string().uuid(),
   name: z.string().min(1, "Dog name is required"),
   breed: z.string().optional(),
   notes: z.string().optional(),
@@ -54,13 +55,14 @@ export async function createDogAction(
   const { count } = await supabase
     .from("dogs")
     .select("*", { count: "exact", head: true })
-    .eq("company_id", profile.company_id);
+    .eq("route_id", parsed.data.route_id);
 
   const { data: dog, error } = await supabase
     .from("dogs")
     .insert({
       company_id: profile.company_id,
       customer_id: parsed.data.customer_id,
+      route_id: parsed.data.route_id,
       name: parsed.data.name,
       breed: parsed.data.breed || null,
       notes: parsed.data.notes || null,
@@ -104,6 +106,7 @@ export async function updateDogAction(
     .from("dogs")
     .update({
       customer_id: parsed.data.customer_id,
+      route_id: parsed.data.route_id,
       name: parsed.data.name,
       breed: parsed.data.breed || null,
       notes: parsed.data.notes || null,

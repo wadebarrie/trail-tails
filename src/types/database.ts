@@ -56,6 +56,15 @@ export interface Company {
   updated_at: string;
 }
 
+export interface Route {
+  id: string;
+  company_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Customer {
   id: string;
   company_id: string;
@@ -75,6 +84,7 @@ export interface Dog {
   id: string;
   company_id: string;
   customer_id: string;
+  route_id: string;
   name: string;
   breed: string | null;
   notes: string | null;
@@ -109,6 +119,7 @@ export interface ScheduleException {
 export interface Hike {
   id: string;
   company_id: string;
+  route_id: string;
   date: string;
   driver_id: string | null;
   status: HikeStatus;
@@ -201,6 +212,7 @@ export interface Database {
   public: {
     Tables: {
       companies: TableDef<Company>;
+      routes: TableDef<Route>;
       profiles: TableDef<Profile>;
       customers: TableDef<Customer>;
       dogs: TableDef<Dog>;

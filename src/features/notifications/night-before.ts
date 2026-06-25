@@ -29,20 +29,21 @@ export async function sendNightBeforeRemindersForCompany(
 
   await syncStopsForDate(companyId, tomorrow);
 
-  const { data: hike } = await supabase
+  const { data: hikes } = await supabase
     .from("hikes")
     .select("id")
     .eq("company_id", companyId)
-    .eq("date", tomorrow)
-    .maybeSingle();
+    .eq("date", tomorrow);
 
-  if (!hike) return { skipped: true as const, reason: "no_hike" };
+  const hikeIds = (hikes ?? []).map((h) => h.id);
+  if (!hikeIds.length) return { skipped: true as const, reason: "no_hike" };
 
   const { data: stops } = await supabase
     .from("stops")
     .select(
       `
       id,
+      hike_id,
       window_start,
       window_end,
       status,
@@ -54,7 +55,7 @@ export async function sendNightBeforeRemindersForCompany(
       )
     `
     )
-    .eq("hike_id", hike.id)
+    .in("hike_id", hikeIds)
     .eq("stop_type", "pickup")
     .eq("status", "scheduled");
 

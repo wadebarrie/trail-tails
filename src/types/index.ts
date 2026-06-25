@@ -11,6 +11,7 @@ export type {
   ExceptionType,
   RequestStatus,
   NotificationType,
+  Route,
 } from "./database";
 
 export type { Database } from "./database";
