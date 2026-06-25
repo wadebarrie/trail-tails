@@ -1,6 +1,7 @@
 import { getCurrentProfile } from "@/features/auth/queries";
 import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import { createClient } from "@/lib/supabase/server";
+import { logErrorFromException, logWarn } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDayOfWeek } from "@/lib/dates";
 import type { StopType } from "@/types";
@@ -134,7 +135,11 @@ export async function ensureHikeForDate(companyId: string, date: string) {
 export async function getHikeWithStops(companyId: string, date: string) {
   try {
     await ensureHikeForDate(companyId, date);
-  } catch {
+  } catch (error) {
+    logErrorFromException("hike", "Failed to ensure hike for date", error, {
+      companyId,
+      context: { date },
+    });
     return null;
   }
 
@@ -169,7 +174,13 @@ export async function getHikeWithStops(companyId: string, date: string) {
     .eq("date", date)
     .maybeSingle();
 
-  if (error) return null;
+  if (error) {
+    logWarn("hike", "Failed to load hike with stops", {
+      companyId,
+      context: { date, dbError: error.message },
+    });
+    return null;
+  }
 
   return hike;
 }

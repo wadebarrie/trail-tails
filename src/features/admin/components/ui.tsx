@@ -12,6 +12,7 @@ const links = [
   { href: "/dashboard/exceptions", label: "Exceptions" },
   { href: "/dashboard/sms", label: "SMS" },
   { href: "/dashboard/notifications", label: "Notifications" },
+  { href: "/dashboard/logs", label: "Logs" },
 ];
 
 export function AdminNav() {

@@ -1,3 +1,5 @@
+import { logWarn } from "@/lib/logger";
+
 export type GeocodeResult = {
   lat: number;
   lng: number;
@@ -57,20 +59,18 @@ export async function geocodeAddress(
 
   const apiError = data.error?.message;
   if (!response.ok || apiError) {
-    return {
-      ok: false,
-      error:
-        apiError ??
-        `Geocoding request failed (HTTP ${response.status}). Check that Geocoding API is enabled and your key restrictions allow it.`,
-    };
+    const error =
+      apiError ??
+      `Geocoding request failed (HTTP ${response.status}). Check that Geocoding API is enabled and your key restrictions allow it.`;
+    logWarn("geocode", error, { context: { addressPreview: trimmed.slice(0, 80) } });
+    return { ok: false, error };
   }
 
   const result = data.results?.[0];
   if (!result?.location) {
-    return {
-      ok: false,
-      error: "Could not find that address. Check the spelling and try again.",
-    };
+    const error = "Could not find that address. Check the spelling and try again.";
+    logWarn("geocode", error, { context: { addressPreview: trimmed.slice(0, 80) } });
+    return { ok: false, error };
   }
 
   return {

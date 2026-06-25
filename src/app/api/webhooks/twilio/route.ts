@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { logErrorFromException, logWarn } from "@/lib/logger";
 import {
   emptyTwimlResponse,
   getTwilioConfig,
@@ -12,6 +13,7 @@ const DEFAULT_COMPANY_ID = "a0000000-0000-0000-0000-000000000001";
 export async function POST(request: Request) {
   const config = getTwilioConfig();
   if (!config) {
+    logWarn("webhook", "Twilio webhook hit but Twilio is not configured");
     return new Response("Twilio not configured", { status: 503 });
   }
 
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
       params
     )
   ) {
+    logWarn("webhook", "Twilio webhook rejected — invalid signature");
     return new Response("Invalid signature", { status: 403 });
   }
 
@@ -73,8 +76,11 @@ export async function POST(request: Request) {
       twilio_sid: twilioSid,
       status: "received",
     });
-  } catch {
-    // Always return 200 so Twilio does not retry indefinitely
+  } catch (error) {
+    logErrorFromException("webhook", "Failed to persist inbound SMS", error, {
+      companyId: DEFAULT_COMPANY_ID,
+      context: { fromNumber, twilioSid },
+    });
   }
 
   // Phase 10: parse commands and create pending_requests

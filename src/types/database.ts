@@ -179,6 +179,16 @@ export interface NotificationLog {
   created_at: string;
 }
 
+export interface SystemLog {
+  id: string;
+  company_id: string | null;
+  level: string;
+  category: string;
+  message: string;
+  context: Record<string, unknown>;
+  created_at: string;
+}
+
 type TableDef<T> = {
   Row: T;
   Insert: Partial<T>;
@@ -199,6 +209,7 @@ export interface Database {
       pending_requests: TableDef<PendingRequest>;
       sms_messages: TableDef<SmsMessage>;
       notification_log: TableDef<NotificationLog>;
+      system_logs: TableDef<SystemLog>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

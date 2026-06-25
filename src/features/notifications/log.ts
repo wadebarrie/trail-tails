@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { getTwilioConfig, sendSms } from "@/lib/twilio";
 import type { NotificationType } from "@/types";
 
@@ -26,17 +27,36 @@ async function resolveCustomerPhone(
   return data?.phone ?? null;
 }
 
+function smsContext(input: LogNotificationInput, extra?: Record<string, unknown>) {
+  return {
+    companyId: input.companyId,
+    context: {
+      notificationType: input.notificationType,
+      customerId: input.customerId ?? null,
+      dogId: input.dogId ?? null,
+      stopId: input.stopId ?? null,
+      ...extra,
+    },
+  };
+}
+
 /**
  * Logs outbound notifications and sends SMS when Twilio is configured.
  * Never throws — driver workflow must not be blocked.
  */
 export async function logNotification(input: LogNotificationInput) {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    logError("sms", "Notification skipped — SUPABASE_SERVICE_ROLE_KEY missing", {
+      companyId: input.companyId,
+      context: { notificationType: input.notificationType, stopId: input.stopId },
+    });
+    return;
+  }
 
   try {
     const supabase = createServiceClient();
 
-    const { data: notification, error: logError } = await supabase
+    const { data: notification, error: insertError } = await supabase
       .from("notification_log")
       .insert({
         company_id: input.companyId,
@@ -51,10 +71,30 @@ export async function logNotification(input: LogNotificationInput) {
       .select("id")
       .single();
 
-    if (logError || !notification) return;
+    if (insertError || !notification) {
+      logError("sms", "Failed to create notification_log row", {
+        ...smsContext(input),
+        context: {
+          ...smsContext(input).context,
+          dbError: insertError?.message ?? "No row returned",
+        },
+      });
+      return;
+    }
 
     const twilio = getTwilioConfig();
-    if (!twilio) return;
+    if (!twilio) {
+      await supabase
+        .from("notification_log")
+        .update({
+          status: "failed",
+          error_message: "Twilio is not configured",
+        })
+        .eq("id", notification.id);
+
+      logWarn("sms", "SMS not sent — Twilio is not configured", smsContext(input));
+      return;
+    }
 
     const phone = await resolveCustomerPhone(input.customerId);
     if (!phone) {
@@ -65,6 +105,8 @@ export async function logNotification(input: LogNotificationInput) {
           error_message: "Customer has no phone number",
         })
         .eq("id", notification.id);
+
+      logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
       return;
     }
 
@@ -78,10 +120,15 @@ export async function logNotification(input: LogNotificationInput) {
           error_message: result.error,
         })
         .eq("id", notification.id);
+
+      logError("sms", "Twilio send failed", {
+        ...smsContext(input),
+        context: { ...smsContext(input).context, twilioError: result.error, to: phone },
+      });
       return;
     }
 
-    const { data: smsMessage } = await supabase
+    const { data: smsMessage, error: smsInsertError } = await supabase
       .from("sms_messages")
       .insert({
         company_id: input.companyId,
@@ -96,6 +143,17 @@ export async function logNotification(input: LogNotificationInput) {
       .select("id")
       .single();
 
+    if (smsInsertError) {
+      logWarn("sms", "SMS sent but sms_messages insert failed", {
+        ...smsContext(input),
+        context: {
+          ...smsContext(input).context,
+          twilioSid: result.sid,
+          dbError: smsInsertError.message,
+        },
+      });
+    }
+
     await supabase
       .from("notification_log")
       .update({
@@ -103,8 +161,13 @@ export async function logNotification(input: LogNotificationInput) {
         sms_message_id: smsMessage?.id ?? null,
       })
       .eq("id", notification.id);
-  } catch {
-    // Notifications must not block driver workflow
+  } catch (error) {
+    logErrorFromException(
+      "sms",
+      "Unexpected error while sending notification",
+      error,
+      smsContext(input)
+    );
   }
 }
 

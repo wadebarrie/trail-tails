@@ -1,3 +1,5 @@
+import { logWarn } from "@/lib/logger";
+
 export type LatLng = {
   lat: number;
   lng: number;
@@ -130,5 +132,9 @@ export async function resolveDrivingEtaMinutes(
   if (!isValidPoint(origin) || !isValidPoint(destination)) return null;
 
   const result = await getDrivingEta(origin, destination);
-  return result.ok ? result.result.durationMinutes : null;
+  if (!result.ok) {
+    logWarn("eta", result.error, { context: { origin, destination } });
+    return null;
+  }
+  return result.result.durationMinutes;
 }

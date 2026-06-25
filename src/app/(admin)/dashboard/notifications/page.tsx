@@ -1,4 +1,4 @@
-import { EmptyState, PageHeader } from "@/features/admin/components/ui";
+import { EmptyState, PageHeader, Badge } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +15,7 @@ export default async function NotificationsPage() {
       notification_type,
       body,
       status,
+      error_message,
       created_at,
       customers ( owner_name ),
       dogs ( name )
@@ -44,11 +45,29 @@ export default async function NotificationsPage() {
                 <span className="font-medium text-stone-700">
                   {n.notification_type.replace(/_/g, " ")}
                 </span>
-                <span className="text-xs text-stone-500">
-                  {new Date(n.created_at).toLocaleString()} · {n.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    tone={
+                      n.status === "sent"
+                        ? "green"
+                        : n.status === "failed"
+                          ? "red"
+                          : "amber"
+                    }
+                  >
+                    {n.status}
+                  </Badge>
+                  <span className="text-xs text-stone-500">
+                    {new Date(n.created_at).toLocaleString()}
+                  </span>
+                </div>
               </div>
               <p className="mt-1 text-stone-800">{n.body}</p>
+              {n.status === "failed" && n.error_message ? (
+                <p className="mt-2 rounded bg-red-50 px-2 py-1 text-xs text-red-700">
+                  {n.error_message}
+                </p>
+              ) : null}
               <p className="mt-1 text-xs text-stone-500">
                 {one(
                   n.customers as
