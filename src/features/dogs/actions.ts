@@ -1,0 +1,150 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
+import { requireRole } from "@/features/auth/queries";
+
+const dogSchema = z.object({
+  customer_id: z.string().uuid(),
+  name: z.string().min(1, "Dog name is required"),
+  breed: z.string().optional(),
+  notes: z.string().optional(),
+  pickup_window_start: z.string().min(1),
+  pickup_window_end: z.string().min(1),
+  is_active: z.coerce.boolean().optional(),
+  schedule_days: z.string().optional(),
+});
+
+function parseScheduleDays(raw?: string): number[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((d) => Number(d.trim()))
+    .filter((d) => d >= 0 && d <= 6);
+}
+
+export async function createDogAction(
+  _prev: { error?: string },
+  formData: FormData
+) {
+  const profile = await requireRole("admin");
+  const parsed = dogSchema.safeParse(Object.fromEntries(formData));
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const supabase = await createClient();
+
+  const { count } = await supabase
+    .from("dogs")
+    .select("*", { count: "exact", head: true })
+    .eq("company_id", profile.company_id);
+
+  const { data: dog, error } = await supabase
+    .from("dogs")
+    .insert({
+      company_id: profile.company_id,
+      customer_id: parsed.data.customer_id,
+      name: parsed.data.name,
+      breed: parsed.data.breed || null,
+      notes: parsed.data.notes || null,
+      pickup_window_start: parsed.data.pickup_window_start,
+      pickup_window_end: parsed.data.pickup_window_end,
+      is_active: parsed.data.is_active ?? true,
+      route_sort_order: count ?? 0,
+    })
+    .select("id")
+    .single();
+
+  if (error || !dog) return { error: error?.message ?? "Failed to create dog" };
+
+  const days = parseScheduleDays(parsed.data.schedule_days);
+  if (days.length > 0) {
+    await supabase.from("dog_schedule_days").insert(
+      days.map((day_of_week) => ({ dog_id: dog.id, day_of_week }))
+    );
+  }
+
+  revalidatePath("/dashboard/dogs");
+  redirect("/dashboard/dogs");
+}
+
+export async function updateDogAction(
+  id: string,
+  _prev: { error?: string },
+  formData: FormData
+) {
+  await requireRole("admin");
+  const parsed = dogSchema.safeParse(Object.fromEntries(formData));
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("dogs")
+    .update({
+      customer_id: parsed.data.customer_id,
+      name: parsed.data.name,
+      breed: parsed.data.breed || null,
+      notes: parsed.data.notes || null,
+      pickup_window_start: parsed.data.pickup_window_start,
+      pickup_window_end: parsed.data.pickup_window_end,
+      is_active: parsed.data.is_active ?? true,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  await supabase.from("dog_schedule_days").delete().eq("dog_id", id);
+
+  const days = parseScheduleDays(parsed.data.schedule_days);
+  if (days.length > 0) {
+    await supabase.from("dog_schedule_days").insert(
+      days.map((day_of_week) => ({ dog_id: id, day_of_week }))
+    );
+  }
+
+  revalidatePath("/dashboard/dogs");
+  revalidatePath(`/dashboard/dogs/${id}`);
+  redirect("/dashboard/dogs");
+}
+
+export async function createScheduleExceptionAction(formData: FormData) {
+  const profile = await requireRole("admin");
+  const dogId = String(formData.get("dog_id") ?? "");
+  const exceptionType = String(formData.get("exception_type") ?? "skip_date");
+  const startDate = String(formData.get("start_date") ?? "");
+  const endDate = String(formData.get("end_date") ?? "") || null;
+  const reason = String(formData.get("reason") ?? "") || null;
+
+  if (!dogId || !startDate) {
+    throw new Error("Dog and start date are required");
+  }
+
+  const supabase = await createClient();
+  const end =
+    exceptionType === "pause"
+      ? null
+      : endDate ?? (exceptionType === "vacation" ? null : startDate);
+
+  const { error } = await supabase.from("schedule_exceptions").insert({
+    dog_id: dogId,
+    exception_type: exceptionType as "skip_date" | "vacation" | "pause",
+    start_date: startDate,
+    end_date: end,
+    reason,
+    created_by: profile.id,
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard/exceptions");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+}

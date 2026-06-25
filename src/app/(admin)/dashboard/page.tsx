@@ -1,0 +1,139 @@
+import Link from "next/link";
+import {
+  Badge,
+  Card,
+  PageHeader,
+  PrimaryLink,
+} from "@/features/admin/components/ui";
+import { requireRole } from "@/features/auth/queries";
+import { getHikeWithStops } from "@/features/hikes/queries";
+import { createClient } from "@/lib/supabase/server";
+import { getDateInTimezone } from "@/lib/dates";
+
+export default async function DashboardPage() {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", profile.company_id)
+    .single();
+
+  const tz = company?.timezone ?? "America/Los_Angeles";
+  const today = getDateInTimezone(tz, 0);
+  const tomorrow = getDateInTimezone(tz, 1);
+
+  await getHikeWithStops(profile.company_id, today);
+  await getHikeWithStops(profile.company_id, tomorrow);
+
+  const [
+    { count: pendingCount },
+    { count: customerCount },
+    { count: dogCount },
+    { data: todayHike },
+    { data: tomorrowHike },
+  ] = await Promise.all([
+    supabase
+      .from("pending_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", profile.company_id)
+      .eq("status", "pending"),
+    supabase
+      .from("customers")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true),
+    supabase
+      .from("dogs")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true),
+    supabase
+      .from("hikes")
+      .select("id, stops(id)")
+      .eq("company_id", profile.company_id)
+      .eq("date", today)
+      .maybeSingle(),
+    supabase
+      .from("hikes")
+      .select("id, stops(id)")
+      .eq("company_id", profile.company_id)
+      .eq("date", tomorrow)
+      .maybeSingle(),
+  ]);
+
+  const todayStops = todayHike?.stops?.length ?? 0;
+  const tomorrowStops = tomorrowHike?.stops?.length ?? 0;
+
+  const cards = [
+    {
+      title: "Today",
+      value: `${Math.floor(todayStops / 2)} dogs`,
+      href: "/dashboard/hikes/today",
+      hint: "Pickups & drop-offs",
+    },
+    {
+      title: "Tomorrow",
+      value: `${Math.floor(tomorrowStops / 2)} dogs`,
+      href: "/dashboard/hikes/tomorrow",
+      hint: "Preview schedule",
+    },
+    {
+      title: "Pending requests",
+      value: String(pendingCount ?? 0),
+      href: "/dashboard/pending-requests",
+      hint: "Customer SMS requests",
+      alert: (pendingCount ?? 0) > 0,
+    },
+    {
+      title: "Customers",
+      value: String(customerCount ?? 0),
+      href: "/dashboard/customers",
+      hint: "Active customers",
+    },
+    {
+      title: "Dogs",
+      value: String(dogCount ?? 0),
+      href: "/dashboard/dogs",
+      hint: "Active dogs",
+    },
+    {
+      title: "Route order",
+      value: "Edit",
+      href: "/dashboard/route",
+      hint: "Default pickup sequence",
+    },
+  ];
+
+  return (
+    <div>
+      <PageHeader
+        title="Dashboard"
+        description="Overview of today's operations"
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <Link key={card.href} href={card.href}>
+            <Card className="transition hover:border-[var(--color-trail-600)] hover:shadow-md">
+              <div className="flex items-start justify-between">
+                <p className="text-sm font-medium text-stone-500">{card.title}</p>
+                {card.alert ? <Badge tone="amber">Action needed</Badge> : null}
+              </div>
+              <p className="mt-2 text-2xl font-semibold text-stone-900">
+                {card.value}
+              </p>
+              <p className="mt-1 text-sm text-stone-500">{card.hint}</p>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <PrimaryLink href="/dashboard/customers/new">Add customer</PrimaryLink>
+        <PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>
+      </div>
+    </div>
+  );
+}
