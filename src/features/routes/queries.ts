@@ -5,7 +5,9 @@ export async function listRoutes(companyId: string): Promise<Route[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("routes")
-    .select("id, company_id, name, sort_order, created_at, updated_at")
+    .select(
+      "id, company_id, name, sort_order, default_driver_id, created_at, updated_at"
+    )
     .eq("company_id", companyId)
     .order("sort_order")
     .order("name");

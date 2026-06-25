@@ -37,17 +37,33 @@ async function ensureHikeRow(
 
   const { data: existing } = await supabase
     .from("hikes")
-    .select("id")
+    .select("id, driver_id")
     .eq("company_id", companyId)
     .eq("route_id", routeId)
     .eq("date", date)
     .maybeSingle();
 
-  if (existing) return existing.id;
+  if (existing) {
+    if (!existing.driver_id) {
+      await applyRouteDefaultDriver(supabase, existing.id, routeId);
+    }
+    return existing.id;
+  }
+
+  const { data: route } = await supabase
+    .from("routes")
+    .select("default_driver_id")
+    .eq("id", routeId)
+    .single();
 
   const { data: created, error } = await supabase
     .from("hikes")
-    .insert({ company_id: companyId, route_id: routeId, date })
+    .insert({
+      company_id: companyId,
+      route_id: routeId,
+      date,
+      driver_id: route?.default_driver_id ?? null,
+    })
     .select("id")
     .single();
 
@@ -56,6 +72,26 @@ async function ensureHikeRow(
   }
 
   return created.id;
+}
+
+async function applyRouteDefaultDriver(
+  supabase: ReturnType<typeof createServiceClient>,
+  hikeId: string,
+  routeId: string
+) {
+  const { data: route } = await supabase
+    .from("routes")
+    .select("default_driver_id")
+    .eq("id", routeId)
+    .single();
+
+  if (!route?.default_driver_id) return;
+
+  await supabase
+    .from("hikes")
+    .update({ driver_id: route.default_driver_id })
+    .eq("id", hikeId)
+    .is("driver_id", null);
 }
 
 /** Sync stops for every route on a given date. */

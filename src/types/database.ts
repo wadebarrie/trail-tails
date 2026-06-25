@@ -61,6 +61,7 @@ export interface Route {
   company_id: string;
   name: string;
   sort_order: number;
+  default_driver_id: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -1,5 +1,5 @@
 /**
- * Creates local dev test users in Supabase Auth.
+ * Creates local dev test users in Supabase Auth + assigns drivers to routes.
  * Requires SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL in .env.local
  *
  * Usage: node scripts/seed-test-users.mjs
@@ -29,6 +29,33 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const COMPANY_ID = "a0000000-0000-0000-0000-000000000001";
 
+const ROUTES = [
+  {
+    id: "d0000000-0000-0000-0000-000000000001",
+    name: "Vancouver",
+    driverEmail: "driver-vancouver@trailtails.test",
+    driverName: "Alex Chen",
+  },
+  {
+    id: "d0000000-0000-0000-0000-000000000002",
+    name: "Burnaby New Westminster Coquitlam",
+    driverEmail: "driver-burnaby@trailtails.test",
+    driverName: "Sam Patel",
+  },
+  {
+    id: "d0000000-0000-0000-0000-000000000003",
+    name: "Surrey Delta",
+    driverEmail: "driver-surrey@trailtails.test",
+    driverName: "Jordan Lee",
+  },
+  {
+    id: "d0000000-0000-0000-0000-000000000004",
+    name: "Langley Abbotsford",
+    driverEmail: "driver-langley@trailtails.test",
+    driverName: "Riley Morgan",
+  },
+];
+
 export const TEST_USERS = [
   {
     email: "admin@trailtails.test",
@@ -41,9 +68,16 @@ export const TEST_USERS = [
     email: "driver@trailtails.test",
     password: "TrailTailsDev1!",
     role: "driver",
-    full_name: "Test Driver",
+    full_name: "Test Driver (legacy)",
     can_drive: false,
   },
+  ...ROUTES.map((r) => ({
+    email: r.driverEmail,
+    password: "TrailTailsDev1!",
+    role: "driver",
+    full_name: r.driverName,
+    can_drive: false,
+  })),
 ];
 
 async function createUser(user) {
@@ -71,22 +105,37 @@ async function createUser(user) {
   return { status: res.status, body };
 }
 
+async function getAuthUserIdByEmail(email) {
+  let page = 1;
+  const perPage = 200;
+
+  while (true) {
+    const listRes = await fetch(
+      `${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=${perPage}`,
+      {
+        headers: {
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          apikey: SERVICE_KEY,
+        },
+      }
+    );
+    const listBody = await listRes.json().catch(() => ({}));
+    const users = listBody?.users ?? [];
+    const match = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+    if (match) return match.id;
+    if (users.length < perPage) break;
+    page += 1;
+  }
+
+  return null;
+}
+
 async function syncProfileFlags(user) {
-  const listRes = await fetch(
-    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(user.email)}`,
-    {
-      headers: {
-        Authorization: `Bearer ${SERVICE_KEY}`,
-        apikey: SERVICE_KEY,
-      },
-    }
-  );
-  const listBody = await listRes.json().catch(() => ({}));
-  const authUser = listBody?.users?.[0];
-  if (!authUser?.id) return;
+  const authUserId = await getAuthUserIdByEmail(user.email);
+  if (!authUserId) return null;
 
   const patchRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${authUser.id}`,
+    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${authUserId}`,
     {
       method: "PATCH",
       headers: {
@@ -102,6 +151,41 @@ async function syncProfileFlags(user) {
   if (!patchRes.ok) {
     const body = await patchRes.json().catch(() => ({}));
     console.warn(`  ! Profile sync ${user.email}:`, body?.message || patchRes.status);
+  }
+
+  return authUserId;
+}
+
+async function assignRouteDrivers() {
+  console.log("\nAssigning default drivers to routes...");
+
+  for (const route of ROUTES) {
+    const profileId = await getAuthUserIdByEmail(route.driverEmail);
+    if (!profileId) {
+      console.warn(`  ! No profile for ${route.driverEmail} — skip ${route.name}`);
+      continue;
+    }
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/routes?id=eq.${route.id}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          apikey: SERVICE_KEY,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({ default_driver_id: profileId }),
+      }
+    );
+
+    if (res.ok) {
+      console.log(`✓ ${route.name} → ${route.driverName}`);
+    } else {
+      const body = await res.json().catch(() => ({}));
+      console.warn(`  ! Route assign ${route.name}:`, body?.message || res.status);
+    }
   }
 }
 
@@ -129,9 +213,14 @@ async function main() {
     await syncProfileFlags(user);
   }
 
+  await assignRouteDrivers();
+
   console.log("\n--- Dev credentials ---");
-  console.log("Admin:  admin@trailtails.test  /  TrailTailsDev1!  (admin + driver view)");
-  console.log("Driver: driver@trailtails.test /  TrailTailsDev1!");
+  console.log("Admin:  admin@trailtails.test  /  TrailTailsDev1!");
+  console.log("Drivers (one per route):");
+  for (const r of ROUTES) {
+    console.log(`  ${r.name}: ${r.driverEmail} / TrailTailsDev1!`);
+  }
   console.log("\nSign in at http://localhost:3000/login");
 }
 

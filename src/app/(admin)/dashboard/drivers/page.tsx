@@ -22,7 +22,7 @@ export default async function DriversPage() {
     <div>
       <PageHeader
         title="Drivers"
-        description="Dog walkers who use the driver mobile app. Assign drivers on Today/Tomorrow hike pages."
+        description="Dog walkers who use the driver mobile app. Assign default drivers on the Routes page."
       />
 
       {!drivers?.length ? (
