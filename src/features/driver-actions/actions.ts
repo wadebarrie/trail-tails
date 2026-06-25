@@ -11,6 +11,7 @@ import {
   logNotification,
 } from "@/features/notifications/log";
 import { applyStopReorder } from "@/features/hikes/reorder-stops";
+import { resolveDrivingEtaMinutes } from "@/lib/google-maps/eta";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
 
@@ -24,12 +25,16 @@ type StopContext = {
     name: string;
     company_id: string;
     customer_id: string;
-    customers: { owner_name: string } | { owner_name: string }[];
+    customers:
+      | { owner_name: string; address_lat: number | null; address_lng: number | null }
+      | { owner_name: string; address_lat: number | null; address_lng: number | null }[];
   } | {
     name: string;
     company_id: string;
     customer_id: string;
-    customers: { owner_name: string } | { owner_name: string }[];
+    customers:
+      | { owner_name: string; address_lat: number | null; address_lng: number | null }
+      | { owner_name: string; address_lat: number | null; address_lng: number | null }[];
   }[];
 };
 
@@ -48,7 +53,7 @@ async function loadStop(stopId: string): Promise<StopContext | null> {
         name,
         company_id,
         customer_id,
-        customers ( owner_name )
+        customers ( owner_name, address_lat, address_lng )
       )
     `
     )
@@ -77,6 +82,17 @@ export async function enRouteAction(
   }
 
   const supabase = await createClient();
+
+  const dog = one(stop.dogs);
+  const customer = one(dog?.customers);
+  const origin =
+    lat != null && lng != null ? { lat, lng } : null;
+  const destination =
+    customer?.address_lat != null && customer?.address_lng != null
+      ? { lat: customer.address_lat, lng: customer.address_lng }
+      : null;
+  const etaMinutes = await resolveDrivingEtaMinutes(origin, destination);
+
   const { error } = await supabase
     .from("stops")
     .update({
@@ -84,6 +100,7 @@ export async function enRouteAction(
       en_route_at: new Date().toISOString(),
       driver_lat: lat,
       driver_lng: lng,
+      eta_minutes: etaMinutes,
     })
     .eq("id", stopId)
     .eq("status", "scheduled");
@@ -96,9 +113,6 @@ export async function enRouteAction(
     .eq("id", stop.hike_id)
     .eq("status", "planned");
 
-  const dog = one(stop.dogs);
-  const customer = one(dog?.customers);
-
   if (dog) {
     await logNotification({
       companyId: dog.company_id,
@@ -109,7 +123,8 @@ export async function enRouteAction(
       body: buildEnRouteMessage(
         customer?.owner_name ?? "",
         dog.name,
-        stop.stop_type as "pickup" | "dropoff"
+        stop.stop_type as "pickup" | "dropoff",
+        etaMinutes
       ),
     });
   }

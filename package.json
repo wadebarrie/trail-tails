@@ -13,6 +13,7 @@
     "db:migrate": "bash scripts/apply-migrations.sh",
     "db:seed-users": "node scripts/seed-test-users.mjs",
     "test:geocode": "node scripts/test-geocode.mjs",
+    "test:eta": "node scripts/test-eta.mjs",
     "test:twilio": "node scripts/test-twilio.mjs"
   },
   "dependencies": {

@@ -77,4 +77,6 @@ See [`.env.example`](.env.example). Required for the app:
 | 5 Authentication | ✅ |
 | 6 Admin dashboard | ✅ |
 | 7 Driver interface | ✅ |
-| 8 Twilio integration | Next |
+| 8 Twilio integration | ✅ |
+| 9 Google Maps ETA | ✅ (enable **Routes API** in Google Cloud) |
+| 10 SMS parser | Next |
