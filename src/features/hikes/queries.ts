@@ -3,8 +3,12 @@ import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import { createClient } from "@/lib/supabase/server";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
-import { listRoutes } from "@/features/routes/queries";
-import type { Route } from "@/types";
+import {
+  getRouteScheduleDays,
+  listRoutes,
+  type RouteWithSchedule,
+} from "@/features/routes/queries";
+import { getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
 
 const HIKE_SELECT = `
   id,
@@ -30,7 +34,7 @@ const HIKE_SELECT = `
 `;
 
 export type HikeWithRoute = {
-  route: Route;
+  route: RouteWithSchedule;
   hike: {
     id: string;
     date: string;
@@ -70,11 +74,25 @@ export async function getHikesWithStopsForDate(
   }
 
   const supabase = await createClient();
+
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", companyId)
+    .single();
+
+  const timeZone = company?.timezone ?? "America/Los_Angeles";
+  const dayOfWeek = getDayOfWeek(date, timeZone);
   const routes = await listRoutes(companyId);
 
   const results: HikeWithRoute[] = [];
 
   for (const route of routes) {
+    const scheduleDays = getRouteScheduleDays(route);
+    if (!routeRunsOnDay(scheduleDays, dayOfWeek)) {
+      continue;
+    }
+
     const { data: hike, error } = await supabase
       .from("hikes")
       .select(HIKE_SELECT)

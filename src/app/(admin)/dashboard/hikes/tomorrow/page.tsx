@@ -28,7 +28,9 @@ export default async function TomorrowHikesPage() {
     .eq("is_active", true)
     .order("full_name");
 
-  const withStops = hikes.filter((h) => h.hike);
+  const withStops = hikes.filter(
+    (h) => (h.hike?.stops?.length ?? 0) > 0
+  );
 
   return (
     <div>

@@ -57,3 +57,24 @@ export const WEEKDAYS = [
   { value: 5, label: "Fri" },
   { value: 6, label: "Sat" },
 ] as const;
+
+export function parseScheduleDays(raw?: string): number[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((d) => Number(d.trim()))
+    .filter((d) => d >= 0 && d <= 6);
+}
+
+export function formatScheduleDayLabels(days: number[]): string {
+  if (!days.length) return "No days set";
+  return [...days]
+    .sort((a, b) => a - b)
+    .map((d) => WEEKDAYS.find((w) => w.value === d)?.label)
+    .filter(Boolean)
+    .join(", ");
+}
+
+export function routeRunsOnDay(scheduleDays: number[], dayOfWeek: number): boolean {
+  return scheduleDays.length > 0 && scheduleDays.includes(dayOfWeek);
+}

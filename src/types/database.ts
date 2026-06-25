@@ -66,6 +66,13 @@ export interface Route {
   updated_at: string;
 }
 
+export interface RouteScheduleDay {
+  id: string;
+  route_id: string;
+  day_of_week: number;
+  created_at: string;
+}
+
 export interface Customer {
   id: string;
   company_id: string;

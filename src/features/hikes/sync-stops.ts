@@ -1,5 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
-import { getDateInTimezone, getDayOfWeek } from "@/lib/dates";
+import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
 import type { StopType } from "@/types";
 
 type ExceptionRow = {
@@ -103,11 +103,11 @@ export async function syncStopsForDate(companyId: string, date: string) {
     .eq("company_id", companyId)
     .order("sort_order");
 
-  const ids: string[] = [];
+  const ids: (string | null)[] = [];
   for (const route of routes ?? []) {
     ids.push(await syncStopsForRouteDate(companyId, route.id, date));
   }
-  return ids;
+  return ids.filter((id): id is string => id != null);
 }
 
 /** Add/cancel stops for one route on one date. */
@@ -115,7 +115,7 @@ export async function syncStopsForRouteDate(
   companyId: string,
   routeId: string,
   date: string
-) {
+): Promise<string | null> {
   const supabase = createServiceClient();
 
   const { data: company } = await supabase
@@ -126,6 +126,35 @@ export async function syncStopsForRouteDate(
 
   const timeZone = company?.timezone ?? "America/Los_Angeles";
   const dayOfWeek = getDayOfWeek(date, timeZone);
+
+  const { data: routeDays } = await supabase
+    .from("route_schedule_days")
+    .select("day_of_week")
+    .eq("route_id", routeId);
+
+  const scheduleDays = (routeDays ?? []).map((d) => d.day_of_week);
+  const runsToday = routeRunsOnDay(scheduleDays, dayOfWeek);
+
+  if (!runsToday) {
+    const { data: existingHike } = await supabase
+      .from("hikes")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("route_id", routeId)
+      .eq("date", date)
+      .maybeSingle();
+
+    if (existingHike) {
+      await supabase
+        .from("stops")
+        .update({ status: "cancelled" })
+        .eq("hike_id", existingHike.id)
+        .eq("status", "scheduled");
+    }
+
+    return existingHike?.id ?? null;
+  }
+
   const hikeId = await ensureHikeRow(companyId, routeId, date);
 
   const { data: dogs } = await supabase

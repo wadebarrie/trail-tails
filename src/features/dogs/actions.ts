@@ -10,6 +10,7 @@ import {
   addDaysToDate,
 } from "@/features/hikes/sync-stops";
 import { requireRole } from "@/features/auth/queries";
+import { parseScheduleDays } from "@/lib/dates";
 
 const dogSchema = z.object({
   customer_id: z.string().uuid(),
@@ -29,14 +30,6 @@ function parseHikeRateCents(raw?: string): number | null {
   const n = Number.parseFloat(raw.replace(/[$,\s]/g, ""));
   if (Number.isNaN(n) || n < 0) return null;
   return Math.round(n * 100);
-}
-
-function parseScheduleDays(raw?: string): number[] {
-  if (!raw) return [];
-  return raw
-    .split(",")
-    .map((d) => Number(d.trim()))
-    .filter((d) => d >= 0 && d <= 6);
 }
 
 export async function createDogAction(
