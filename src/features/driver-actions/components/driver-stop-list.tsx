@@ -191,6 +191,9 @@ function StopCard({ stop }: { stop: DriverStopView }) {
             {stop.ownerName ? (
               <p className="mt-0.5 text-sm text-white/60">{stop.ownerName}</p>
             ) : null}
+            {stop.address ? (
+              <p className="mt-1 text-sm leading-snug text-white/50">{stop.address}</p>
+            ) : null}
           </button>
           <p className="mt-1 text-xs text-white/40">
             {formatTime(stop.windowStart)}–{formatTime(stop.windowEnd)}
