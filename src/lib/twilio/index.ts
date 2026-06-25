@@ -106,3 +106,21 @@ export function emptyTwimlResponse(): Response {
     headers: { "Content-Type": "text/xml" },
   });
 }
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+/** Reply to inbound SMS via TwiML (no separate REST send). */
+export function twimlMessageResponse(body: string): Response {
+  const message = escapeXml(body);
+  return new Response(
+    `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${message}</Message></Response>`,
+    { headers: { "Content-Type": "text/xml" } }
+  );
+}

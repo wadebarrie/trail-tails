@@ -6,3 +6,5 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Scheduled: netlify/functions/night-before-cron.mjs (hourly → 6 PM local per company)

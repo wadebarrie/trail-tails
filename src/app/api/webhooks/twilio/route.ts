@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logWarn } from "@/lib/logger";
+import { processInboundSms } from "@/features/sms/process-inbound";
 import {
   emptyTwimlResponse,
   getTwilioConfig,
@@ -43,46 +44,16 @@ export async function POST(request: Request) {
     return emptyTwimlResponse();
   }
 
-  try {
-    const supabase = createServiceClient();
-
-    const { data: customer } = await supabase
-      .from("customers")
-      .select("id, company_id")
-      .eq("phone", fromNumber)
-      .maybeSingle();
-
-    const companyId = customer?.company_id ?? DEFAULT_COMPANY_ID;
-
-    if (twilioSid) {
-      const { data: existing } = await supabase
-        .from("sms_messages")
-        .select("id")
-        .eq("twilio_sid", twilioSid)
-        .maybeSingle();
-
-      if (existing) {
-        return emptyTwimlResponse();
-      }
-    }
-
-    await supabase.from("sms_messages").insert({
-      company_id: companyId,
-      customer_id: customer?.id ?? null,
-      direction: "inbound",
-      from_number: fromNumber,
-      to_number: toNumber,
-      body,
-      twilio_sid: twilioSid,
-      status: "received",
-    });
-  } catch (error) {
-    logErrorFromException("webhook", "Failed to persist inbound SMS", error, {
-      companyId: DEFAULT_COMPANY_ID,
-      context: { fromNumber, twilioSid },
-    });
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    logWarn("webhook", "Inbound SMS skipped — SUPABASE_SERVICE_ROLE_KEY missing");
+    return emptyTwimlResponse();
   }
 
-  // Phase 10: parse commands and create pending_requests
-  return emptyTwimlResponse();
+  return processInboundSms({
+    fromNumber,
+    toNumber,
+    body,
+    twilioSid,
+    defaultCompanyId: DEFAULT_COMPANY_ID,
+  });
 }

@@ -9,7 +9,8 @@ export type LogCategory =
   | "hike"
   | "webhook"
   | "driver"
-  | "system";
+  | "system"
+  | "cron";
 
 type LogOptions = {
   companyId?: string | null;

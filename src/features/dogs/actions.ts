@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import {
+  syncStopsForDate,
+  dateRangeInclusive,
+  addDaysToDate,
+} from "@/features/hikes/sync-stops";
 import { requireRole } from "@/features/auth/queries";
 
 const dogSchema = z.object({
@@ -143,6 +148,17 @@ export async function createScheduleExceptionAction(formData: FormData) {
   });
 
   if (error) throw new Error(error.message);
+
+  const dates =
+    end && end !== startDate
+      ? dateRangeInclusive(startDate, end)
+      : exceptionType === "pause"
+        ? Array.from({ length: 14 }, (_, i) => addDaysToDate(startDate, i))
+        : [startDate];
+
+  for (const date of dates) {
+    await syncStopsForDate(profile.company_id, date);
+  }
 
   revalidatePath("/dashboard/exceptions");
   revalidatePath("/dashboard/hikes/today");

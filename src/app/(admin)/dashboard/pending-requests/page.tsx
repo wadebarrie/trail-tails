@@ -4,6 +4,7 @@ import {
   PageHeader,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { PendingRequestActions } from "@/features/pending-requests/components/pending-request-actions";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,7 +32,7 @@ export default async function PendingRequestsPage() {
     <div>
       <PageHeader
         title="Pending requests"
-        description="Customer SMS schedule-change requests. Approve/decline workflow coming in Phase 11."
+        description="Customer SMS schedule-change requests. Review and approve or decline."
       />
 
       {!requests?.length ? (
@@ -73,9 +74,7 @@ export default async function PendingRequestsPage() {
                 </Badge>
               </div>
               {req.status === "pending" ? (
-                <p className="mt-3 text-sm text-stone-500">
-                  Approve / Decline buttons — Phase 11
-                </p>
+                <PendingRequestActions requestId={req.id} />
               ) : null}
             </div>
           ))}
