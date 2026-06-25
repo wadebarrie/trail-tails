@@ -86,13 +86,19 @@ async function fetchProfile(
   supabase: ReturnType<typeof createServerClient>,
   userId: string
 ): Promise<ProfileRow | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("role, is_active, can_drive")
     .eq("id", userId)
     .maybeSingle();
 
-  return data as ProfileRow | null;
+  if (error || !data) return null;
+
+  return {
+    role: data.role as UserRole,
+    is_active: data.is_active,
+    can_drive: data.can_drive ?? false,
+  };
 }
 
 function redirectTo(request: NextRequest, pathname: string) {

@@ -50,7 +50,7 @@ export function HikeStopsSection({
       <h2 className="mb-3 text-lg font-medium text-stone-900">{title}</h2>
       <SortableList
         items={sortableItems}
-        onReorder={(ids) => reorderStopsAction(hikeId, stopType, ids)}
+        onReorder={reorderStopsAction.bind(null, hikeId, stopType)}
       />
       <div className="mt-4 flex flex-wrap gap-2">
         {filtered.map((s) => (

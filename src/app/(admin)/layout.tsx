@@ -4,6 +4,8 @@ import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { AdminNav } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {

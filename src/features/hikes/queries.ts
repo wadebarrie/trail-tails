@@ -1,4 +1,5 @@
 import { getCurrentProfile } from "@/features/auth/queries";
+import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDayOfWeek } from "@/lib/dates";
@@ -28,7 +29,7 @@ export async function ensureHikeForDate(companyId: string, date: string) {
   if (
     !profile?.is_active ||
     profile.company_id !== companyId ||
-    (profile.role !== "admin" && profile.role !== "driver")
+    (!canAccessAdmin(profile) && !canAccessDriver(profile))
   ) {
     throw new Error("Unauthorized");
   }
@@ -131,11 +132,15 @@ export async function ensureHikeForDate(companyId: string, date: string) {
 }
 
 export async function getHikeWithStops(companyId: string, date: string) {
-  await ensureHikeForDate(companyId, date);
+  try {
+    await ensureHikeForDate(companyId, date);
+  } catch {
+    return null;
+  }
 
   const supabase = await createClient();
 
-  const { data: hike } = await supabase
+  const { data: hike, error } = await supabase
     .from("hikes")
     .select(
       `
@@ -163,6 +168,8 @@ export async function getHikeWithStops(companyId: string, date: string) {
     .eq("company_id", companyId)
     .eq("date", date)
     .maybeSingle();
+
+  if (error) return null;
 
   return hike;
 }

@@ -38,7 +38,7 @@ export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProp
         <SortableList
           variant="dark"
           items={items}
-          onReorder={(ids) => reorderDriverPickupsAction(hikeId, ids)}
+          onReorder={reorderDriverPickupsAction.bind(null, hikeId)}
         />
       </div>
     </section>

@@ -2,6 +2,8 @@ import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { requireDriverAccess } from "@/features/auth/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function DriverLayout({
   children,
 }: {
