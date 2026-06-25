@@ -1,5 +1,4 @@
-import { SortableList } from "@/features/admin/components/sortable-list";
-import { reorderStopsAction } from "@/features/hikes/actions";
+import { HikeStopsReorder } from "@/features/hikes/components/hike-stops-reorder";
 import { formatTime } from "@/lib/dates";
 import { Badge } from "@/features/admin/components/ui";
 import type { StopType } from "@/types";
@@ -48,10 +47,7 @@ export function HikeStopsSection({
   return (
     <section>
       <h2 className="mb-3 text-lg font-medium text-stone-900">{title}</h2>
-      <SortableList
-        items={sortableItems}
-        onReorder={reorderStopsAction.bind(null, hikeId, stopType)}
-      />
+      <HikeStopsReorder hikeId={hikeId} stopType={stopType} items={sortableItems} />
       <div className="mt-4 flex flex-wrap gap-2">
         {filtered.map((s) => (
           <Badge

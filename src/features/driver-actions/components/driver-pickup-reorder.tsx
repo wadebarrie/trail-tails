@@ -28,6 +28,10 @@ export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProp
         : `${formatTime(s.windowStart)}–${formatTime(s.windowEnd)}`,
     }));
 
+  async function onReorder(orderedIds: string[]) {
+    return reorderDriverPickupsAction(hikeId, orderedIds);
+  }
+
   return (
     <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
       <h2 className="text-sm font-medium text-white/80">Pickup order</h2>
@@ -35,11 +39,7 @@ export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProp
         Drag to reorder before you start the route. Drop-offs will follow the same order.
       </p>
       <div className="mt-4">
-        <SortableList
-          variant="dark"
-          items={items}
-          onReorder={reorderDriverPickupsAction.bind(null, hikeId)}
-        />
+        <SortableList variant="dark" items={items} onReorder={onReorder} />
       </div>
     </section>
   );
