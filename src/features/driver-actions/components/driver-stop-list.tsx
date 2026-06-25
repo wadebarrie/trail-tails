@@ -116,7 +116,13 @@ function getLocation(): Promise<{ lat: number; lng: number } | null> {
   });
 }
 
-function StopCard({ stop }: { stop: DriverStopView }) {
+function StopCard({
+  stop,
+  readOnly = false,
+}: {
+  stop: DriverStopView;
+  readOnly?: boolean;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [infoOpen, setInfoOpen] = useState(false);
@@ -208,7 +214,7 @@ function StopCard({ stop }: { stop: DriverStopView }) {
 
       <StopProgressSteps stopType={stop.stopType} status={stop.status} />
 
-      {!isDone ? (
+      {!isDone && !readOnly ? (
         <div className="mt-5 flex flex-col gap-3">
           {stop.status === "scheduled" ? (
             <button
@@ -282,12 +288,14 @@ type DriverStopListProps = {
   title: string;
   stops: DriverStopView[];
   emptyMessage: string;
+  readOnly?: boolean;
 };
 
 export function DriverStopList({
   title,
   stops,
   emptyMessage,
+  readOnly = false,
 }: DriverStopListProps) {
   return (
     <section>
@@ -301,7 +309,7 @@ export function DriverStopList({
       ) : (
         <div className="space-y-3">
           {stops.map((stop) => (
-            <StopCard key={stop.id} stop={stop} />
+            <StopCard key={stop.id} stop={stop} readOnly={readOnly} />
           ))}
         </div>
       )}

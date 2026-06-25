@@ -6,13 +6,21 @@ export const AUTH_ROUTES = {
   driverHome: "/today",
 } as const;
 
+export const DRIVER_PATH_PREFIXES = ["/today", "/tomorrow"] as const;
+
 export function getHomeRouteForRole(role: UserRole): string {
   return role === "driver" ? AUTH_ROUTES.driverHome : AUTH_ROUTES.adminHome;
 }
 
 export function getSafeRedirect(role: UserRole, next?: string): string {
   if (role === "admin" && next?.startsWith("/dashboard")) return next;
-  if (role === "driver" && next?.startsWith("/today")) return next;
+  if (
+    role === "driver" &&
+    next &&
+    DRIVER_PATH_PREFIXES.some((p) => next.startsWith(p))
+  ) {
+    return next;
+  }
   return getHomeRouteForRole(role);
 }
 
@@ -32,5 +40,5 @@ export function isAdminPath(pathname: string): boolean {
 }
 
 export function isDriverPath(pathname: string): boolean {
-  return pathname.startsWith(AUTH_ROUTES.driverHome);
+  return DRIVER_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }

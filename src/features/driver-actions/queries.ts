@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import type { Profile } from "@/types";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
@@ -109,14 +109,29 @@ function isStopDone(stop: DriverStopView) {
   return stop.status === "picked_up" || stop.status === "dropped_off";
 }
 
-export async function getDriverTodayView(
+type DriverProfile = Pick<Profile, "id" | "role" | "can_drive">;
+
+function driverSeesRoute(
+  entry: Awaited<ReturnType<typeof getHikesWithStopsForDate>>[number],
+  profile: DriverProfile
+): boolean {
+  if (profile.role === "admin" && profile.can_drive) return true;
+  if (!entry.hike) return false;
+  if (entry.hike.driver_id === profile.id) return true;
+  return entry.route.default_driver_id === profile.id;
+}
+
+export async function getDriverDayView(
   companyId: string,
-  timeZone: string
+  timeZone: string,
+  profile: DriverProfile,
+  offsetDays = 0
 ): Promise<DriverDayView> {
-  const date = getDateInTimezone(timeZone, 0);
+  const date = getDateInTimezone(timeZone, offsetDays);
   const hikes = await getHikesWithStopsForDate(companyId, date);
 
   const routes: DriverRouteView[] = hikes
+    .filter((entry) => driverSeesRoute(entry, profile))
     .filter((entry) => entry.hike)
     .map((entry) => {
       const rawStops = (entry.hike?.stops ?? []) as Record<string, unknown>[];
@@ -138,7 +153,17 @@ export async function getDriverTodayView(
   };
 }
 
+/** @deprecated Use getDriverDayView */
+export async function getDriverTodayView(
+  companyId: string,
+  timeZone: string,
+  profile: DriverProfile
+): Promise<DriverDayView> {
+  return getDriverDayView(companyId, timeZone, profile, 0);
+}
+
 export async function getDriverCompanyTimezone(companyId: string) {
+  const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const { data } = await supabase
     .from("companies")

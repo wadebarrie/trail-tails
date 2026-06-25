@@ -5,15 +5,15 @@ import {
   getDriverDayView,
 } from "@/features/driver-actions/queries";
 
-export default async function DriverTodayPage() {
+export default async function DriverTomorrowPage() {
   const profile = await requireDriverAccess();
   const timeZone = await getDriverCompanyTimezone(profile.company_id);
   const day = await getDriverDayView(
     profile.company_id,
     timeZone,
     profile,
-    0
+    1
   );
 
-  return <DriverDayView active="today" day={day} />;
+  return <DriverDayView active="tomorrow" day={day} preview />;
 }

@@ -1,4 +1,5 @@
 import type { Profile, UserRole } from "@/types";
+import { DRIVER_PATH_PREFIXES } from "@/features/auth/constants";
 
 type AccessProfile = Pick<Profile, "role" | "is_active" | "can_drive">;
 
@@ -30,7 +31,11 @@ export function getLoginRedirect(
   if (next?.startsWith("/dashboard") && canAccessAdmin(profile as AccessProfile)) {
     return next;
   }
-  if (next?.startsWith("/today") && canAccessDriver(profile as AccessProfile)) {
+  if (
+    next &&
+    DRIVER_PATH_PREFIXES.some((p) => next.startsWith(p)) &&
+    canAccessDriver(profile as AccessProfile)
+  ) {
     return next;
   }
   return getDefaultHomeRoute(profile);
