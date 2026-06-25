@@ -109,6 +109,10 @@ function isStopDone(stop: DriverStopView) {
   return stop.status === "picked_up" || stop.status === "dropped_off";
 }
 
+function isActiveStop(status: StopStatus) {
+  return status !== "cancelled" && status !== "skipped";
+}
+
 type DriverProfile = Pick<Profile, "id" | "role" | "can_drive">;
 
 function driverSeesRoute(
@@ -135,7 +139,7 @@ export async function getDriverDayView(
     .filter((entry) => entry.hike)
     .map((entry) => {
       const rawStops = (entry.hike?.stops ?? []) as Record<string, unknown>[];
-      const mapped = rawStops.map(mapStop);
+      const mapped = rawStops.map(mapStop).filter((s) => isActiveStop(s.status));
       return {
         routeId: entry.route.id,
         routeName: entry.route.name,

@@ -198,11 +198,8 @@ export async function syncStopsForRouteDate(
     .eq("hike_id", hikeId);
 
   for (const stop of existingStops ?? []) {
-    if (stop.status === "scheduled" && !eligibleIds.has(stop.dog_id)) {
-      await supabase
-        .from("stops")
-        .update({ status: "cancelled" })
-        .eq("id", stop.id);
+    if (!eligibleIds.has(stop.dog_id)) {
+      await supabase.from("stops").delete().eq("id", stop.id);
     }
   }
 

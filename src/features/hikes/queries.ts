@@ -70,7 +70,6 @@ export async function getHikesWithStopsForDate(
       companyId,
       context: { date },
     });
-    return [];
   }
 
   const supabase = await createClient();
