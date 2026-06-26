@@ -9,7 +9,7 @@ import {
   enRouteAction,
 } from "@/features/driver-actions/actions";
 import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/driver-customer-info-sheet";
-import { useAutoArrival } from "@/features/driver-actions/use-auto-arrival";
+import { useAutoArrival, type GeoWatchStatus } from "@/features/driver-actions/use-auto-arrival";
 import { formatTime } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
 import type { DriverStopView } from "@/features/driver-actions/queries";
@@ -41,6 +41,8 @@ function TravelConnector({
   progress: number | null;
   complete: boolean;
 }) {
+  const TICKS = 6;
+
   if (complete) {
     return (
       <div
@@ -50,31 +52,52 @@ function TravelConnector({
     );
   }
 
-  if (progress != null) {
-    return (
-      <div
-        className="relative mx-1 mt-3.5 h-1 min-w-3 flex-1 overflow-hidden rounded-full bg-white/10 sm:mx-2"
-        aria-hidden
-        role="progressbar"
-        aria-valuenow={Math.round(progress * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Travel progress to destination"
-      >
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400/90 to-sky-400/90 transition-[width] duration-700 ease-out"
-          style={{ width: `${Math.round(progress * 100)}%` }}
-        />
-      </div>
-    );
-  }
+  const pct = progress ?? 0;
 
   return (
     <div
-      className="mx-1 mt-3.5 h-0.5 min-w-3 flex-1 rounded-full bg-white/10 sm:mx-2"
+      className="relative mx-1 mt-3.5 min-w-3 flex-1 sm:mx-2"
       aria-hidden
-    />
+      role="progressbar"
+      aria-valuenow={Math.round(pct * 100)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label="Travel progress to destination"
+    >
+      <div className="relative h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400/90 to-sky-400/90 transition-[width] duration-300 ease-linear"
+          style={{ width: `${Math.round(pct * 100)}%` }}
+        />
+        {Array.from({ length: TICKS }, (_, i) => {
+          const tickAt = (i + 1) / (TICKS + 1);
+          const lit = pct >= tickAt - 0.05;
+          return (
+            <div
+              key={i}
+              className={`absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300 ${
+                lit ? "bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]" : "bg-white/25"
+              }`}
+              style={{ left: `${tickAt * 100}%` }}
+            />
+          );
+        })}
+      </div>
+    </div>
   );
+}
+
+function locationStatusMessage(status: GeoWatchStatus): string | null {
+  switch (status) {
+    case "requesting":
+      return "Acquiring GPS signal…";
+    case "denied":
+      return "Location blocked — enable in browser settings, then refresh";
+    case "unavailable":
+      return "GPS unavailable — keep screen on or tap Mark arrived manually";
+    default:
+      return null;
+  }
 }
 
 function StopProgressSteps({
@@ -191,6 +214,11 @@ function StopCard({
       ? { lat: stop.destinationLat, lng: stop.destinationLng }
       : null;
 
+  const origin =
+    stop.originLat != null && stop.originLng != null
+      ? { lat: stop.originLat, lng: stop.originLng }
+      : null;
+
   function refresh() {
     router.refresh();
   }
@@ -212,11 +240,14 @@ function StopCard({
     });
   }, [stop.id]);
 
-  const { canAutoDetect, distanceMetersAway, travelProgress } = useAutoArrival({
-    enabled: stop.status === "en_route" && !pending,
-    destination,
-    onArrive: handleArrived,
-  });
+  const { canAutoDetect, distanceMetersAway, travelProgress, locationStatus } =
+    useAutoArrival({
+      stopId: stop.id,
+      enabled: stop.status === "en_route" && !pending,
+      destination,
+      origin,
+      onArrive: handleArrived,
+    });
 
   function handleEnRoute() {
     run(async () => {
@@ -272,7 +303,7 @@ function StopCard({
         status={stop.status}
         readOnly={readOnly}
         travelProgress={
-          stop.status === "en_route" ? travelProgress : null
+          stop.status === "en_route" ? (travelProgress ?? 0) : null
         }
       />
 
@@ -294,11 +325,21 @@ function StopCard({
                   <p className="text-sm font-medium text-sky-100">
                     {pending
                       ? "Marking arrived…"
-                      : "Auto-detecting arrival via GPS"}
+                      : locationStatus === "watching"
+                        ? "Auto-detecting arrival via GPS"
+                        : "Waiting for GPS…"}
                   </p>
                   {distanceMetersAway != null && !pending ? (
                     <p className="mt-1 text-xs text-sky-200/70">
                       {formatDistanceMeters(distanceMetersAway)} away
+                      {travelProgress != null
+                        ? ` · ${Math.round(travelProgress * 100)}% of trip`
+                        : null}
+                    </p>
+                  ) : null}
+                  {locationStatusMessage(locationStatus) && !pending ? (
+                    <p className="mt-2 text-xs text-amber-200/90">
+                      {locationStatusMessage(locationStatus)}
                     </p>
                   ) : null}
                 </div>

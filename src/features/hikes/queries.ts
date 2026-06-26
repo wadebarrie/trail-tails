@@ -24,6 +24,8 @@ const HIKE_SELECT = `
     window_start,
     window_end,
     sort_order,
+    driver_lat,
+    driver_lng,
     dogs (
       name,
       breed,

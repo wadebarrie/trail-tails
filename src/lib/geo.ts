@@ -1,8 +1,8 @@
 /** Earth radius in meters */
 const R = 6371000;
 
-/** ~400 ft — close enough for residential pickup/drop-off */
-export const ARRIVAL_RADIUS_METERS = 120;
+/** ~500 ft — triggers roughly half a block away, forgiving geocode/GPS error */
+export const ARRIVAL_RADIUS_METERS = 150;
 
 /** Haversine distance between two coordinates in meters */
 export function distanceMeters(

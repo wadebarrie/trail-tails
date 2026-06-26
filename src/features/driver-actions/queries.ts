@@ -21,6 +21,8 @@ export type DriverStopView = {
   customerNotes: string | null;
   destinationLat: number | null;
   destinationLng: number | null;
+  originLat: number | null;
+  originLng: number | null;
 };
 
 export type DriverRouteView = {
@@ -93,6 +95,8 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
     customerNotes: customer?.notes ?? null,
     destinationLat: customer?.address_lat ?? null,
     destinationLng: customer?.address_lng ?? null,
+    originLat: (raw.driver_lat as number | null) ?? null,
+    originLng: (raw.driver_lng as number | null) ?? null,
   };
 }
 
