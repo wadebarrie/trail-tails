@@ -65,7 +65,7 @@ if (sendFlag !== -1) {
   const params = new URLSearchParams({
     To: to,
     From: fromNumber,
-    Body: "Trail Tails test — Twilio is connected.",
+    Body: "PackRoute test — Twilio is connected.",
   });
 
   const sendRes = await fetch(

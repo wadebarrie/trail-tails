@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Trail Tails",
-    template: "%s · Trail Tails",
+    default: "PackRoute",
+    template: "%s · PackRoute",
   },
   description: "Operations platform for dog hiking companies",
 };

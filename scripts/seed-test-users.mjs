@@ -197,7 +197,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("Creating Trail Tails test users...\n");
+  console.log("Creating PackRoute test users...\n");
 
   for (const user of TEST_USERS) {
     const { status, body } = await createUser(user);

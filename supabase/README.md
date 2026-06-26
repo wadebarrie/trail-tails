@@ -1,4 +1,4 @@
-# Supabase — Trail Tails
+# Supabase — PackRoute
 
 ## Prerequisites
 

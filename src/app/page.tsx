@@ -5,7 +5,7 @@ export default function HomePage() {
     <main className="flex min-h-dvh flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-md text-center">
         <p className="text-sm font-medium uppercase tracking-widest text-[var(--color-trail-600)]">
-          Trail Tails
+          PackRoute
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
           Dog hike operations, simplified

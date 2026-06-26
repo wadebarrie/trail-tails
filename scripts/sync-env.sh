@@ -85,7 +85,7 @@ const keyOrder = [
 
 const seen = new Set();
 const out = [
-  "# Trail Tails — local secrets (never commit)",
+  "# PackRoute — local secrets (never commit)",
   "# Run: bash scripts/sync-env.sh to fix DATABASE_URL encoding",
   "",
 ];

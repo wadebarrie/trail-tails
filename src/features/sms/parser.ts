@@ -70,7 +70,7 @@ const MONTH_NAMES: Record<string, number> = {
   dec: 12,
 };
 
-export const HELP_REPLY = `Trail Tails — text us:
+export const HELP_REPLY = `PackRoute — text us:
 SKIP TOMORROW
 SKIP MONDAY (or any weekday)
 SKIP 7/10 or SKIP JULY 10

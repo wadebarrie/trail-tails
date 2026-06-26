@@ -29,7 +29,7 @@ export async function GET(request: Request) {
   return new Response(csv, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="trail-tails-billing-${start}-to-${end}.csv"`,
+      "Content-Disposition": `attachment; filename="packroute-billing-${start}-to-${end}.csv"`,
     },
   });
 }

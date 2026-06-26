@@ -42,7 +42,7 @@ const GEO_OPTIONS: PositionOptions = {
 };
 
 function storageKey(stopId: string) {
-  return `trail-tails-travel-${stopId}`;
+  return `packroute-travel-${stopId}`;
 }
 
 function readStoredTravel(stopId: string): StoredTravel | null {

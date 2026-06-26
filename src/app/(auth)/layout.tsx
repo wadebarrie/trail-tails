@@ -12,7 +12,7 @@ export default function AuthLayout({
           href="/"
           className="text-sm font-medium text-[var(--color-trail-700)] hover:underline"
         >
-          ← Trail Tails
+          ← PackRoute
         </Link>
       </header>
       <div className="flex flex-1 items-center justify-center px-6 pb-12">

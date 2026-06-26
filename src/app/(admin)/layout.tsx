@@ -30,7 +30,7 @@ export default async function AdminLayout({
               href="/dashboard"
               className="font-semibold text-[var(--color-trail-800)]"
             >
-              Trail Tails
+              PackRoute
             </Link>
             <div className="flex items-center gap-3 sm:gap-4">
               <RoleSwitchLink profile={profile} variant="admin" />

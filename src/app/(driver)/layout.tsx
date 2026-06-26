@@ -16,7 +16,7 @@ export default async function DriverLayout({
       <header className="flex items-center justify-between border-b border-white/10 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div>
           <p className="text-xs font-medium uppercase tracking-widest text-white/60">
-            Trail Tails · Driver
+            PackRoute · Driver
           </p>
           <p className="mt-0.5 text-sm text-white/80">{profile.full_name}</p>
         </div>

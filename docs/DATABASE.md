@@ -1,4 +1,4 @@
-# Trail Tails — Database Design (Phase 2)
+# PackRoute — Database Design (Phase 2)
 
 > **Status:** Phase 2 complete. SQL migrations follow in Phase 3.
 > **Last updated:** 2025-06-25
@@ -66,7 +66,7 @@ Single row for MVP. Exists so multi-location can be added without migration.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | `uuid` PK | |
-| `name` | `text` NOT NULL | e.g. "Trail Tails Hiking" |
+| `name` | `text` NOT NULL | e.g. "PackRoute" |
 | `timezone` | `text` NOT NULL DEFAULT `'America/Los_Angeles'` | IANA timezone |
 | `default_pickup_window_start` | `time` | Fallback when creating new dogs |
 | `default_pickup_window_end` | `time` | Fallback when creating new dogs |
@@ -551,7 +551,7 @@ erDiagram
 
 Phase 3 migration will include a seed for local development:
 
-- 1 company ("Trail Tails", `America/Los_Angeles`)
+- 1 company ("PackRoute", `America/Los_Angeles`)
 - 1 admin profile (linked to auth user manually or via seed script)
 - 1 driver profile
 - 2–3 sample customers with dogs and recurring schedules

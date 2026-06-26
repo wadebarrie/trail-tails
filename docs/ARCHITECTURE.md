@@ -1,4 +1,4 @@
-# Trail Tails — Product Architecture (Phase 1)
+# PackRoute — Product Architecture (Phase 1)
 
 > **Status:** Phase 1 complete. No code has been written yet.
 > **Last updated:** 2025-06-25
@@ -7,7 +7,7 @@
 
 ## 1. Problem Statement
 
-Dog hiking companies lose hours each week to repetitive status calls and texts. Trail Tails replaces those interactions with automated SMS updates and a dead-simple driver interface — while keeping humans in the loop for schedule changes.
+Dog hiking companies lose hours each week to repetitive status calls and texts. PackRoute replaces those interactions with automated SMS updates and a dead-simple driver interface — while keeping humans in the loop for schedule changes.
 
 **MVP success criteria:**
 - Office can manage customers, dogs, and schedules in one place

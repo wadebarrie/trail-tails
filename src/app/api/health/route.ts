@@ -12,7 +12,7 @@ export async function GET() {
 
   const payload: Record<string, unknown> = {
     status: "ok",
-    app: "trail-tails",
+    app: "packroute",
   };
 
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {

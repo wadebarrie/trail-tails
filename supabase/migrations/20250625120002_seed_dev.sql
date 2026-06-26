@@ -20,7 +20,7 @@ INSERT INTO public.companies (
   default_pickup_window_end
 ) VALUES (
   'a0000000-0000-0000-0000-000000000001',
-  'Trail Tails Hiking',
+  'PackRoute',
   'America/Los_Angeles',
   '08:00',
   '08:30'
