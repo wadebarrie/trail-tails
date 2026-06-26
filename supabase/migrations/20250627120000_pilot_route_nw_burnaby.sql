@@ -18,9 +18,9 @@ UPDATE public.customers SET
 WHERE id = 'b0000000-0000-0000-0000-000000000002';
 
 UPDATE public.customers SET
-  address = '100 Lowland Drive, Burnaby, BC',
-  address_lat = 49.190935,
-  address_lng = -122.9943
+  address = '7500 Lowland Drive, Burnaby, BC',
+  address_lat = 49.1910592,
+  address_lng = -122.9934563
 WHERE id = 'b0000000-0000-0000-0000-000000000007';
 
 UPDATE public.customers SET

@@ -194,6 +194,25 @@ function getLocation(): Promise<{ lat: number; lng: number } | null> {
   });
 }
 
+function InfoIconButton({
+  onClick,
+  label,
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 text-sm font-semibold italic text-white/80 transition hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-95"
+    >
+      i
+    </button>
+  );
+}
+
 function StopCard({
   stop,
   readOnly = false,
@@ -273,20 +292,20 @@ function StopCard({
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <button
-            type="button"
-            onClick={() => setInfoOpen(true)}
-            className="text-left underline-offset-2 hover:underline"
-          >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
             <p className="text-xl font-semibold">{stop.dogName}</p>
-            {stop.ownerName ? (
-              <p className="mt-0.5 text-sm text-white/60">{stop.ownerName}</p>
-            ) : null}
-            {stop.address ? (
-              <p className="mt-1 text-sm leading-snug text-white/50">{stop.address}</p>
-            ) : null}
-          </button>
+            <InfoIconButton
+              onClick={() => setInfoOpen(true)}
+              label={`${stop.dogName} — customer info`}
+            />
+          </div>
+          {stop.ownerName ? (
+            <p className="mt-0.5 text-sm text-white/60">{stop.ownerName}</p>
+          ) : null}
+          {stop.address ? (
+            <p className="mt-1 text-sm leading-snug text-white/50">{stop.address}</p>
+          ) : null}
           <p className="mt-1 text-xs text-white/40">
             {formatTime(stop.windowStart)}–{formatTime(stop.windowEnd)}
           </p>

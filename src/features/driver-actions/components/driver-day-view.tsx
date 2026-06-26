@@ -1,4 +1,5 @@
 import { DriverDayNav } from "@/features/driver-actions/components/driver-day-nav";
+import { LocationServicesIndicator } from "@/features/driver-actions/components/location-services-indicator";
 import { DriverPickupReorder } from "@/features/driver-actions/components/driver-pickup-reorder";
 import { DriverStopList } from "@/features/driver-actions/components/driver-stop-list";
 import type { DriverDayView } from "@/features/driver-actions/queries";
@@ -48,7 +49,8 @@ export function DriverDayView({
         </p>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap gap-3 text-sm">
+      <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+        <LocationServicesIndicator />
         <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">
           {totalPickups} pickup{totalPickups === 1 ? "" : "s"}
           {preview ? "" : " left"}
