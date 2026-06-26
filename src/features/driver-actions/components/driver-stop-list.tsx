@@ -206,9 +206,20 @@ function InfoIconButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 text-sm font-semibold italic text-white/80 transition hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-95"
+      className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 text-white/80 transition hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-95"
     >
-      i
+      <svg
+        viewBox="0 0 24 24"
+        className="size-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path strokeLinecap="round" d="M12 11v5" />
+        <circle cx="12" cy="8" r="0.75" fill="currentColor" stroke="none" />
+      </svg>
     </button>
   );
 }
