@@ -206,7 +206,7 @@ function InfoIconButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 text-white/80 transition hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-95"
+      className="inline-flex size-7 !min-h-7 !min-w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 leading-none text-white/80 transition hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-95"
     >
       <svg
         viewBox="0 0 24 24"
