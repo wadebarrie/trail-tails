@@ -30,7 +30,7 @@ const HIKE_SELECT = `
       name,
       breed,
       notes,
-      customers ( owner_name, phone, email, address, address_lat, address_lng, notes )
+      customers ( owner_name, phone, secondary_owner_name, secondary_phone, email, address, address_lat, address_lng, notes )
     )
   )
 `;

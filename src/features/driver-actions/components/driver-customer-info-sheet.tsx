@@ -106,7 +106,20 @@ export function DriverCustomerInfoSheet({
                 href={`tel:${stop.phone.replace(/\s/g, "")}`}
                 className="font-medium text-sky-300 underline-offset-2 hover:underline"
               >
+                {stop.ownerName ? `${stop.ownerName} · ` : null}
                 {stop.phone}
+              </a>
+            </InfoRow>
+          ) : null}
+
+          {stop.secondaryPhone ? (
+            <InfoRow label="Second contact">
+              <a
+                href={`tel:${stop.secondaryPhone.replace(/\s/g, "")}`}
+                className="font-medium text-sky-300 underline-offset-2 hover:underline"
+              >
+                {stop.secondaryOwnerName ? `${stop.secondaryOwnerName} · ` : null}
+                {stop.secondaryPhone}
               </a>
             </InfoRow>
           ) : null}

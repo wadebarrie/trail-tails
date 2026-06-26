@@ -120,12 +120,13 @@ export async function enRouteAction(
       dogId: stop.dog_id,
       stopId,
       notificationType: "en_route",
-      body: buildEnRouteMessage(
-        customer?.owner_name ?? "",
-        dog.name,
-        stop.stop_type as "pickup" | "dropoff",
-        etaMinutes
-      ),
+      body: (ownerName) =>
+        buildEnRouteMessage(
+          ownerName,
+          dog.name,
+          stop.stop_type as "pickup" | "dropoff",
+          etaMinutes
+        ),
     });
   }
 
@@ -179,11 +180,12 @@ export async function arrivedAction(
       dogId: stop.dog_id,
       stopId,
       notificationType: "arrived",
-      body: buildArrivedMessage(
-        customer?.owner_name ?? "",
-        dog.name,
-        stop.stop_type as "pickup" | "dropoff"
-      ),
+      body: (ownerName) =>
+        buildArrivedMessage(
+          ownerName,
+          dog.name,
+          stop.stop_type as "pickup" | "dropoff"
+        ),
     });
   }
 

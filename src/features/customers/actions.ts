@@ -2,19 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { resolveCustomerCoordinates } from "@/lib/google-maps/geocode";
-
-const customerSchema = z.object({
-  owner_name: z.string().min(1, "Owner name is required"),
-  phone: z.string().min(10, "Valid phone number required"),
-  email: z.string().email().optional().or(z.literal("")),
-  address: z.string().min(1, "Address is required"),
-  notes: z.string().optional(),
-  is_active: z.coerce.boolean().optional(),
-});
+import {
+  customerSchema,
+  secondaryContactPayload,
+} from "@/features/customers/schema";
 
 export async function createCustomerAction(
   _prev: { error?: string },
@@ -35,6 +29,7 @@ export async function createCustomerAction(
     company_id: profile.company_id,
     owner_name: parsed.data.owner_name,
     phone: parsed.data.phone,
+    ...secondaryContactPayload(parsed.data),
     email: parsed.data.email || null,
     address: parsed.data.address,
     address_lat: coords.lat,
@@ -76,6 +71,7 @@ export async function updateCustomerAction(
     .update({
       owner_name: parsed.data.owner_name,
       phone: parsed.data.phone,
+      ...secondaryContactPayload(parsed.data),
       email: parsed.data.email || null,
       address: parsed.data.address,
       address_lat: coords.lat,

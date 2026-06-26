@@ -16,6 +16,8 @@ export type DriverStopView = {
   dogNotes: string | null;
   ownerName: string;
   phone: string;
+  secondaryOwnerName: string | null;
+  secondaryPhone: string | null;
   email: string | null;
   address: string;
   customerNotes: string | null;
@@ -60,6 +62,8 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
       | {
           owner_name: string;
           phone: string;
+          secondary_owner_name: string | null;
+          secondary_phone: string | null;
           email: string | null;
           address: string;
           address_lat: number | null;
@@ -69,6 +73,8 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
       | {
           owner_name: string;
           phone: string;
+          secondary_owner_name: string | null;
+          secondary_phone: string | null;
           email: string | null;
           address: string;
           address_lat: number | null;
@@ -90,6 +96,8 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
     dogNotes: dog?.notes ?? null,
     ownerName: customer?.owner_name ?? "",
     phone: customer?.phone ?? "",
+    secondaryOwnerName: customer?.secondary_owner_name ?? null,
+    secondaryPhone: customer?.secondary_phone ?? null,
     email: customer?.email ?? null,
     address: customer?.address ?? "",
     customerNotes: customer?.notes ?? null,

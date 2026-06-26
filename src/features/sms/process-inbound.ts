@@ -1,6 +1,6 @@
+import { customerHasPhone } from "@/lib/customer-contacts";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException } from "@/lib/logger";
-import { phonesMatch } from "@/lib/phone";
 import { twimlMessageResponse } from "@/lib/twilio";
 import {
   buildIdempotencyKey,
@@ -20,22 +20,31 @@ type InboundSmsInput = {
 async function findCustomerByPhone(fromNumber: string) {
   const supabase = createServiceClient();
 
-  const { data: exact } = await supabase
+  const { data: exactPrimary } = await supabase
     .from("customers")
-    .select("id, company_id, phone")
+    .select("id, company_id, phone, secondary_phone, owner_name, secondary_owner_name")
     .eq("phone", fromNumber)
     .eq("is_active", true)
     .maybeSingle();
 
-  if (exact) return exact;
+  if (exactPrimary) return exactPrimary;
+
+  const { data: exactSecondary } = await supabase
+    .from("customers")
+    .select("id, company_id, phone, secondary_phone, owner_name, secondary_owner_name")
+    .eq("secondary_phone", fromNumber)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (exactSecondary) return exactSecondary;
 
   const { data: customers } = await supabase
     .from("customers")
-    .select("id, company_id, phone")
+    .select("id, company_id, phone, secondary_phone, owner_name, secondary_owner_name")
     .eq("is_active", true);
 
   return (
-    customers?.find((c) => phonesMatch(c.phone, fromNumber)) ?? null
+    customers?.find((c) => customerHasPhone(c, fromNumber)) ?? null
   );
 }
 

@@ -21,19 +21,19 @@ export default async function CustomersPage({
 
   const base = supabase
     .from("customers")
-    .select("id, owner_name, phone, email, address, is_active")
+    .select("id, owner_name, phone, secondary_owner_name, secondary_phone, email, address, is_active")
     .eq("company_id", profile.company_id)
     .order("owner_name");
 
   const { data } = q
     ? await base.or(
-        `owner_name.ilike.%${q}%,phone.ilike.%${q}%,address.ilike.%${q}%`
+        `owner_name.ilike.%${q}%,phone.ilike.%${q}%,secondary_owner_name.ilike.%${q}%,secondary_phone.ilike.%${q}%,address.ilike.%${q}%`
       )
     : await base;
 
   const customers = data as Pick<
     Customer,
-    "id" | "owner_name" | "phone" | "email" | "address" | "is_active"
+    "id" | "owner_name" | "phone" | "secondary_owner_name" | "secondary_phone" | "email" | "address" | "is_active"
   >[] | null;
 
   return (
@@ -77,7 +77,14 @@ export default async function CustomersPage({
                       {c.owner_name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-stone-600">{c.phone}</td>
+                  <td className="px-4 py-3 text-stone-600">
+                    <div>{c.phone}</div>
+                    {c.secondary_phone ? (
+                      <div className="mt-0.5 text-xs text-stone-500">
+                        {c.secondary_owner_name}: {c.secondary_phone}
+                      </div>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3 text-stone-600">{c.address}</td>
                   <td className="px-4 py-3">
                     <Badge tone={c.is_active ? "green" : "neutral"}>

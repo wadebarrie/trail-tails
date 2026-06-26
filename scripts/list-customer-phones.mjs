@@ -32,7 +32,7 @@ if (!url || !key) {
 const supabase = createClient(url, key);
 const { data, error } = await supabase
   .from("customers")
-  .select("owner_name, phone, is_active")
+  .select("owner_name, phone, secondary_owner_name, secondary_phone, is_active")
   .eq("is_active", true)
   .order("owner_name");
 
@@ -49,6 +49,11 @@ if (!data?.length) {
 console.log("Active customers (use --from with one of these phones):\n");
 for (const c of data) {
   console.log(`  ${c.owner_name.padEnd(20)} ${c.phone}`);
+  if (c.secondary_phone) {
+    console.log(
+      `  ${(c.secondary_owner_name ?? "Second contact").padEnd(20)} ${c.secondary_phone}`
+    );
+  }
 }
 
 console.log('\nExample: npm run test:inbound-sms -- --from "' + data[0].phone + '" "SKIP TOMORROW"');

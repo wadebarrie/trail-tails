@@ -78,6 +78,8 @@ export interface Customer {
   company_id: string;
   owner_name: string;
   phone: string;
+  secondary_owner_name: string | null;
+  secondary_phone: string | null;
   email: string | null;
   address: string;
   address_lat: number | null;

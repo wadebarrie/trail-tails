@@ -28,6 +28,26 @@ export function CustomerForm({ customer }: CustomerFormProps) {
 
       <Field label="Owner name" name="owner_name" defaultValue={customer?.owner_name} required />
       <Field label="Phone" name="phone" defaultValue={customer?.phone} required />
+
+      <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-4">
+        <p className="text-sm font-medium text-stone-700">Second contact (optional)</p>
+        <p className="mt-0.5 text-xs text-stone-500">
+          For households with two parents — receives the same text updates.
+        </p>
+        <div className="mt-3 space-y-3">
+          <Field
+            label="Name"
+            name="secondary_owner_name"
+            defaultValue={customer?.secondary_owner_name ?? ""}
+          />
+          <Field
+            label="Phone"
+            name="secondary_phone"
+            defaultValue={customer?.secondary_phone ?? ""}
+          />
+        </div>
+      </div>
+
       <Field label="Email" name="email" type="email" defaultValue={customer?.email ?? ""} />
       <div>
         <Field label="Address" name="address" defaultValue={customer?.address} required />

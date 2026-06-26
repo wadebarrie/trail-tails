@@ -1,7 +1,10 @@
+import { listCustomerContacts } from "@/lib/customer-contacts";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
 import type { NotificationType } from "@/types";
+
+type NotificationBody = string | ((ownerName: string) => string);
 
 type LogNotificationInput = {
   companyId: string;
@@ -9,23 +12,21 @@ type LogNotificationInput = {
   dogId?: string;
   stopId?: string;
   notificationType: NotificationType;
-  body: string;
+  body: NotificationBody;
 };
 
-async function resolveCustomerContact(
-  customerId: string | undefined
-): Promise<{ phone: string; ownerName: string } | null> {
-  if (!customerId) return null;
+async function resolveCustomerContacts(customerId: string | undefined) {
+  if (!customerId) return [];
 
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("customers")
-    .select("phone, owner_name")
+    .select("owner_name, phone, secondary_owner_name, secondary_phone")
     .eq("id", customerId)
     .maybeSingle();
 
-  if (!data?.phone) return null;
-  return { phone: data.phone, ownerName: data.owner_name };
+  if (!data) return [];
+  return listCustomerContacts(data);
 }
 
 async function resolveDogName(dogId: string | undefined): Promise<string | null> {
@@ -69,6 +70,13 @@ function smsContext(input: LogNotificationInput, extra?: Record<string, unknown>
   };
 }
 
+function resolveNotificationBody(
+  body: NotificationBody,
+  ownerName: string
+): string {
+  return typeof body === "function" ? body(ownerName) : body;
+}
+
 /**
  * Logs outbound notifications and sends SMS when Twilio is configured.
  * Never throws — driver workflow must not be blocked.
@@ -83,122 +91,23 @@ export async function logNotification(input: LogNotificationInput) {
   }
 
   try {
-    const supabase = createServiceClient();
-
-    const { data: notification, error: insertError } = await supabase
-      .from("notification_log")
-      .insert({
-        company_id: input.companyId,
-        customer_id: input.customerId ?? null,
-        dog_id: input.dogId ?? null,
-        stop_id: input.stopId ?? null,
-        notification_type: input.notificationType,
-        body: input.body,
-        status: "pending",
-        channel: "sms",
-      })
-      .select("id")
-      .single();
-
-    if (insertError || !notification) {
-      logError("sms", "Failed to create notification_log row", {
-        ...smsContext(input),
-        context: {
-          ...smsContext(input).context,
-          dbError: insertError?.message ?? "No row returned",
-        },
-      });
+    const contacts = await resolveCustomerContacts(input.customerId);
+    if (!contacts.length) {
+      logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
       return;
     }
 
     const twilio = getTwilioConfig();
     if (!twilio) {
-      await supabase
-        .from("notification_log")
-        .update({
-          status: "failed",
-          error_message: "Twilio is not configured",
-        })
-        .eq("id", notification.id);
-
       logWarn("sms", "SMS not sent — Twilio is not configured", smsContext(input));
       return;
     }
 
-    const contact = await resolveCustomerContact(input.customerId);
-    if (!contact) {
-      await supabase
-        .from("notification_log")
-        .update({
-          status: "failed",
-          error_message: "Customer has no phone number",
-        })
-        .eq("id", notification.id);
-
-      logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
-      return;
-    }
-
     const dogName = await resolveDogName(input.dogId);
-    const delivery = resolveSmsDelivery(contact.phone, contact.ownerName, dogName);
-    const smsBody = delivery.body + input.body;
-    const result = await sendSms(delivery.to, smsBody);
 
-    if (!result.ok) {
-      await supabase
-        .from("notification_log")
-        .update({
-          status: "failed",
-          error_message: result.error,
-        })
-        .eq("id", notification.id);
-
-      logError("sms", "Twilio send failed", {
-        ...smsContext(input),
-        context: {
-          ...smsContext(input).context,
-          twilioError: result.error,
-          to: delivery.to,
-          redirected: delivery.redirected,
-          intendedPhone: contact.phone,
-        },
-      });
-      return;
+    for (const contact of contacts) {
+      await sendNotificationToContact(input, contact, twilio, dogName);
     }
-
-    const { data: smsMessage, error: smsInsertError } = await supabase
-      .from("sms_messages")
-      .insert({
-        company_id: input.companyId,
-        customer_id: input.customerId ?? null,
-        direction: "outbound",
-        from_number: twilio.fromNumber,
-        to_number: delivery.to,
-        body: smsBody,
-        twilio_sid: result.sid,
-        status: "queued",
-      })
-      .select("id")
-      .single();
-
-    if (smsInsertError) {
-      logWarn("sms", "SMS sent but sms_messages insert failed", {
-        ...smsContext(input),
-        context: {
-          ...smsContext(input).context,
-          twilioSid: result.sid,
-          dbError: smsInsertError.message,
-        },
-      });
-    }
-
-    await supabase
-      .from("notification_log")
-      .update({
-        status: "sent",
-        sms_message_id: smsMessage?.id ?? null,
-      })
-      .eq("id", notification.id);
   } catch (error) {
     logErrorFromException(
       "sms",
@@ -207,6 +116,103 @@ export async function logNotification(input: LogNotificationInput) {
       smsContext(input)
     );
   }
+}
+
+async function sendNotificationToContact(
+  input: LogNotificationInput,
+  contact: { phone: string; ownerName: string },
+  twilio: NonNullable<ReturnType<typeof getTwilioConfig>>,
+  dogName: string | null
+) {
+  const supabase = createServiceClient();
+  const smsBodyText = resolveNotificationBody(input.body, contact.ownerName);
+
+  const { data: notification, error: insertError } = await supabase
+    .from("notification_log")
+    .insert({
+      company_id: input.companyId,
+      customer_id: input.customerId ?? null,
+      dog_id: input.dogId ?? null,
+      stop_id: input.stopId ?? null,
+      notification_type: input.notificationType,
+      body: smsBodyText,
+      status: "pending",
+      channel: "sms",
+    })
+    .select("id")
+    .single();
+
+  if (insertError || !notification) {
+    logError("sms", "Failed to create notification_log row", {
+      ...smsContext(input),
+      context: {
+        ...smsContext(input).context,
+        dbError: insertError?.message ?? "No row returned",
+        recipient: contact.phone,
+      },
+    });
+    return;
+  }
+
+  const delivery = resolveSmsDelivery(contact.phone, contact.ownerName, dogName);
+  const smsBody = delivery.body + smsBodyText;
+  const result = await sendSms(delivery.to, smsBody);
+
+  if (!result.ok) {
+    await supabase
+      .from("notification_log")
+      .update({
+        status: "failed",
+        error_message: result.error,
+      })
+      .eq("id", notification.id);
+
+    logError("sms", "Twilio send failed", {
+      ...smsContext(input),
+      context: {
+        ...smsContext(input).context,
+        twilioError: result.error,
+        to: delivery.to,
+        redirected: delivery.redirected,
+        intendedPhone: contact.phone,
+      },
+    });
+    return;
+  }
+
+  const { data: smsMessage, error: smsInsertError } = await supabase
+    .from("sms_messages")
+    .insert({
+      company_id: input.companyId,
+      customer_id: input.customerId ?? null,
+      direction: "outbound",
+      from_number: twilio.fromNumber,
+      to_number: delivery.to,
+      body: smsBody,
+      twilio_sid: result.sid,
+      status: "queued",
+    })
+    .select("id")
+    .single();
+
+  if (smsInsertError) {
+    logWarn("sms", "SMS sent but sms_messages insert failed", {
+      ...smsContext(input),
+      context: {
+        ...smsContext(input).context,
+        twilioSid: result.sid,
+        dbError: smsInsertError.message,
+      },
+    });
+  }
+
+  await supabase
+    .from("notification_log")
+    .update({
+      status: "sent",
+      sms_message_id: smsMessage?.id ?? null,
+    })
+    .eq("id", notification.id);
 }
 
 export function buildEnRouteMessage(
