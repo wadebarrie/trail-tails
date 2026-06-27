@@ -1,7 +1,9 @@
+import Link from "next/link";
 import {
   Badge,
   EmptyState,
   PageHeader,
+  PrimaryLink,
   TableShell,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
@@ -23,10 +25,11 @@ export default async function DriversPage() {
       <PageHeader
         title="Drivers"
         description="Dog walkers who use the driver mobile app. Assign default drivers on the Routes page."
+        action={<PrimaryLink href="/dashboard/drivers/new">Add driver</PrimaryLink>}
       />
 
       {!drivers?.length ? (
-        <EmptyState message="No drivers yet. Ask your PackRoute admin to add driver accounts." />
+        <EmptyState message="No drivers yet. Add a driver to create their login." />
       ) : (
         <TableShell>
           <table className="min-w-full text-sm">
@@ -39,9 +42,14 @@ export default async function DriversPage() {
             </thead>
             <tbody className="divide-y divide-stone-100">
               {drivers.map((d) => (
-                <tr key={d.id}>
-                  <td className="px-4 py-3 font-medium text-stone-900">
-                    {d.full_name}
+                <tr key={d.id} className="hover:bg-stone-50">
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/dashboard/drivers/${d.id}`}
+                      className="font-medium text-[var(--color-trail-700)] hover:underline"
+                    >
+                      {d.full_name}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-stone-600">{d.phone ?? "—"}</td>
                   <td className="px-4 py-3">
