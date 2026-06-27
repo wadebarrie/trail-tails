@@ -115,8 +115,7 @@ export function SmsPhoneMock() {
       <div className="overflow-hidden rounded-[2rem] border-4 border-stone-800 bg-stone-900 p-2 shadow-2xl">
         <div className="rounded-[1.5rem] bg-stone-100 px-3 pb-4 pt-8">
           <div className="mb-4 text-center">
-            <p className="text-xs font-medium text-stone-500">PackRoute</p>
-            <p className="text-sm font-semibold text-stone-800">Trail Tails</p>
+            <p className="text-sm font-semibold text-stone-800">PackRoute</p>
           </div>
           <div className="space-y-3">
             {messages.map((msg, i) => (
