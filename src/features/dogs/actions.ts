@@ -5,12 +5,14 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import {
-  syncStopsForDate,
-  dateRangeInclusive,
-  addDaysToDate,
-} from "@/features/hikes/sync-stops";
+  datesAffectedByException,
+  resolveExceptionEndDate,
+  syncStopsForExceptionDates,
+} from "@/features/dogs/exception-sync";
 import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
+import { one } from "@/lib/supabase/relations";
+import type { ExceptionType } from "@/types";
 
 const dogSchema = z.object({
   customer_id: z.string().uuid(),
@@ -134,47 +136,124 @@ export async function updateDogAction(
   redirect("/dashboard/dogs");
 }
 
-export async function createScheduleExceptionAction(
-  _prev: { error?: string },
-  formData: FormData
-): Promise<{ error?: string }> {
-  const profile = await requireRole("admin");
+type ExceptionFormInput = {
+  dogId: string;
+  exceptionType: ExceptionType;
+  startDate: string;
+  endDate: string | null;
+  reason: string | null;
+};
+
+function parseExceptionForm(formData: FormData): ExceptionFormInput | { error: string } {
   const dogId = String(formData.get("dog_id") ?? "");
-  const exceptionType = String(formData.get("exception_type") ?? "skip_date");
+  const exceptionType = String(formData.get("exception_type") ?? "skip_date") as ExceptionType;
   const startDate = String(formData.get("start_date") ?? "");
-  const endDate = String(formData.get("end_date") ?? "") || null;
+  const endDateRaw = String(formData.get("end_date") ?? "") || null;
   const reason = String(formData.get("reason") ?? "") || null;
 
   if (!dogId || !startDate) {
     return { error: "Dog and start date are required." };
   }
 
-  const supabase = await createClient();
+  if (!["skip_date", "vacation", "pause"].includes(exceptionType)) {
+    return { error: "Invalid exception type." };
+  }
 
+  return {
+    dogId,
+    exceptionType,
+    startDate,
+    endDate: endDateRaw,
+    reason,
+  };
+}
+
+async function verifyCompanyDog(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  dogId: string,
+  companyId: string
+) {
   const { data: dog } = await supabase
     .from("dogs")
     .select("id, name, company_id")
     .eq("id", dogId)
-    .eq("company_id", profile.company_id)
+    .eq("company_id", companyId)
     .maybeSingle();
+
+  return dog;
+}
+
+async function getCompanyException(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  exceptionId: string,
+  companyId: string
+) {
+  const { data } = await supabase
+    .from("schedule_exceptions")
+    .select(
+      `
+      id,
+      dog_id,
+      exception_type,
+      start_date,
+      end_date,
+      reason,
+      dogs!inner ( company_id, name )
+    `
+    )
+    .eq("id", exceptionId)
+    .maybeSingle();
+
+  if (!data) return null;
+
+  const dog = one(
+    data.dogs as
+      | { company_id: string; name: string }
+      | { company_id: string; name: string }[]
+  );
+  if (!dog || dog.company_id !== companyId) return null;
+
+  return data;
+}
+
+function revalidateExceptionPaths() {
+  revalidatePath("/dashboard/exceptions");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+}
+
+export async function createScheduleExceptionAction(
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
+  const profile = await requireRole("admin");
+  const parsed = parseExceptionForm(formData);
+
+  if ("error" in parsed) {
+    return { error: parsed.error };
+  }
+
+  const supabase = await createClient();
+  const dog = await verifyCompanyDog(supabase, parsed.dogId, profile.company_id);
 
   if (!dog) {
     return { error: "Dog not found." };
   }
 
-  const end =
-    exceptionType === "pause"
-      ? null
-      : endDate ?? (exceptionType === "vacation" ? null : startDate);
+  const end = resolveExceptionEndDate(
+    parsed.exceptionType,
+    parsed.startDate,
+    parsed.endDate
+  );
 
   const { data: inserted, error } = await supabase
     .from("schedule_exceptions")
     .insert({
-      dog_id: dogId,
-      exception_type: exceptionType as "skip_date" | "vacation" | "pause",
-      start_date: startDate,
+      dog_id: parsed.dogId,
+      exception_type: parsed.exceptionType,
+      start_date: parsed.startDate,
       end_date: end,
-      reason,
+      reason: parsed.reason,
       created_by: profile.id,
     })
     .select("id")
@@ -184,21 +263,115 @@ export async function createScheduleExceptionAction(
     return { error: error?.message ?? "Failed to add exception." };
   }
 
-  const dates =
-    end && end !== startDate
-      ? dateRangeInclusive(startDate, end)
-      : exceptionType === "pause"
-        ? Array.from({ length: 14 }, (_, i) => addDaysToDate(startDate, i))
-        : [startDate];
+  await syncStopsForExceptionDates(
+    profile.company_id,
+    datesAffectedByException(parsed.exceptionType, parsed.startDate, end)
+  );
 
-  for (const date of dates) {
-    await syncStopsForDate(profile.company_id, date);
-  }
-
-  revalidatePath("/dashboard/exceptions");
-  revalidatePath("/dashboard/hikes/today");
-  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidateExceptionPaths();
   redirect(
     `/dashboard/exceptions?added=${inserted.id}&dog=${encodeURIComponent(dog.name)}`
   );
+}
+
+export async function updateScheduleExceptionAction(
+  exceptionId: string,
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
+  const profile = await requireRole("admin");
+  const parsed = parseExceptionForm(formData);
+
+  if ("error" in parsed) {
+    return { error: parsed.error };
+  }
+
+  const supabase = await createClient();
+  const existing = await getCompanyException(
+    supabase,
+    exceptionId,
+    profile.company_id
+  );
+
+  if (!existing) {
+    return { error: "Exception not found." };
+  }
+
+  const dog = await verifyCompanyDog(supabase, parsed.dogId, profile.company_id);
+
+  if (!dog) {
+    return { error: "Dog not found." };
+  }
+
+  const end = resolveExceptionEndDate(
+    parsed.exceptionType,
+    parsed.startDate,
+    parsed.endDate
+  );
+
+  const { error } = await supabase
+    .from("schedule_exceptions")
+    .update({
+      dog_id: parsed.dogId,
+      exception_type: parsed.exceptionType,
+      start_date: parsed.startDate,
+      end_date: end,
+      reason: parsed.reason,
+    })
+    .eq("id", exceptionId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  const datesToSync = [
+    ...datesAffectedByException(
+      existing.exception_type as ExceptionType,
+      existing.start_date,
+      existing.end_date
+    ),
+    ...datesAffectedByException(parsed.exceptionType, parsed.startDate, end),
+  ];
+
+  await syncStopsForExceptionDates(profile.company_id, datesToSync);
+
+  revalidateExceptionPaths();
+  redirect(`/dashboard/exceptions?updated=${exceptionId}`);
+}
+
+export async function deleteScheduleExceptionAction(
+  exceptionId: string
+): Promise<{ error?: string }> {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const existing = await getCompanyException(
+    supabase,
+    exceptionId,
+    profile.company_id
+  );
+
+  if (!existing) {
+    return { error: "Exception not found." };
+  }
+
+  const datesToSync = datesAffectedByException(
+    existing.exception_type as ExceptionType,
+    existing.start_date,
+    existing.end_date
+  );
+
+  const { error } = await supabase
+    .from("schedule_exceptions")
+    .delete()
+    .eq("id", exceptionId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  await syncStopsForExceptionDates(profile.company_id, datesToSync);
+  revalidateExceptionPaths();
+
+  return {};
 }
