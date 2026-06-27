@@ -1,0 +1,12 @@
+export const DEMO_MAILTO =
+  "mailto:hello@packroute.net?subject=PackRoute%20demo%20request";
+
+export const WAITLIST_MAILTO =
+  "mailto:hello@packroute.net?subject=PackRoute%20early%20access";
+
+export const NAV_LINKS = [
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#features", label: "Features" },
+  { href: "#sms", label: "SMS" },
+  { href: "#faq", label: "FAQ" },
+] as const;

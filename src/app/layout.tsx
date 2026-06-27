@@ -14,10 +14,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "PackRoute",
+    default: "PackRoute — Dog hike operations, simplified",
     template: "%s · PackRoute",
   },
-  description: "Operations platform for dog hiking companies",
+  description:
+    "Schedules, SMS updates, and a simple driver app for dog hiking companies. Keep customers informed without the text thread chaos.",
+  openGraph: {
+    title: "PackRoute — Dog hike operations, simplified",
+    description:
+      "Schedules, SMS updates, and a simple driver app for dog hiking companies.",
+    siteName: "PackRoute",
+  },
 };
 
 export const viewport: Viewport = {
