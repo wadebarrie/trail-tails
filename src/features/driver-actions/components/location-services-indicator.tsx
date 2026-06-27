@@ -2,9 +2,9 @@
 
 import { useGeolocationStatus } from "@/features/driver-actions/use-geolocation-status";
 
-/** Fixed pill footprint — longest label is "Location not enabled" */
+/** Fixed pill footprint — !min-h-9 overrides global button min-h-11 on mobile */
 const PILL_BASE =
-  "inline-flex h-9 min-w-[11.75rem] shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 text-sm font-medium leading-none box-border";
+  "inline-flex h-9 max-h-9 !min-h-9 min-w-[11.75rem] shrink-0 items-center gap-2 whitespace-nowrap rounded-full border box-border px-3 py-0 text-sm font-medium leading-none";
 
 const LABELS: Record<
   ReturnType<typeof useGeolocationStatus>["status"],
@@ -70,7 +70,7 @@ export function LocationServicesIndicator({
       <button
         type="button"
         onClick={recheck}
-        className={`${pillClassName} appearance-none transition active:scale-[0.98]`}
+        className={`${pillClassName} m-0 appearance-none font-inherit transition active:scale-[0.98] md:cursor-pointer`}
         aria-label={`${config.label}. Tap to retry.`}
       >
         {content}
@@ -79,11 +79,7 @@ export function LocationServicesIndicator({
   }
 
   return (
-    <div
-      className={pillClassName}
-      role="status"
-      aria-live="polite"
-    >
+    <div className={pillClassName} role="status" aria-live="polite">
       {content}
     </div>
   );
