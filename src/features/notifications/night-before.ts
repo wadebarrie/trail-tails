@@ -2,7 +2,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
 import { getDateInTimezone, formatTime } from "@/lib/dates";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
-import { logNotification } from "@/features/notifications/log";
+import { logNotification, buildNightBeforeMessage } from "@/features/notifications/log";
 import { one } from "@/lib/supabase/relations";
 
 function localHourInTimezone(timeZone: string): number {
@@ -63,9 +63,9 @@ export async function sendNightBeforeRemindersForCompany(
 
   type CustomerBucket = {
     customerId: string;
-    lines: string[];
+    dogNames: string[];
     stopIds: string[];
-    firstWindow: { start: string; end: string };
+    windows: { start: string; end: string }[];
   };
 
   const byCustomer = new Map<string, CustomerBucket>();
@@ -86,23 +86,22 @@ export async function sendNightBeforeRemindersForCompany(
     if (!dog || !customer) continue;
 
     const customerId = dog.customer_id;
-    const window = `${formatTime(stop.window_start)}–${formatTime(stop.window_end)}`;
-    const line = `${dog.name} (${window})`;
 
     const bucket: CustomerBucket = byCustomer.get(customerId) ?? {
       customerId,
-      lines: [],
+      dogNames: [],
       stopIds: [],
-      firstWindow: { start: stop.window_start, end: stop.window_end },
+      windows: [],
     };
-    bucket.lines.push(line);
+    bucket.dogNames.push(dog.name);
     bucket.stopIds.push(stop.id);
+    bucket.windows.push({ start: stop.window_start, end: stop.window_end });
     byCustomer.set(customerId, bucket);
   }
 
   let sent = 0;
 
-  for (const { customerId, lines, stopIds, firstWindow } of byCustomer.values()) {
+  for (const { customerId, dogNames, stopIds, windows } of byCustomer.values()) {
     const { data: alreadySent } = await supabase
       .from("notification_log")
       .select("id")
@@ -114,10 +113,24 @@ export async function sendNightBeforeRemindersForCompany(
 
     if (alreadySent?.length) continue;
 
-    const body =
-      lines.length === 1
-        ? `${lines[0].split(" (")[0]} is scheduled for pickup tomorrow between ${formatTime(firstWindow.start)} and ${formatTime(firstWindow.end)}.`
-        : `Tomorrow's pickups: ${lines.join(", ")}.`;
+    const sameWindow = windows.every(
+      (w) => w.start === windows[0].start && w.end === windows[0].end
+    );
+
+    const body = sameWindow
+      ? (ownerName: string) =>
+          buildNightBeforeMessage(
+            ownerName,
+            dogNames,
+            windows[0].start,
+            windows[0].end
+          )
+      : `Tomorrow's pickups: ${dogNames
+          .map((name, i) => {
+            const w = windows[i];
+            return `${name} (${formatTime(w.start)}–${formatTime(w.end)})`;
+          })
+          .join(", ")}.`;
 
     await logNotification({
       companyId,

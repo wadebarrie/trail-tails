@@ -1,4 +1,5 @@
 import { listCustomerContacts } from "@/lib/customer-contacts";
+import { formatTime } from "@/lib/dates";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
@@ -252,4 +253,24 @@ export function buildPickedUpMessage(dogName: string) {
 
 export function buildDroppedOffMessage(dogName: string) {
   return `${dogName} has been dropped off. Have a great day!`;
+}
+
+function formatDogList(names: string[]): string {
+  if (names.length === 0) return "Your dog";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;
+}
+
+export function buildNightBeforeMessage(
+  ownerName: string,
+  dogNames: string[],
+  windowStart: string,
+  windowEnd: string
+) {
+  const greeting = ownerName ? `Hi ${ownerName.split(" ")[0]}!` : "Hi!";
+  const dogs = formatDogList(dogNames);
+  const verb = dogNames.length === 1 ? "is" : "are";
+  const window = `${formatTime(windowStart)} and ${formatTime(windowEnd)}`;
+  return `${greeting} ${dogs} ${verb} booked for a hike tomorrow and will be picked up between ${window}.`;
 }
