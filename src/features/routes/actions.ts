@@ -48,6 +48,7 @@ async function revalidateRoutesAndSync(
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   revalidatePath("/today");
+  revalidatePath("/tomorrow");
 }
 
 export async function createRouteAction(
@@ -168,6 +169,7 @@ function revalidateRouteDogPaths() {
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   revalidatePath("/today");
+  revalidatePath("/tomorrow");
 }
 
 export async function addDogToRouteAction(routeId: string, dogId: string) {

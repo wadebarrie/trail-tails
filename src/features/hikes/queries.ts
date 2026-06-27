@@ -122,3 +122,37 @@ export async function getHikeWithStops(companyId: string, date: string) {
   const all = await getHikesWithStopsForDate(companyId, date);
   return all.find((h) => h.hike)?.hike ?? null;
 }
+
+/** Past hikes still open — admin should close out from Today → Hikes. */
+export async function getHikesNeedingCloseOut(
+  companyId: string,
+  beforeDate: string
+): Promise<HikeWithRoute[]> {
+  const supabase = await createClient();
+  const routes = await listRoutes(companyId);
+  const routeById = new Map(routes.map((route) => [route.id, route]));
+
+  const { data: hikes, error } = await supabase
+    .from("hikes")
+    .select(HIKE_SELECT)
+    .eq("company_id", companyId)
+    .in("status", ["in_progress", "planned"])
+    .lt("date", beforeDate)
+    .order("date", { ascending: false });
+
+  if (error) {
+    logWarn("hike", "Failed to load hikes needing close-out", {
+      companyId,
+      context: { beforeDate, dbError: error.message },
+    });
+    return [];
+  }
+
+  return (hikes ?? [])
+    .map((hike): HikeWithRoute | null => {
+      const route = routeById.get(hike.route_id);
+      if (!route) return null;
+      return { route, hike };
+    })
+    .filter((entry): entry is HikeWithRoute => entry != null);
+}

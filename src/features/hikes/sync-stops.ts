@@ -172,9 +172,8 @@ export async function syncStopsForRouteDate(
     .eq("route_id", routeId)
     .eq("is_active", true);
 
-  const scheduledDogs = ((dogs ?? []) as DogSchedule[]).filter((dog) =>
-    dog.dog_schedule_days.some((d) => d.day_of_week === dayOfWeek)
-  );
+  const scheduledDogs = (dogs ?? []) as DogSchedule[];
+  // Dogs on a route run when the route runs — route schedule is the source of truth.
 
   const dogIds = scheduledDogs.map((d) => d.id);
 

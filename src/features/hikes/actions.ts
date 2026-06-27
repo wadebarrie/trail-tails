@@ -36,6 +36,64 @@ export async function reorderStopsAction(
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   revalidatePath("/today");
+  revalidatePath("/tomorrow");
+  return { success: true };
+}
+
+const TERMINAL_STOP_STATUSES = new Set([
+  "picked_up",
+  "dropped_off",
+  "skipped",
+  "cancelled",
+]);
+
+/** Admin: close out a hike — finishes open stops and marks the hike completed. */
+export async function completeHikeAction(
+  hikeId: string
+): Promise<{ success?: true; error?: string }> {
+  await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id, status, date")
+    .eq("id", hikeId)
+    .maybeSingle();
+
+  if (!hike) return { error: "Hike not found." };
+  if (hike.status === "completed") return { success: true };
+
+  const now = new Date().toISOString();
+  const { data: stops } = await supabase
+    .from("stops")
+    .select("id, stop_type, status")
+    .eq("hike_id", hikeId);
+
+  for (const stop of stops ?? []) {
+    if (TERMINAL_STOP_STATUSES.has(stop.status)) continue;
+
+    const status = stop.stop_type === "pickup" ? "picked_up" : "dropped_off";
+    const { error } = await supabase
+      .from("stops")
+      .update({ status, completed_at: now })
+      .eq("id", stop.id);
+
+    if (error) return { error: error.message };
+  }
+
+  const { error: hikeError } = await supabase
+    .from("hikes")
+    .update({ status: "completed" })
+    .eq("id", hikeId);
+
+  if (hikeError) return { error: hikeError.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/dashboard/billing");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
   return { success: true };
 }
 
