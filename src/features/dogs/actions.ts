@@ -11,15 +11,13 @@ import {
 } from "@/features/dogs/exception-sync.server";
 import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
+import { optionalUuidLike, uuidLike } from "@/lib/validation";
 import { one } from "@/lib/supabase/relations";
 import type { ExceptionType } from "@/types";
 
 const dogSchema = z.object({
-  customer_id: z.string().uuid(),
-  route_id: z.preprocess(
-    (v) => (typeof v === "string" && v.length > 0 ? v : null),
-    z.string().uuid().nullable()
-  ),
+  customer_id: uuidLike,
+  route_id: optionalUuidLike,
   name: z.string().min(1, "Dog name is required"),
   breed: z.string().optional(),
   notes: z.string().optional(),
