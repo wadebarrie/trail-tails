@@ -134,7 +134,10 @@ export async function updateDogAction(
   redirect("/dashboard/dogs");
 }
 
-export async function createScheduleExceptionAction(formData: FormData) {
+export async function createScheduleExceptionAction(
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
   const profile = await requireRole("admin");
   const dogId = String(formData.get("dog_id") ?? "");
   const exceptionType = String(formData.get("exception_type") ?? "skip_date");
@@ -143,25 +146,43 @@ export async function createScheduleExceptionAction(formData: FormData) {
   const reason = String(formData.get("reason") ?? "") || null;
 
   if (!dogId || !startDate) {
-    throw new Error("Dog and start date are required");
+    return { error: "Dog and start date are required." };
   }
 
   const supabase = await createClient();
+
+  const { data: dog } = await supabase
+    .from("dogs")
+    .select("id, name, company_id")
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!dog) {
+    return { error: "Dog not found." };
+  }
+
   const end =
     exceptionType === "pause"
       ? null
       : endDate ?? (exceptionType === "vacation" ? null : startDate);
 
-  const { error } = await supabase.from("schedule_exceptions").insert({
-    dog_id: dogId,
-    exception_type: exceptionType as "skip_date" | "vacation" | "pause",
-    start_date: startDate,
-    end_date: end,
-    reason,
-    created_by: profile.id,
-  });
+  const { data: inserted, error } = await supabase
+    .from("schedule_exceptions")
+    .insert({
+      dog_id: dogId,
+      exception_type: exceptionType as "skip_date" | "vacation" | "pause",
+      start_date: startDate,
+      end_date: end,
+      reason,
+      created_by: profile.id,
+    })
+    .select("id")
+    .single();
 
-  if (error) throw new Error(error.message);
+  if (error || !inserted) {
+    return { error: error?.message ?? "Failed to add exception." };
+  }
 
   const dates =
     end && end !== startDate
@@ -177,4 +198,7 @@ export async function createScheduleExceptionAction(formData: FormData) {
   revalidatePath("/dashboard/exceptions");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
+  redirect(
+    `/dashboard/exceptions?added=${inserted.id}&dog=${encodeURIComponent(dog.name)}`
+  );
 }
