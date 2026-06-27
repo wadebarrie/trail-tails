@@ -2,6 +2,10 @@
 
 import { useGeolocationStatus } from "@/features/driver-actions/use-geolocation-status";
 
+/** Fixed pill footprint — longest label is "Location not enabled" */
+const PILL_BASE =
+  "inline-flex h-9 min-w-[11.75rem] shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3 text-sm font-medium leading-none box-border";
+
 const LABELS: Record<
   ReturnType<typeof useGeolocationStatus>["status"],
   { label: string; dot: string; pill: string }
@@ -45,6 +49,9 @@ export function LocationServicesIndicator({
 }) {
   const { status, recheck } = useGeolocationStatus(true);
   const config = LABELS[status];
+  const canRetry =
+    interactive &&
+    (status === "prompt" || status === "denied" || status === "waiting");
 
   const content = (
     <>
@@ -52,16 +59,18 @@ export function LocationServicesIndicator({
         className={`h-2 w-2 shrink-0 rounded-full ${config.dot}`}
         aria-hidden
       />
-      <span className="text-sm font-medium">{config.label}</span>
+      <span>{config.label}</span>
     </>
   );
 
-  if (interactive && (status === "prompt" || status === "denied" || status === "waiting")) {
+  const pillClassName = `${PILL_BASE} ${config.pill}`;
+
+  if (canRetry) {
     return (
       <button
         type="button"
         onClick={recheck}
-        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 transition active:scale-[0.98] ${config.pill}`}
+        className={`${pillClassName} appearance-none transition active:scale-[0.98]`}
         aria-label={`${config.label}. Tap to retry.`}
       >
         {content}
@@ -71,7 +80,7 @@ export function LocationServicesIndicator({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${config.pill}`}
+      className={pillClassName}
       role="status"
       aria-live="polite"
     >
