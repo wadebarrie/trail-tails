@@ -142,53 +142,223 @@ export function SmsPhoneMock() {
   );
 }
 
-export function DriverMobileMock() {
-  const stops = [
-    { name: "Cooper", status: "En Route", active: true },
-    { name: "Daisy", status: "Scheduled", active: false },
-    { name: "Rocky", status: "Scheduled", active: false },
-  ];
+function MockDriverProgressSteps({
+  completedSteps,
+  activeStep,
+  stopType = "pickup",
+}: {
+  completedSteps: number;
+  activeStep: number | null;
+  stopType?: "pickup" | "dropoff";
+}) {
+  const completeLabel = stopType === "pickup" ? "Picked Up" : "Dropped Off";
+  const steps = ["En Route", "Arrived", completeLabel];
 
   return (
-    <div className="mx-auto w-full max-w-xs">
-      <div className="overflow-hidden rounded-[2rem] border-4 border-stone-800 bg-[var(--color-trail-800)] shadow-2xl">
-        <div className="px-4 pb-5 pt-6">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-white/50">
-            PackRoute · Driver
-          </p>
-          <p className="mt-1 text-sm text-white/90">Sam Patel</p>
+    <div className="mt-3 border-t border-white/10 pt-3">
+      <ol className="flex items-start">
+        {steps.map((label, index) => {
+          const isComplete = index < completedSteps;
+          const isCurrent = activeStep !== null && index === activeStep;
+          const isLast = index === steps.length - 1;
 
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-500/20 px-3 py-1.5 text-xs font-medium text-green-200 ring-1 ring-green-400/30">
-            <span className="h-2 w-2 rounded-full bg-green-400" />
-            Location active
+          return (
+            <li
+              key={label}
+              className={`flex items-start ${isLast ? "shrink-0" : "min-w-0 flex-1"}`}
+            >
+              <div className="flex min-w-0 flex-col items-center">
+                <div
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+                    isComplete
+                      ? "bg-green-500/30 text-green-200"
+                      : isCurrent
+                        ? index === 1
+                          ? "bg-sky-400 text-stone-900 ring-2 ring-sky-200/60"
+                          : "bg-white text-[var(--color-trail-800)] ring-2 ring-white/60"
+                        : "bg-white/10 text-white/35"
+                  }`}
+                >
+                  {isComplete ? "✓" : index + 1}
+                </div>
+                <span
+                  className={`mt-1 max-w-[3.25rem] text-center text-[9px] leading-tight font-medium ${
+                    isComplete
+                      ? "text-green-200/90"
+                      : isCurrent
+                        ? "text-white"
+                        : "text-white/35"
+                  }`}
+                >
+                  {label}
+                </span>
+              </div>
+              {!isLast ? (
+                index === 0 && activeStep === 1 && completedSteps === 1 ? (
+                  <div className="relative mx-0.5 mt-2.5 min-w-2 flex-1">
+                    <div className="relative h-1 overflow-hidden rounded-full bg-white/10">
+                      <div className="absolute inset-y-0 left-0 w-[45%] rounded-full bg-gradient-to-r from-amber-400/90 to-sky-400/90" />
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={`mx-0.5 mt-2.5 h-0.5 min-w-2 flex-1 rounded-full ${
+                      index < completedSteps ? "bg-green-500/40" : "bg-white/10"
+                    }`}
+                  />
+                )
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+function MockDriverStopCard({
+  dogName,
+  ownerName,
+  address,
+  window,
+  status,
+}: {
+  dogName: string;
+  ownerName: string;
+  address: string;
+  window: string;
+  status: "scheduled" | "en_route" | "done";
+}) {
+  const progress =
+    status === "en_route"
+      ? { completedSteps: 1, activeStep: 1 }
+      : status === "done"
+        ? { completedSteps: 3, activeStep: null }
+        : { completedSteps: 0, activeStep: null };
+
+  return (
+    <div
+      className={`rounded-2xl border p-3.5 ${
+        status === "done"
+          ? "border-green-500/30 bg-green-500/10"
+          : "border-white/10 bg-white/5"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <p className="text-base font-semibold text-white">{dogName}</p>
+            <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 text-[10px] text-white/70">
+              i
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-white/60">{ownerName}</p>
+          <p className="mt-1 text-[11px] leading-snug text-white/50">{address}</p>
+          <p className="mt-1 text-[10px] text-white/40">{window}</p>
+        </div>
+        {status === "done" ? (
+          <span className="rounded-full bg-green-500/20 px-2 py-0.5 text-[10px] font-medium text-green-300">
+            Done
+          </span>
+        ) : null}
+      </div>
+
+      <MockDriverProgressSteps {...progress} />
+
+      {status === "scheduled" ? (
+        <button
+          type="button"
+          className="mt-3 w-full rounded-2xl bg-amber-400 py-3.5 text-sm font-semibold text-stone-900"
+        >
+          En Route
+        </button>
+      ) : null}
+
+      {status === "en_route" ? (
+        <div className="mt-3 space-y-2">
+          <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-3 py-2.5 text-center">
+            <p className="text-[11px] font-medium text-sky-100">
+              Auto-detecting arrival via GPS
+            </p>
+            <p className="mt-0.5 text-[10px] text-sky-200/70">850 m away · 45% of trip</p>
+          </div>
+          <p className="text-center text-[11px] font-medium text-white/70 underline-offset-2">
+            Mark arrived manually
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function DriverMobileMock() {
+  return (
+    <div className="mx-auto w-full max-w-[280px]">
+      <div className="overflow-hidden rounded-[2rem] border-4 border-stone-800 bg-[var(--color-trail-800)] shadow-2xl">
+        {/* App header */}
+        <div className="flex items-start justify-between border-b border-white/10 px-3.5 pb-3 pt-4">
+          <div>
+            <p className="text-[9px] font-medium uppercase tracking-widest text-white/60">
+              PackRoute · Driver
+            </p>
+            <p className="mt-0.5 text-xs text-white/80">Sam Patel</p>
+          </div>
+          <p className="text-[10px] text-white/50">Help</p>
+        </div>
+
+        <div className="px-3.5 pb-5 pt-4">
+          {/* Today / Tomorrow tabs */}
+          <div className="mb-4 flex gap-1 rounded-xl bg-white/5 p-1">
+            <div className="flex-1 rounded-lg bg-white py-2 text-center text-xs font-medium text-[var(--color-trail-800)] shadow-sm">
+              Today
+            </div>
+            <div className="flex-1 rounded-lg py-2 text-center text-xs font-medium text-white/70">
+              Tomorrow
+            </div>
           </div>
 
-          <p className="mt-5 text-xs font-medium uppercase tracking-wide text-white/50">
+          <h2 className="text-xl font-bold text-white">Today</h2>
+          <p className="mt-0.5 text-xs text-white/70">Thursday, June 27</p>
+
+          {/* Status pills */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="inline-flex h-7 items-center gap-1.5 rounded-full border border-green-400/30 bg-green-400/10 px-2.5 text-[10px] font-medium text-green-100">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.8)]" />
+              Location active
+            </div>
+            <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] text-white/80">
+              2 pickups left
+            </span>
+            <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] text-white/80">
+              3 drop-offs left
+            </span>
+          </div>
+
+          {/* Route */}
+          <p className="mb-2.5 mt-5 text-sm font-semibold text-white/90">
+            New Westminster / Burnaby
+          </p>
+
+          <p className="mb-2 text-[10px] font-medium uppercase tracking-wide text-white/50">
             Morning pickups
           </p>
-          <ul className="mt-2 space-y-2">
-            {stops.map((stop) => (
-              <li
-                key={stop.name}
-                className="rounded-xl border border-white/10 bg-white/5 p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-medium text-white">{stop.name}</p>
-                  <span className="text-[10px] text-white/60">{stop.status}</span>
-                </div>
-                {stop.active ? (
-                  <button
-                    type="button"
-                    className="mt-2 w-full rounded-lg bg-[var(--color-trail-600)] py-2 text-xs font-medium text-white"
-                  >
-                    En Route
-                  </button>
-                ) : (
-                  <div className="mt-2 h-8 rounded-lg bg-white/5" />
-                )}
-              </li>
-            ))}
-          </ul>
+
+          <div className="space-y-2.5">
+            <MockDriverStopCard
+              dogName="Cooper"
+              ownerName="Alex Chen"
+              address="425 Sixth St, New Westminster"
+              window="8:05 AM–8:35 AM"
+              status="en_route"
+            />
+            <MockDriverStopCard
+              dogName="Daisy"
+              ownerName="Jordan Lee"
+              address="218 E Columbia St, New Westminster"
+              window="8:10 AM–8:40 AM"
+              status="scheduled"
+            />
+          </div>
         </div>
       </div>
     </div>
