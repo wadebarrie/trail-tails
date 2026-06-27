@@ -4,7 +4,7 @@ import type { ParsedPayload } from "@/features/sms/parser";
 import {
   datesToSyncAfterApproval,
 } from "@/features/hikes/sync-stops";
-import { scheduleExceptionStopSync } from "@/features/dogs/exception-sync";
+import { scheduleExceptionStopSync } from "@/features/dogs/exception-sync.server";
 import { getDateInTimezone } from "@/lib/dates";
 
 type PendingRequestRow = {

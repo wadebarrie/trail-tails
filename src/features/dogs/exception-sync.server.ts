@@ -1,8 +1,10 @@
+import "server-only";
+
+import { after } from "next/server";
 import { syncStopsForRouteDate, addDaysToDate } from "@/features/hikes/sync-stops";
 import { getDateInTimezone } from "@/lib/dates";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ExceptionType } from "@/types";
-import { after } from "next/server";
 
 const SYNC_HORIZON_DAYS = 14;
 
@@ -115,21 +117,4 @@ export function scheduleExceptionStopSync(
       console.error("[exception-sync] stop sync failed:", err);
     }
   });
-}
-
-export function formatExceptionDates(
-  startDate: string,
-  endDate: string | null,
-  exceptionType: string
-): string {
-  if (endDate && endDate !== startDate) {
-    return `${startDate} → ${endDate}`;
-  }
-  if (!endDate && exceptionType === "pause") {
-    return `${startDate} (open-ended pause)`;
-  }
-  if (!endDate) {
-    return `${startDate} (open-ended)`;
-  }
-  return startDate;
 }

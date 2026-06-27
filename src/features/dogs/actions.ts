@@ -8,7 +8,7 @@ import {
   datesAffectedByException,
   resolveExceptionEndDate,
   scheduleExceptionStopSync,
-} from "@/features/dogs/exception-sync";
+} from "@/features/dogs/exception-sync.server";
 import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";

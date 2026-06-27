@@ -9,7 +9,7 @@ import {
   updateScheduleExceptionAction,
 } from "@/features/dogs/actions";
 import { ExceptionFormFields } from "@/features/dogs/components/exception-form-fields";
-import { formatExceptionDates } from "@/features/dogs/exception-sync";
+import { formatExceptionDates } from "@/features/dogs/exception-utils";
 import type { ExceptionType } from "@/types";
 
 type DogOption = { id: string; name: string };

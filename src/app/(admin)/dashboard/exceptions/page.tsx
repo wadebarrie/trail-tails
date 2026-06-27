@@ -6,7 +6,7 @@ import {
   ExceptionsTable,
   type ScheduleExceptionRow,
 } from "@/features/dogs/components/exceptions-table";
-import { formatExceptionDates } from "@/features/dogs/exception-sync";
+import { formatExceptionDates } from "@/features/dogs/exception-utils";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 
