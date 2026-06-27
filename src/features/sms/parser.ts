@@ -14,6 +14,7 @@ export type ParseResult =
       commandType: "help" | "unknown";
       payload: ParsedPayload;
       autoReply: string;
+      autoReplies?: string[];
       createsRequest: false;
     }
   | {
@@ -70,18 +71,23 @@ const MONTH_NAMES: Record<string, number> = {
   dec: 12,
 };
 
-export const HELP_REPLY = `PackRoute — text us:
-SKIP TOMORROW
+export const HELP_REPLIES = [
+  `PackRoute - text us natural language or keywords:
+SKIP TOMORROW / NO HIKE TOMORROW
 SKIP MONDAY (or any weekday)
-SKIP 7/10 or SKIP JULY 10
-VACATION JULY 10-18
-PAUSE
-RESUME or BACK ON
-HELP
+SKIP NEXT HIKE / SKIP NEXT WEEK
+SKIP 7/10 or SKIP JULY 10`,
+  `GOING ON VACATION UNTIL JULY 18
+VACATION JULY 10-18 / AWAY JULY 10 TO 18
+PAUSE / TAKE A BREAK
+RESUME / BACK ON
+HELP`,
+  `Schedule changes are reviewed by the office before they take effect.`,
+];
 
-Schedule changes are reviewed by the office before they take effect.`;
+export const HELP_REPLY = HELP_REPLIES.join("\n\n");
 
-export const UNKNOWN_REPLY = `We didn't recognize that command. Reply HELP for options.`;
+export const UNKNOWN_REPLY = `We didn't recognize that. Reply HELP for options, or try "skip tomorrow", "going on vacation until July 18", or "pause".`;
 
 export const REQUEST_ACK_REPLY =
   "Got it! We'll review your request shortly.";
@@ -90,7 +96,13 @@ export const UNREGISTERED_PHONE_REPLY =
   "We don't recognize this number. Please contact the office for help.";
 
 function normalizeBody(body: string): string {
-  return body.trim().replace(/\s+/g, " ").toUpperCase();
+  return body
+    .trim()
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\s+/g, " ")
+    .toUpperCase();
 }
 
 export function buildIdempotencyKey(
@@ -125,6 +137,19 @@ export function nextDateForWeekday(
   return startDate;
 }
 
+/** Mon-Fri of the next calendar week (colloquial "next week"). */
+export function nextWeekdayWeekRange(today: string): {
+  start_date: string;
+  end_date: string;
+} {
+  const d = new Date(`${today}T12:00:00`);
+  const dow = d.getUTCDay();
+  let daysToMonday = (8 - dow) % 7;
+  if (daysToMonday === 0) daysToMonday = 7;
+  const start = addDays(today, daysToMonday);
+  return { start_date: start, end_date: addDays(start, 4) };
+}
+
 function parseIsoDate(y: number, m: number, d: number): string | null {
   if (m < 1 || m > 12 || d < 1 || d > 31) return null;
   const iso = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -138,7 +163,9 @@ function parseMonthDay(
   text: string,
   referenceYear: number
 ): { start: string; end: string | null } | null {
-  const range = text.match(
+  const cleaned = text.trim().replace(/\.$/, "");
+
+  const range = cleaned.match(
     /^([A-Z]+)\s+(\d{1,2})\s*(?:-|TO|THROUGH)\s*(?:([A-Z]+)\s+)?(\d{1,2})$/i
   );
   if (range) {
@@ -153,7 +180,7 @@ function parseMonthDay(
     return { start, end: end >= start ? end : null };
   }
 
-  const single = text.match(/^([A-Z]+)\s+(\d{1,2})$/i);
+  const single = cleaned.match(/^([A-Z]+)\s+(\d{1,2})$/i);
   if (single) {
     const m = MONTH_NAMES[single[1].toLowerCase()];
     const d = Number(single[2]);
@@ -163,7 +190,7 @@ function parseMonthDay(
     return { start, end: start };
   }
 
-  const numeric = text.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+  const numeric = cleaned.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
   if (numeric) {
     const m = Number(numeric[1]);
     const d = Number(numeric[2]);
@@ -175,6 +202,195 @@ function parseMonthDay(
     const start = parseIsoDate(y, m, d);
     if (!start) return null;
     return { start, end: start };
+  }
+
+  return null;
+}
+
+function isHelpCommand(normalized: string): boolean {
+  if (!normalized) return false;
+  if (/^(HELP|\?|COMMANDS|OPTIONS|MENU|INFO)$/.test(normalized)) return true;
+  if (/^HELP\b/.test(normalized)) return true;
+  if (/^(HOW DO I|WHAT CAN I TEXT|NEED HELP|TEXT HELP)/.test(normalized)) {
+    return true;
+  }
+  return false;
+}
+
+function helpResult(): ParseResult {
+  return {
+    commandType: "help",
+    payload: {},
+    autoReply: HELP_REPLY,
+    autoReplies: HELP_REPLIES,
+    createsRequest: false,
+  };
+}
+
+function requestResult(
+  commandType: Exclude<CommandType, "help" | "unknown">,
+  payload: ParsedPayload
+): ParseResult {
+  return {
+    commandType,
+    payload,
+    autoReply: REQUEST_ACK_REPLY,
+    createsRequest: true,
+  };
+}
+
+function tryParseVacation(
+  normalized: string,
+  today: string,
+  refYear: number
+): ParseResult | null {
+  const hasVacationWord =
+    /\b(VACATION|AWAY|OUT OF TOWN)\b/.test(normalized) ||
+    /GOING ON VACATION/.test(normalized);
+
+  const between = normalized.match(
+    /(?:VACATION|AWAY|OUT OF TOWN)?\s*BETWEEN\s+(.+?)\s+AND\s+(.+)$/i
+  );
+  if (between) {
+    const start = parseMonthDay(between[1], refYear);
+    const end = parseMonthDay(between[2], refYear);
+    if (start?.start && end?.start) {
+      return requestResult("vacation", {
+        start_date: start.start,
+        end_date: end.end ?? end.start,
+      });
+    }
+  }
+
+  const fromTo = normalized.match(
+    /(?:GOING ON |ON )?(?:VACATION|AWAY|OUT OF TOWN)\s+(?:FROM\s+)?(.+?)\s+(?:TO|UNTIL|THROUGH|-)\s+(.+)$/i
+  );
+  if (fromTo) {
+    const start = parseMonthDay(fromTo[1], refYear);
+    const end = parseMonthDay(fromTo[2], refYear);
+    if (start?.start && end?.start) {
+      return requestResult("vacation", {
+        start_date: start.start,
+        end_date: end.end ?? end.start,
+      });
+    }
+  }
+
+  const until = normalized.match(
+    /(?:GOING ON |ON |I'M ON |WE'RE ON |WE ARE ON )?(?:VACATION|AWAY|OUT OF TOWN)\s+UNTIL\s+(.+)$/i
+  );
+  if (until) {
+    const end = parseMonthDay(until[1], refYear);
+    if (end?.start) {
+      return requestResult("vacation", {
+        start_date: today,
+        end_date: end.end ?? end.start,
+      });
+    }
+  }
+
+  if (normalized.startsWith("VACATION ")) {
+    const rest = normalized.slice("VACATION ".length);
+    const parsed = parseMonthDay(rest, refYear);
+    if (parsed) {
+      return requestResult("vacation", {
+        start_date: parsed.start,
+        end_date: parsed.end,
+      });
+    }
+  }
+
+  if (normalized.startsWith("AWAY ")) {
+    const rest = normalized.slice("AWAY ".length);
+    const parsed = parseMonthDay(rest, refYear);
+    if (parsed) {
+      return requestResult("vacation", {
+        start_date: parsed.start,
+        end_date: parsed.end,
+      });
+    }
+  }
+
+  if (hasVacationWord) {
+    const trailingUntil = normalized.match(/\bUNTIL\s+(.+)$/i);
+    if (trailingUntil) {
+      const end = parseMonthDay(trailingUntil[1], refYear);
+      if (end?.start) {
+        return requestResult("vacation", {
+          start_date: today,
+          end_date: end.end ?? end.start,
+        });
+      }
+    }
+  }
+
+  return null;
+}
+
+function tryParseSkip(normalized: string, today: string, refYear: number): ParseResult | null {
+  if (
+    normalized === "SKIP TOMORROW" ||
+    /^SKIP\s+(THE\s+)?(NEXT\s+)?(HIKE|WALK)\s*$/.test(normalized) ||
+    /^(NO|CANCEL|SKIP)\s+(THE\s+)?(HIKE|WALK)\s+TOMORROW$/.test(normalized) ||
+    /^(NO|CANCEL)\s+(HIKE|WALK)\s+TOMORROW$/.test(normalized) ||
+    /^NO\s+(HIKES?|WALKS?)\s+TOMORROW$/.test(normalized)
+  ) {
+    return requestResult("skip_tomorrow", {
+      target_date: addDays(today, 1),
+    });
+  }
+
+  if (
+    /^SKIP\s+(THE\s+)?NEXT\s+WEEK\b/.test(normalized) ||
+    /^NO\s+(HIKES?|WALKS?)\s+NEXT\s+WEEK$/.test(normalized) ||
+    /^OFF\s+NEXT\s+WEEK$/.test(normalized)
+  ) {
+    const range = nextWeekdayWeekRange(today);
+    return requestResult("vacation", range);
+  }
+
+  const skipWeekday = normalized.match(
+    /^SKIP\s+(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|MON|TUE|TUES|WED|THU|THUR|THURS|FRI|SAT|SUN)$/
+  );
+  if (skipWeekday) {
+    const dow = WEEKDAY_NAMES[skipWeekday[1].toLowerCase()];
+    if (dow == null) return null;
+    return requestResult("skip_weekday", {
+      day_of_week: dow,
+      target_date: nextDateForWeekday(today, dow),
+    });
+  }
+
+  if (normalized.startsWith("SKIP ")) {
+    const rest = normalized.slice("SKIP ".length);
+    const parsed = parseMonthDay(rest, refYear);
+    if (parsed?.start) {
+      return requestResult("skip_date", { target_date: parsed.start });
+    }
+  }
+
+  return null;
+}
+
+function tryParsePauseResume(normalized: string, today: string): ParseResult | null {
+  if (
+    normalized === "PAUSE" ||
+    /^PAUSE\s+(HIKES?|WALKS?)$/.test(normalized) ||
+    /^TAKE\s+A\s+BREAK$/.test(normalized) ||
+    /^STOP\s+(HIKES?|WALKS?)$/.test(normalized) ||
+    /^UNAVAILABLE$/.test(normalized)
+  ) {
+    return requestResult("pause", { start_date: today, end_date: null });
+  }
+
+  if (
+    normalized === "RESUME" ||
+    normalized === "BACK ON" ||
+    /^RESUME\s+(HIKES?|WALKS?)$/.test(normalized) ||
+    /^START\s+AGAIN$/.test(normalized) ||
+    /^BACK\s+ON\s+(HIKES?|WALKS?)$/.test(normalized)
+  ) {
+    return requestResult("resume", { start_date: today });
   }
 
   return null;
@@ -198,102 +414,18 @@ export function parseSmsCommand(
     };
   }
 
-  if (normalized === "HELP" || normalized === "?") {
-    return {
-      commandType: "help",
-      payload: {},
-      autoReply: HELP_REPLY,
-      createsRequest: false,
-    };
+  if (isHelpCommand(normalized)) {
+    return helpResult();
   }
 
-  if (normalized === "SKIP TOMORROW") {
-    return {
-      commandType: "skip_tomorrow",
-      payload: { target_date: addDays(today, 1) },
-      autoReply: REQUEST_ACK_REPLY,
-      createsRequest: true,
-    };
-  }
+  const pauseResume = tryParsePauseResume(normalized, today);
+  if (pauseResume) return pauseResume;
 
-  if (normalized === "PAUSE") {
-    return {
-      commandType: "pause",
-      payload: { start_date: today, end_date: null },
-      autoReply: REQUEST_ACK_REPLY,
-      createsRequest: true,
-    };
-  }
+  const skip = tryParseSkip(normalized, today, refYear);
+  if (skip) return skip;
 
-  if (normalized === "RESUME" || normalized === "BACK ON") {
-    return {
-      commandType: "resume",
-      payload: { start_date: today },
-      autoReply: REQUEST_ACK_REPLY,
-      createsRequest: true,
-    };
-  }
-
-  const skipWeekday = normalized.match(/^SKIP\s+(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|MON|TUE|TUES|WED|THU|THUR|THURS|FRI|SAT|SUN)$/);
-  if (skipWeekday) {
-    const dow = WEEKDAY_NAMES[skipWeekday[1].toLowerCase()];
-    if (dow == null) {
-      return {
-        commandType: "unknown",
-        payload: {},
-        autoReply: UNKNOWN_REPLY,
-        createsRequest: false,
-      };
-    }
-    const target = nextDateForWeekday(today, dow);
-    return {
-      commandType: "skip_weekday",
-      payload: { day_of_week: dow, target_date: target },
-      autoReply: REQUEST_ACK_REPLY,
-      createsRequest: true,
-    };
-  }
-
-  if (normalized.startsWith("VACATION ")) {
-    const rest = normalized.slice("VACATION ".length);
-    const parsed = parseMonthDay(rest, refYear);
-    if (!parsed) {
-      return {
-        commandType: "unknown",
-        payload: {},
-        autoReply: UNKNOWN_REPLY,
-        createsRequest: false,
-      };
-    }
-    return {
-      commandType: "vacation",
-      payload: {
-        start_date: parsed.start,
-        end_date: parsed.end,
-      },
-      autoReply: REQUEST_ACK_REPLY,
-      createsRequest: true,
-    };
-  }
-
-  if (normalized.startsWith("SKIP ")) {
-    const rest = normalized.slice("SKIP ".length);
-    const parsed = parseMonthDay(rest, refYear);
-    if (!parsed?.start) {
-      return {
-        commandType: "unknown",
-        payload: {},
-        autoReply: UNKNOWN_REPLY,
-        createsRequest: false,
-      };
-    }
-    return {
-      commandType: "skip_date",
-      payload: { target_date: parsed.start },
-      autoReply: REQUEST_ACK_REPLY,
-      createsRequest: true,
-    };
-  }
+  const vacation = tryParseVacation(normalized, today, refYear);
+  if (vacation) return vacation;
 
   return {
     commandType: "unknown",

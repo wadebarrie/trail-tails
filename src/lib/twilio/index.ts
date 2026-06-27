@@ -124,9 +124,17 @@ function escapeXml(text: string): string {
 
 /** Reply to inbound SMS via TwiML (no separate REST send). */
 export function twimlMessageResponse(body: string): Response {
-  const message = escapeXml(body);
+  return twimlMessagesResponse([body]);
+}
+
+/** Reply with one or more SMS bodies (Twilio sends each as a separate message). */
+export function twimlMessagesResponse(bodies: string[]): Response {
+  const messages = bodies
+    .filter((body) => body.trim().length > 0)
+    .map((body) => `<Message>${escapeXml(body)}</Message>`)
+    .join("");
   return new Response(
-    `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${message}</Message></Response>`,
+    `<?xml version="1.0" encoding="UTF-8"?><Response>${messages}</Response>`,
     { headers: { "Content-Type": "text/xml" } }
   );
 }

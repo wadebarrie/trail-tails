@@ -1,7 +1,7 @@
 import { customerHasPhone } from "@/lib/customer-contacts";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException } from "@/lib/logger";
-import { twimlMessageResponse } from "@/lib/twilio";
+import { twimlMessageResponse, twimlMessagesResponse } from "@/lib/twilio";
 import {
   buildIdempotencyKey,
   parseSmsCommand,
@@ -60,6 +60,14 @@ export async function processInboundSms(input: InboundSmsInput): Promise<Respons
       return twimlMessageResponse(UNREGISTERED_PHONE_REPLY);
     }
 
+    const { data: company } = await supabase
+      .from("companies")
+      .select("timezone")
+      .eq("id", customer.company_id)
+      .single();
+
+    const timeZone = company?.timezone ?? "America/Los_Angeles";
+
     if (twilioSid) {
       const { data: existingSms } = await supabase
         .from("sms_messages")
@@ -68,17 +76,14 @@ export async function processInboundSms(input: InboundSmsInput): Promise<Respons
         .maybeSingle();
 
       if (existingSms) {
-        return twimlMessageResponse(REQUEST_ACK_REPLY);
+        const reparsed = parseSmsCommand(body, timeZone);
+        if (reparsed.commandType === "help" && reparsed.autoReplies?.length) {
+          return twimlMessagesResponse(reparsed.autoReplies);
+        }
+        return twimlMessageResponse(reparsed.autoReply);
       }
     }
 
-    const { data: company } = await supabase
-      .from("companies")
-      .select("timezone")
-      .eq("id", customer.company_id)
-      .single();
-
-    const timeZone = company?.timezone ?? "America/Los_Angeles";
     const parsed = parseSmsCommand(body, timeZone);
     const idempotencyKey = buildIdempotencyKey(fromNumber, body, receivedAt);
 
@@ -135,6 +140,10 @@ export async function processInboundSms(input: InboundSmsInput): Promise<Respons
       status: "received",
       pending_request_id: pendingRequestId,
     });
+
+    if (parsed.commandType === "help" && parsed.autoReplies?.length) {
+      return twimlMessagesResponse(parsed.autoReplies);
+    }
 
     return twimlMessageResponse(parsed.autoReply);
   } catch (error) {
