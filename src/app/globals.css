@@ -6,6 +6,9 @@
   --color-trail-600: #2d6a4f;
   --color-trail-700: #1b4332;
   --color-trail-800: #081c15;
+  --color-cta: #2d6a4f;
+  --color-cta-hover: #245a42;
+  --color-cta-active: #1b4332;
 }
 
 body {

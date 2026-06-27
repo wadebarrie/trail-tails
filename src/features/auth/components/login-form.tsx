@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getLoginRedirect } from "@/features/auth/access";
+import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 type LoginFormProps = {
   nextPath?: string;
@@ -129,7 +130,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-[var(--color-trail-700)] py-3 text-sm font-medium text-white transition hover:bg-[var(--color-trail-600)] disabled:cursor-not-allowed disabled:opacity-60"
+        className={`${primaryButtonClassName} w-full rounded-xl py-3`}
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>

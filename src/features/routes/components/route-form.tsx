@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { createRouteAction, updateRouteAction } from "@/features/routes/actions";
+import { SubmitButton } from "@/features/admin/components/ui";
 
 function RouteFormFields({
   defaultName = "",
@@ -37,13 +38,7 @@ function RouteFormFields({
 
       <ScheduleDaysField defaultDays={defaultDays} />
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {pending ? "Saving…" : submitLabel}
-      </button>
+      <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
     </>
   );
 }

@@ -1,9 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-
-const primaryButtonClassName =
-  "inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--color-trail-700)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-trail-600)] disabled:cursor-not-allowed disabled:opacity-50";
+import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 export function FormSubmitButton({
   children,

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateCompanySettingsAction } from "@/features/company/actions";
+import { SubmitButton } from "@/features/admin/components/ui";
 
 export function CompanySettingsForm({
   defaultRateCents,
@@ -52,13 +53,7 @@ export function CompanySettingsForm({
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {pending ? "Saving…" : "Save settings"}
-      </button>
+      <SubmitButton pending={pending}>Save settings</SubmitButton>
     </form>
   );
 }

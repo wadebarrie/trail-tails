@@ -5,6 +5,7 @@ import {
   createCustomerAction,
   updateCustomerAction,
 } from "@/features/customers/actions";
+import { SubmitButton } from "@/features/admin/components/ui";
 import type { Customer } from "@/types";
 
 type CustomerFormProps = {
@@ -90,13 +91,9 @@ export function CustomerForm({ customer }: CustomerFormProps) {
         </label>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {pending ? "Saving…" : customer ? "Update customer" : "Create customer"}
-      </button>
+      <SubmitButton pending={pending}>
+        {customer ? "Update customer" : "Create customer"}
+      </SubmitButton>
     </form>
   );
 }

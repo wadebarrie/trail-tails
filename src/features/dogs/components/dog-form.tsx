@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createDogAction, updateDogAction } from "@/features/dogs/actions";
+import { SubmitButton } from "@/features/admin/components/ui";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import type { Customer, Dog, Route } from "@/types";
 
@@ -124,13 +125,9 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
         </label>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-      >
-        {pending ? "Saving…" : dog ? "Update dog" : "Create dog"}
-      </button>
+      <SubmitButton pending={pending}>
+        {dog ? "Update dog" : "Create dog"}
+      </SubmitButton>
     </form>
   );
 }

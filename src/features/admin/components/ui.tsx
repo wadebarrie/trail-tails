@@ -1,13 +1,11 @@
 import Link from "next/link";
+import {
+  primaryButtonClassName,
+  secondaryButtonClassName,
+} from "@/features/admin/components/button-styles";
 
 const inputClassName =
   "w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-[var(--color-trail-600)] focus:outline-none focus:ring-2 focus:ring-[var(--color-trail-600)]/20";
-
-const primaryButtonClassName =
-  "inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--color-trail-700)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-trail-600)] disabled:cursor-not-allowed disabled:opacity-50";
-
-const secondaryButtonClassName =
-  "inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function TableShell({
   children,

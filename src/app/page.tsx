@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 export default function HomePage() {
   return (
@@ -18,7 +19,7 @@ export default function HomePage() {
         <div className="mt-10 flex flex-col gap-3">
           <Link
             href="/login?role=admin"
-            className="rounded-xl bg-[var(--color-trail-700)] px-6 py-4 text-base font-medium text-white transition hover:bg-[var(--color-trail-600)]"
+            className={`${primaryButtonClassName} rounded-xl px-6 py-4 text-base`}
           >
             Office login
           </Link>

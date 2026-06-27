@@ -6,6 +6,7 @@ import {
   PageHeader,
   TableShell,
 } from "@/features/admin/components/ui";
+import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { requireRole } from "@/features/auth/queries";
 import { billingStatusLabel } from "@/features/billing/status";
 import {
@@ -74,7 +75,7 @@ export default async function BillingPage({
             </Link>
             <a
               href={exportUrl}
-              className="inline-flex rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-trail-800)]"
+              className={primaryButtonClassName}
             >
               Export CSV
             </a>
