@@ -35,13 +35,18 @@ async function main() {
     const stops = (h.stops ?? []) as {
       stop_type: string;
       status: string;
-      dogs: { name: string };
+      dogs: { name: string }[];
     }[];
     console.log(
       h.date,
       h.status,
       `total=${stops.length}`,
-      stops.map((s) => `${s.dogs?.name}:${s.stop_type}:${s.status}`).join(", ")
+      stops
+        .map(
+          (s) =>
+            `${s.dogs?.[0]?.name ?? "?"}:${s.stop_type}:${s.status}`
+        )
+        .join(", ")
     );
   }
 }
