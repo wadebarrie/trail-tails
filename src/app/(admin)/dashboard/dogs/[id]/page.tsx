@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageHeader } from "@/features/admin/components/ui";
+import { PageHeader, BackLink } from "@/features/admin/components/ui";
 import { DogForm } from "@/features/dogs/components/dog-form";
 import { requireRole } from "@/features/auth/queries";
 import { listRoutes } from "@/features/routes/queries";
@@ -41,6 +41,7 @@ export default async function EditDogPage({
 
   return (
     <div>
+      <BackLink href="/dashboard/dogs">Back to dogs</BackLink>
       <PageHeader title="Edit dog" description={dogRecord.name} />
       <DogForm
         customers={(customers ?? []) as Pick<Customer, "id" | "owner_name">[]}

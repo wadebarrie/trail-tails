@@ -1,4 +1,4 @@
-import { PageHeader } from "@/features/admin/components/ui";
+import { PageHeader, EmptyState } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
 import {
@@ -76,7 +76,7 @@ export default async function TodayHikesPage() {
           ))}
         </div>
       ) : openCloseOut.length === 0 ? (
-        <p className="text-stone-500">No hikes scheduled for today.</p>
+        <EmptyState message="No hikes scheduled for today." />
       ) : null}
     </div>
   );

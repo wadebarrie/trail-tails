@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PageHeader } from "@/features/admin/components/ui";
+import { PageHeader, BackLink } from "@/features/admin/components/ui";
 import { CustomerForm } from "@/features/customers/components/customer-form";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +27,7 @@ export default async function EditCustomerPage({
 
   return (
     <div>
+      <BackLink href="/dashboard/customers">Back to customers</BackLink>
       <PageHeader title="Edit customer" description={customer.owner_name} />
       <CustomerForm customer={customer} />
     </div>

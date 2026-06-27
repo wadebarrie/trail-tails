@@ -1,4 +1,4 @@
-import { PageHeader } from "@/features/admin/components/ui";
+import { PageHeader, BackLink } from "@/features/admin/components/ui";
 import { DogForm } from "@/features/dogs/components/dog-form";
 import { requireRole } from "@/features/auth/queries";
 import { listRoutes } from "@/features/routes/queries";
@@ -20,6 +20,7 @@ export default async function NewDogPage() {
 
   return (
     <div>
+      <BackLink href="/dashboard/dogs">Back to dogs</BackLink>
       <PageHeader title="Add dog" />
       <DogForm customers={customers ?? []} routes={routes} />
     </div>

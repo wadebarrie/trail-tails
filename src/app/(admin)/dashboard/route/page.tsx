@@ -1,4 +1,4 @@
-import { PageHeader, Card } from "@/features/admin/components/ui";
+import { PageHeader, Card, EmptyState } from "@/features/admin/components/ui";
 import { RouteAddDogSelect } from "@/features/routes/components/route-add-dog-select";
 import { RouteDogsList } from "@/features/routes/components/route-dogs-list";
 import { RouteDriverSelect } from "@/features/routes/components/route-driver-select";
@@ -56,7 +56,7 @@ export default async function RouteOrderPage() {
       </Card>
 
       {!routes.length ? (
-        <p className="text-stone-500">No routes configured.</p>
+        <EmptyState message="No routes configured yet. Add one above to get started." />
       ) : (
         <div className="space-y-10">
           {routes.map((route) => {

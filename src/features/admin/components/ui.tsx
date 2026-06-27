@@ -1,5 +1,14 @@
 import Link from "next/link";
 
+const inputClassName =
+  "w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-[var(--color-trail-600)] focus:outline-none focus:ring-2 focus:ring-[var(--color-trail-600)]/20";
+
+const primaryButtonClassName =
+  "inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--color-trail-700)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-trail-600)] disabled:cursor-not-allowed disabled:opacity-50";
+
+const secondaryButtonClassName =
+  "inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50";
+
 export function TableShell({
   children,
   minWidth = "36rem",
@@ -95,11 +104,102 @@ export function PrimaryLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      href={href}
-      className="inline-flex min-h-11 items-center rounded-lg bg-[var(--color-trail-700)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-trail-600)]"
-    >
+    <Link href={href} className={primaryButtonClassName}>
       {children}
     </Link>
+  );
+}
+
+export function BackLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="mb-4 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-[var(--color-trail-700)] hover:underline"
+    >
+      <span aria-hidden>←</span>
+      {children}
+    </Link>
+  );
+}
+
+export function SearchBar({
+  name = "q",
+  defaultValue,
+  placeholder,
+}: {
+  name?: string;
+  defaultValue?: string;
+  placeholder: string;
+}) {
+  return (
+    <form method="get" className="mb-6 flex max-w-md flex-col gap-2 sm:flex-row">
+      <input
+        name={name}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        className={`${inputClassName} min-h-11 flex-1`}
+      />
+      <button type="submit" className={`${secondaryButtonClassName} sm:px-5`}>
+        Search
+      </button>
+    </form>
+  );
+}
+
+export function PrimaryButton({
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      className={`${primaryButtonClassName} ${className}`.trim()}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function SecondaryButton({
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      className={`${secondaryButtonClassName} ${className}`.trim()}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function SubmitButton({
+  children,
+  pending,
+  className = "",
+}: {
+  children: React.ReactNode;
+  pending?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className={`${primaryButtonClassName} ${className}`.trim()}
+    >
+      {pending ? "Saving…" : children}
+    </button>
   );
 }

@@ -34,13 +34,13 @@ export default async function AdminLayout({
             </Link>
             <div className="flex items-center gap-3 sm:gap-4">
               <RoleSwitchLink profile={profile} variant="admin" />
-              <span className="hidden text-sm text-stone-600 sm:inline">
+              <span className="max-w-[7rem] truncate text-sm text-stone-600 sm:max-w-none">
                 {profile.full_name}
               </span>
               <SignOutButton />
             </div>
           </div>
-          <div className="mt-3">
+          <div className="md:mt-3">
             <AdminNav pendingRequestCount={pendingRequestCount ?? 0} />
           </div>
         </div>

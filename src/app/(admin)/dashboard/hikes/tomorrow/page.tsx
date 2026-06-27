@@ -1,4 +1,4 @@
-import { PageHeader } from "@/features/admin/components/ui";
+import { PageHeader, EmptyState } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
@@ -50,7 +50,7 @@ export default async function TomorrowHikesPage() {
           ))}
         </div>
       ) : (
-        <p className="text-stone-500">No hikes scheduled for tomorrow.</p>
+        <EmptyState message="No hikes scheduled for tomorrow." />
       )}
     </div>
   );

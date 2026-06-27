@@ -2,61 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-
-type NavLink = {
-  href: string;
-  label: string;
-  shortLabel?: string;
-};
-
-const allLinks: NavLink[] = [
-  { href: "/dashboard", label: "Dashboard", shortLabel: "Home" },
-  { href: "/dashboard/hikes/today", label: "Today" },
-  { href: "/dashboard/hikes/tomorrow", label: "Tomorrow" },
-  { href: "/dashboard/route", label: "Routes" },
-  { href: "/dashboard/customers", label: "Customers" },
-  { href: "/dashboard/dogs", label: "Dogs" },
-  { href: "/dashboard/pending-requests", label: "Requests" },
-  { href: "/dashboard/drivers", label: "Drivers" },
-  { href: "/dashboard/exceptions", label: "Exceptions" },
-  { href: "/dashboard/billing", label: "Billing" },
-  { href: "/dashboard/settings", label: "Settings" },
-  { href: "/dashboard/sms", label: "SMS" },
-  { href: "/dashboard/notifications", label: "Notifications" },
-  { href: "/dashboard/logs", label: "Logs" },
-];
-
-const mobilePrimaryHrefs = new Set([
-  "/dashboard",
-  "/dashboard/hikes/today",
-  "/dashboard/customers",
-  "/dashboard/pending-requests",
-]);
-
-const mobilePrimaryLinks = allLinks.filter((link) => mobilePrimaryHrefs.has(link.href));
-const mobileMoreLinks = allLinks.filter((link) => !mobilePrimaryHrefs.has(link.href));
-
-function isLinkActive(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === "/dashboard";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function navLinkClassName(active: boolean, variant: "desktop" | "mobile" | "more") {
-  if (variant === "desktop") {
-    return active
-      ? "rounded-lg bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-sm"
-      : "rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-[var(--color-trail-800)]";
-  }
-  if (variant === "mobile") {
-    return active
-      ? "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[var(--color-trail-700)]"
-      : "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-stone-500";
-  }
-  return active
-    ? "rounded-lg bg-[var(--color-trail-50)] px-3 py-3 font-medium text-[var(--color-trail-800)] ring-1 ring-[var(--color-trail-600)]"
-    : "rounded-lg px-3 py-3 text-stone-700 hover:bg-stone-50";
-}
+import { useEffect, useId, useRef, useState } from "react";
+import {
+  isGroupActive,
+  isMobileMoreActive,
+  isMobilePeopleActive,
+  isNavActive,
+  mobileMoreSections,
+  mobilePeopleNav,
+  mobilePrimaryNav,
+  navGroups,
+  primaryNav,
+  type NavGroup,
+  type NavItem,
+} from "@/features/admin/components/nav-config";
 
 function RequestBadge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -72,18 +31,18 @@ function RequestBadge({ count }: { count: number }) {
 }
 
 function NavLabel({
-  link,
+  item,
   active,
   pendingRequestCount,
   compact,
 }: {
-  link: NavLink;
+  item: NavItem;
   active: boolean;
   pendingRequestCount: number;
   compact?: boolean;
 }) {
-  const showBadge = link.href === "/dashboard/pending-requests" && pendingRequestCount > 0;
-  const label = compact ? (link.shortLabel ?? link.label) : link.label;
+  const showBadge = item.showRequestBadge && pendingRequestCount > 0;
+  const label = compact ? (item.shortLabel ?? item.label) : item.label;
 
   return (
     <span className="relative inline-flex items-center gap-1.5">
@@ -93,24 +52,143 @@ function NavLabel({
   );
 }
 
-type AdminNavProps = {
+function desktopLinkClass(active: boolean) {
+  return active
+    ? "rounded-lg bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-sm"
+    : "rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-[var(--color-trail-800)]";
+}
+
+function mobileTabClass(active: boolean) {
+  return active
+    ? "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-[var(--color-trail-700)]"
+    : "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-stone-500";
+}
+
+function sheetLinkClass(active: boolean) {
+  return active
+    ? "rounded-lg bg-[var(--color-trail-50)] px-3 py-3 font-medium text-[var(--color-trail-800)] ring-1 ring-[var(--color-trail-600)]"
+    : "rounded-lg px-3 py-3 text-stone-700 hover:bg-stone-50";
+}
+
+function NavDropdown({
+  group,
+  pathname,
+  pendingRequestCount,
+}: {
+  group: NavGroup;
+  pathname: string;
   pendingRequestCount: number;
-};
-
-export function AdminNav({ pendingRequestCount }: AdminNavProps) {
-  const pathname = usePathname();
-  const [moreOpen, setMoreOpen] = useState(false);
-
-  const moreIsActive = mobileMoreLinks.some((link) => isLinkActive(pathname, link.href));
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+  const active = isGroupActive(pathname, group);
+  const showBadge =
+    group.id === "operations" && pendingRequestCount > 0;
 
   useEffect(() => {
-    setMoreOpen(false);
+    if (!open) return;
+    function onPointerDown(event: MouseEvent) {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
   }, [pathname]);
 
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-controls={menuId}
+        onClick={() => setOpen((value) => !value)}
+        className={`inline-flex items-center gap-1.5 ${
+          active
+            ? "rounded-lg bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-sm"
+            : "rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-[var(--color-trail-800)]"
+        }`}
+      >
+        <span>{group.label}</span>
+        {showBadge ? <RequestBadge count={pendingRequestCount} /> : null}
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden
+          className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`}
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+
+      {open ? (
+        <div
+          id={menuId}
+          role="menu"
+          className="absolute left-0 top-full z-50 mt-1 min-w-[12rem] rounded-xl border border-stone-200 bg-white py-1 shadow-lg"
+        >
+          {group.items.map((item) => {
+            const itemActive = isNavActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                role="menuitem"
+                aria-current={itemActive ? "page" : undefined}
+                className={`flex items-center justify-between gap-2 px-3 py-2.5 text-sm ${
+                  itemActive
+                    ? "bg-[var(--color-trail-50)] font-medium text-[var(--color-trail-800)]"
+                    : "text-stone-700 hover:bg-stone-50"
+                }`}
+                onClick={() => setOpen(false)}
+              >
+                <span>{item.label}</span>
+                {item.showRequestBadge && pendingRequestCount > 0 ? (
+                  <RequestBadge count={pendingRequestCount} />
+                ) : null}
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function MobileSheet({
+  title,
+  open,
+  onClose,
+  children,
+}: {
+  title: string;
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  const titleId = useId();
+
   useEffect(() => {
-    if (!moreOpen) return;
+    if (!open) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setMoreOpen(false);
+      if (event.key === "Escape") onClose();
     }
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKeyDown);
@@ -118,32 +196,127 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
       document.body.style.overflow = "";
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [moreOpen]);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 md:hidden">
+      <button
+        type="button"
+        aria-label="Close menu"
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl"
+      >
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-stone-200" />
+        <h2 id={titleId} className="mb-4 text-sm font-semibold text-stone-900">
+          {title}
+        </h2>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MobileNavSections({
+  sections,
+  pathname,
+  pendingRequestCount,
+  onNavigate,
+}: {
+  sections: NavGroup[];
+  pathname: string;
+  pendingRequestCount: number;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="space-y-5">
+      {sections.map((section) => (
+        <section key={section.id}>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-400">
+            {section.label}
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {section.items.map((item) => {
+              const active = isNavActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={sheetLinkClass(active)}
+                  onClick={onNavigate}
+                >
+                  <NavLabel
+                    item={item}
+                    active={active}
+                    pendingRequestCount={pendingRequestCount}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+type AdminNavProps = {
+  pendingRequestCount: number;
+};
+
+export function AdminNav({ pendingRequestCount }: AdminNavProps) {
+  const pathname = usePathname();
+  const [peopleOpen, setPeopleOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const peopleActive = isMobilePeopleActive(pathname);
+  const moreActive = isMobileMoreActive(pathname);
+
+  useEffect(() => {
+    setPeopleOpen(false);
+    setMoreOpen(false);
+  }, [pathname]);
 
   return (
     <>
-      {/* Desktop / tablet */}
+      {/* Desktop */}
       <nav
-        className="hidden flex-wrap gap-1 md:flex"
+        className="hidden items-center gap-1 md:flex"
         aria-label="Admin navigation"
       >
-        {allLinks.map((link) => {
-          const active = isLinkActive(pathname, link.href);
+        {primaryNav.map((item) => {
+          const active = isNavActive(pathname, item.href);
           return (
             <Link
-              key={link.href}
-              href={link.href}
+              key={item.href}
+              href={item.href}
               aria-current={active ? "page" : undefined}
-              className={navLinkClassName(active, "desktop")}
+              className={desktopLinkClass(active)}
             >
               <NavLabel
-                link={link}
+                item={item}
                 active={active}
                 pendingRequestCount={pendingRequestCount}
               />
             </Link>
           );
         })}
+        {navGroups.map((group) => (
+          <NavDropdown
+            key={group.id}
+            group={group}
+            pathname={pathname}
+            pendingRequestCount={pendingRequestCount}
+          />
+        ))}
       </nav>
 
       {/* Mobile bottom bar */}
@@ -152,14 +325,14 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
         aria-label="Admin mobile navigation"
       >
         <div className="flex items-stretch">
-          {mobilePrimaryLinks.map((link) => {
-            const active = isLinkActive(pathname, link.href);
+          {mobilePrimaryNav.map((item) => {
+            const active = isNavActive(pathname, item.href);
             return (
               <Link
-                key={link.href}
-                href={link.href}
+                key={item.href}
+                href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={navLinkClassName(active, "mobile")}
+                className={mobileTabClass(active)}
               >
                 <span
                   className={`text-[11px] font-medium leading-tight ${
@@ -167,7 +340,7 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
                   }`}
                 >
                   <NavLabel
-                    link={link}
+                    item={item}
                     active={active}
                     pendingRequestCount={pendingRequestCount}
                     compact
@@ -181,21 +354,43 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
               </Link>
             );
           })}
+
+          <button
+            type="button"
+            onClick={() => setPeopleOpen(true)}
+            aria-expanded={peopleOpen}
+            aria-haspopup="dialog"
+            className={mobileTabClass(peopleActive)}
+          >
+            <span
+              className={`text-[11px] font-medium leading-tight ${
+                peopleActive ? "text-[var(--color-trail-700)]" : "text-stone-500"
+              }`}
+            >
+              People
+            </span>
+            {peopleActive ? (
+              <span className="h-1 w-8 rounded-full bg-[var(--color-trail-600)]" />
+            ) : (
+              <span className="h-1 w-8" aria-hidden />
+            )}
+          </button>
+
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
             aria-expanded={moreOpen}
             aria-haspopup="dialog"
-            className={navLinkClassName(moreIsActive, "mobile")}
+            className={mobileTabClass(moreActive)}
           >
             <span
               className={`text-[11px] font-medium leading-tight ${
-                moreIsActive ? "text-[var(--color-trail-700)]" : "text-stone-500"
+                moreActive ? "text-[var(--color-trail-700)]" : "text-stone-500"
               }`}
             >
               More
             </span>
-            {moreIsActive ? (
+            {moreActive ? (
               <span className="h-1 w-8 rounded-full bg-[var(--color-trail-600)]" />
             ) : (
               <span className="h-1 w-8" aria-hidden />
@@ -204,51 +399,45 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
         </div>
       </nav>
 
-      {/* Mobile "More" sheet */}
-      {moreOpen ? (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMoreOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="admin-more-nav-title"
-            className="absolute inset-x-0 bottom-0 max-h-[70dvh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl"
-          >
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-stone-200" />
-            <h2
-              id="admin-more-nav-title"
-              className="mb-3 text-sm font-semibold text-stone-900"
-            >
-              More
-            </h2>
-            <div className="grid grid-cols-2 gap-2">
-              {mobileMoreLinks.map((link) => {
-                const active = isLinkActive(pathname, link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    aria-current={active ? "page" : undefined}
-                    className={navLinkClassName(active, "more")}
-                    onClick={() => setMoreOpen(false)}
-                  >
-                    <NavLabel
-                      link={link}
-                      active={active}
-                      pendingRequestCount={pendingRequestCount}
-                    />
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+      <MobileSheet
+        title="People"
+        open={peopleOpen}
+        onClose={() => setPeopleOpen(false)}
+      >
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {mobilePeopleNav.items.map((item) => {
+            const active = isNavActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={sheetLinkClass(active)}
+                onClick={() => setPeopleOpen(false)}
+              >
+                <NavLabel
+                  item={item}
+                  active={active}
+                  pendingRequestCount={pendingRequestCount}
+                />
+              </Link>
+            );
+          })}
         </div>
-      ) : null}
+      </MobileSheet>
+
+      <MobileSheet
+        title="More"
+        open={moreOpen}
+        onClose={() => setMoreOpen(false)}
+      >
+        <MobileNavSections
+          sections={mobileMoreSections}
+          pathname={pathname}
+          pendingRequestCount={pendingRequestCount}
+          onNavigate={() => setMoreOpen(false)}
+        />
+      </MobileSheet>
     </>
   );
 }

@@ -5,6 +5,7 @@ import {
   PrimaryLink,
   Badge,
   TableShell,
+  SearchBar,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -48,14 +49,7 @@ export default async function DogsPage({
         action={<PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>}
       />
 
-      <form method="get" className="mb-6">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="Search by dog name…"
-          className="w-full max-w-md rounded-lg border border-stone-300 px-3 py-2 text-sm"
-        />
-      </form>
+      <SearchBar defaultValue={q} placeholder="Search by dog name…" />
 
       {!dogs?.length ? (
         <EmptyState message="No dogs found." />

@@ -26,7 +26,7 @@ export default async function DriversPage() {
       />
 
       {!drivers?.length ? (
-        <EmptyState message="No drivers yet. Create driver accounts in Supabase Auth with role metadata." />
+        <EmptyState message="No drivers yet. Ask your PackRoute admin to add driver accounts." />
       ) : (
         <TableShell>
           <table className="min-w-full text-sm">
