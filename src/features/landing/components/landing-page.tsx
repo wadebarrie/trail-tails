@@ -126,7 +126,7 @@ export function LandingPage() {
           <div>
             <SectionLabel>Dog hike operations, simplified</SectionLabel>
             <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
-              Software Built for Adventure Dog Hiking Companies
+              Operations Software for Dog Hiking Companies
             </h1>
             <p className="mt-5 max-w-xl text-lg text-stone-600">
               Manage schedules, keep customers updated, and give drivers a
