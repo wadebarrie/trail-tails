@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   datesAffectedByException,
   resolveExceptionEndDate,
-  syncStopsForExceptionDates,
+  scheduleExceptionStopSync,
 } from "@/features/dogs/exception-sync";
 import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
@@ -263,8 +263,9 @@ export async function createScheduleExceptionAction(
     return { error: error?.message ?? "Failed to add exception." };
   }
 
-  await syncStopsForExceptionDates(
+  scheduleExceptionStopSync(
     profile.company_id,
+    [parsed.dogId],
     datesAffectedByException(parsed.exceptionType, parsed.startDate, end)
   );
 
@@ -333,7 +334,7 @@ export async function updateScheduleExceptionAction(
     ...datesAffectedByException(parsed.exceptionType, parsed.startDate, end),
   ];
 
-  await syncStopsForExceptionDates(profile.company_id, datesToSync);
+  scheduleExceptionStopSync(profile.company_id, [existing.dog_id, parsed.dogId], datesToSync);
 
   revalidateExceptionPaths();
   redirect(`/dashboard/exceptions?updated=${exceptionId}`);
@@ -370,7 +371,7 @@ export async function deleteScheduleExceptionAction(
     return { error: error.message };
   }
 
-  await syncStopsForExceptionDates(profile.company_id, datesToSync);
+  scheduleExceptionStopSync(profile.company_id, [existing.dog_id], datesToSync);
   revalidateExceptionPaths();
 
   return {};

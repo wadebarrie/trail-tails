@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition } from "react";
 import { FormSubmitButton } from "@/features/admin/components/form-submit-button";
 import { SecondaryButton } from "@/features/admin/components/ui";
@@ -75,6 +76,7 @@ function ExceptionActions({
   exception: ScheduleExceptionRow;
   onEdit: () => void;
 }) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -92,7 +94,11 @@ function ExceptionActions({
     setError(null);
     startTransition(async () => {
       const result = await deleteScheduleExceptionAction(exception.id);
-      if (result.error) setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
     });
   }
 

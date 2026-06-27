@@ -3,8 +3,8 @@ import type { CommandType, ExceptionType } from "@/types";
 import type { ParsedPayload } from "@/features/sms/parser";
 import {
   datesToSyncAfterApproval,
-  syncStopsForDate,
 } from "@/features/hikes/sync-stops";
+import { scheduleExceptionStopSync } from "@/features/dogs/exception-sync";
 import { getDateInTimezone } from "@/lib/dates";
 
 type PendingRequestRow = {
@@ -120,9 +120,11 @@ export async function applyApprovedPendingRequest(
     timeZone
   );
 
-  for (const date of dates) {
-    await syncStopsForDate(request.company_id, date);
-  }
+  scheduleExceptionStopSync(
+    request.company_id,
+    dogs.map((dog) => dog.id),
+    dates
+  );
 }
 
 export function buildApprovedSmsMessage(
