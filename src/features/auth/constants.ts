@@ -6,7 +6,7 @@ export const AUTH_ROUTES = {
   driverHome: "/today",
 } as const;
 
-export const DRIVER_PATH_PREFIXES = ["/today", "/tomorrow"] as const;
+export const DRIVER_PATH_PREFIXES = ["/today", "/tomorrow", "/help"] as const;
 
 export function getHomeRouteForRole(role: UserRole): string {
   return role === "driver" ? AUTH_ROUTES.driverHome : AUTH_ROUTES.adminHome;

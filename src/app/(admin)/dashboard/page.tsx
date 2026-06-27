@@ -133,6 +133,12 @@ export default async function DashboardPage() {
       <div className="mt-8 flex flex-wrap gap-3">
         <PrimaryLink href="/dashboard/customers/new">Add customer</PrimaryLink>
         <PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>
+        <Link
+          href="/dashboard/help"
+          className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:border-[var(--color-trail-600)] hover:text-[var(--color-trail-700)]"
+        >
+          Help &amp; guide
+        </Link>
       </div>
     </div>
   );

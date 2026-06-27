@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { requireDriverAccess } from "@/features/auth/queries";
@@ -21,7 +22,15 @@ export default async function DriverLayout({
           <p className="mt-0.5 text-sm text-white/80">{profile.full_name}</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <RoleSwitchLink profile={profile} variant="driver" />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/help"
+              className="text-sm text-white/70 underline-offset-2 hover:text-white hover:underline"
+            >
+              Help
+            </Link>
+            <RoleSwitchLink profile={profile} variant="driver" />
+          </div>
           <SignOutButton
             className="text-sm text-white/70 underline-offset-2 hover:text-white hover:underline"
           />

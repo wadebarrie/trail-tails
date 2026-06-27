@@ -33,6 +33,12 @@ export default async function AdminLayout({
               PackRoute
             </Link>
             <div className="flex items-center gap-3 sm:gap-4">
+              <Link
+                href="/dashboard/help"
+                className="hidden text-sm text-stone-600 hover:text-[var(--color-trail-700)] hover:underline sm:inline"
+              >
+                Help
+              </Link>
               <RoleSwitchLink profile={profile} variant="admin" />
               <span className="max-w-[7rem] truncate text-sm text-stone-600 sm:max-w-none">
                 {profile.full_name}
