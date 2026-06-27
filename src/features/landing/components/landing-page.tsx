@@ -220,7 +220,7 @@ export function LandingPage() {
           <div className="max-w-2xl">
             <SectionLabel>Features</SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              Run your pack. Not your phone.
+              Less admin. More adventure
             </h2>
             <p className="mt-3 text-stone-600">
               Less texting. More trail time. Everything your office and drivers
@@ -275,7 +275,7 @@ export function LandingPage() {
               <span className="text-green-300">Driver app</span>
             </SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold">
-              Built for gloves, vans, and busy mornings.
+              Designed around your daily operation.
             </h2>
             <p className="mt-4 text-white/75">
               Drivers open Today on their phone, see their stops, tap En Route,
@@ -325,7 +325,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <SectionLabel>Billing</SectionLabel>
           <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-            Stop counting hikes by hand.
+            Simplify Hike Tracking & Billing
           </h2>
           <p className="mt-5 text-lg text-stone-600">
             Track completed hikes by billing period, review billable hikes, apply
@@ -376,7 +376,7 @@ export function LandingPage() {
       >
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-semibold sm:text-4xl">
-            Ready to run your pack without the text thread chaos?
+            Run a smoother dog hiking business.
           </h2>
           <p className="mt-4 text-lg text-white/80">
             Spend less time coordinating, texting, and counting hikes — and more
