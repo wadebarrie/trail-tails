@@ -35,7 +35,11 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/customers" className="font-medium text-[var(--color-trail-700)] hover:underline">
               customers
             </Link>{" "}
-            with a complete street address (needed for geocoding and ETA texts).
+            with a complete street address (needed for geocoding and ETA texts), or use{" "}
+            <Link href="/dashboard/import" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              Bulk import
+            </Link>{" "}
+            to upload a CSV.
           </li>
           <li>
             Add{" "}
@@ -133,7 +137,14 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/customers" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Customers → Add customer
             </Link>
-            . Phone number must be unique per company — this is the SMS number.
+            , or use{" "}
+            <Link href="/dashboard/import" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              Bulk import
+            </Link>{" "}
+            to upload a CSV when onboarding many clients at once.
+          </li>
+          <li>
+            Phone number must be unique per company — this is the SMS number.
           </li>
           <li>
             Enter a full street address. PackRoute geocodes it for ETA and auto-arrival.
@@ -142,6 +153,25 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
           <li>
             Optional second contact: add a secondary phone if both owners should receive
             texts and can send schedule requests.
+          </li>
+        </ul>
+
+        <h3 className="pt-3 font-semibold text-stone-900">Bulk import (CSV)</h3>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            Download the template from{" "}
+            <Link href="/dashboard/import" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              People → Import
+            </Link>
+            . One row per dog; repeat the customer phone for additional dogs.
+          </li>
+          <li>
+            Export current data from the same page to edit in Excel or Google Sheets,
+            then re-upload to update records.
+          </li>
+          <li>
+            Route names in the CSV must match existing routes, or leave blank and assign
+            later from the Dogs page.
           </li>
         </ul>
 

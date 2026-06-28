@@ -63,8 +63,9 @@ export function OnboardingGuide() {
               On later logins: password, then authenticator code.
             </li>
             <li>
-              Set up their company in the office dashboard: customers, dogs, routes,
-              drivers.
+              Set up their company in the office dashboard — customers, dogs, routes,
+              drivers. For white-glove onboarding, use{" "}
+              <strong>People → Import</strong> to upload a CSV of their customer list.
             </li>
           </ol>
         </GuideBlock>

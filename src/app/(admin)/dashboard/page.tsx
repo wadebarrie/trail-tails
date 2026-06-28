@@ -134,6 +134,12 @@ export default async function DashboardPage() {
         <PrimaryLink href="/dashboard/customers/new">Add customer</PrimaryLink>
         <PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>
         <Link
+          href="/dashboard/import"
+          className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:border-[var(--color-trail-600)] hover:text-[var(--color-trail-700)]"
+        >
+          Bulk import
+        </Link>
+        <Link
           href="/dashboard/help"
           className="inline-flex min-h-11 items-center rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 hover:border-[var(--color-trail-600)] hover:text-[var(--color-trail-700)]"
         >

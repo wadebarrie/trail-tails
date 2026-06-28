@@ -1,12 +1,6 @@
+import { escapeCsv } from "@/lib/csv";
 import { billingStatusLabel } from "@/features/billing/status";
 import type { BillingLineItem } from "@/features/billing/queries";
-
-function escapeCsv(value: string): string {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
 
 function formatCents(cents: number | null): string {
   if (cents == null) return "";

@@ -66,6 +66,59 @@ export function parseScheduleDays(raw?: string): number[] {
     .filter((d) => d >= 0 && d <= 6);
 }
 
+const DAY_NAME_TO_NUM: Record<string, number> = {
+  sun: 0,
+  sunday: 0,
+  mon: 1,
+  monday: 1,
+  tue: 2,
+  tues: 2,
+  tuesday: 2,
+  wed: 3,
+  wednesday: 3,
+  thu: 4,
+  thur: 4,
+  thurs: 4,
+  thursday: 4,
+  fri: 5,
+  friday: 5,
+  sat: 6,
+  saturday: 6,
+};
+
+/** Accept numeric (0–6) or day names (Mon, Tuesday, etc.). */
+export function parseScheduleDaysFlexible(raw?: string): number[] {
+  if (!raw?.trim()) return [];
+
+  const days = new Set<number>();
+  for (const part of raw.split(",")) {
+    const token = part.trim();
+    if (!token) continue;
+
+    const asNum = Number(token);
+    if (!Number.isNaN(asNum) && asNum >= 0 && asNum <= 6) {
+      days.add(asNum);
+      continue;
+    }
+
+    const named = DAY_NAME_TO_NUM[token.toLowerCase()];
+    if (named !== undefined) {
+      days.add(named);
+    }
+  }
+
+  return [...days].sort((a, b) => a - b);
+}
+
+export function formatScheduleDaysForCsv(days: number[]): string {
+  if (!days.length) return "";
+  return [...days]
+    .sort((a, b) => a - b)
+    .map((d) => WEEKDAYS.find((w) => w.value === d)?.label)
+    .filter(Boolean)
+    .join(",");
+}
+
 export function formatScheduleDayLabels(days: number[]): string {
   if (!days.length) return "No days set";
   return [...days]

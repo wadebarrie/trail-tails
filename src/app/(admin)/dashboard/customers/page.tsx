@@ -42,7 +42,17 @@ export default async function CustomersPage({
       <PageHeader
         title="Customers"
         description="Manage customer contact info and addresses"
-        action={<PrimaryLink href="/dashboard/customers/new">Add customer</PrimaryLink>}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard/import"
+              className="inline-flex rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Bulk import
+            </Link>
+            <PrimaryLink href="/dashboard/customers/new">Add customer</PrimaryLink>
+          </div>
+        }
       />
 
       <SearchBar

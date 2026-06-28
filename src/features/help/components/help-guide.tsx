@@ -191,7 +191,7 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
             </li>
             <li>
               <strong>Acquiring GPS…</strong> — wait a few seconds outdoors; keep the
-              screen on during the hike.
+              screen on during the drive to the stop.
             </li>
           </ul>
           <p>
