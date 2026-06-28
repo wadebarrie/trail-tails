@@ -36,7 +36,7 @@ export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProp
     <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
       <h2 className="text-sm font-medium text-white/80">Pickup order</h2>
       <p className="mt-1 text-xs text-white/45">
-        Drag to reorder before you start the route. Drop-offs will follow the same order.
+        Drag to reorder before you start the route. Drop-offs follow the reverse order.
       </p>
       <div className="mt-4">
         <SortableList variant="dark" items={items} onReorder={onReorder} />

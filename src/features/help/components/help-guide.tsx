@@ -142,9 +142,10 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
           </p>
           {isAdmin ? (
             <p>
-              Use <strong>Today / Tomorrow</strong> to assign drivers and reorder stops.
-              Use <strong>Routes</strong> for weekday schedules and dog order. Mark hikes
-              complete from Today when a driver forgets to close out.
+              Use <strong>Today / Tomorrow</strong> to assign drivers and reorder pickup
+              stops (or auto-route). Drop-offs follow pickup in reverse. Use{" "}
+              <strong>Routes</strong> for weekday schedules and default dog order. Mark
+              hikes complete from Today when a driver forgets to close out.
             </p>
           ) : null}
         </Section>
@@ -173,7 +174,7 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
           </ol>
           <p className="text-xs opacity-80">
             Pickup order can be adjusted by dragging on Today if the office enabled
-            reordering for your route.
+            reordering for your route. Drop-offs always follow pickup in reverse order.
           </p>
         </Section>
 

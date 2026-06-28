@@ -205,7 +205,9 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             .
           </li>
           <li>
-            Drag to set stop order — drivers follow this sequence on Today.
+            Drag to set pickup order, or use <strong>Auto-route</strong> to sort by
+            proximity (uses geocoded customer addresses). Drop-offs always run in the
+            reverse of pickup order.
           </li>
           <li>
             Use{" "}
@@ -227,8 +229,9 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/hikes/tomorrow" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Tomorrow
             </Link>{" "}
-            — assign drivers, reorder stops for one day, mark hikes complete if a
-            driver forgot to close out.
+            — assign drivers, reorder pickup stops or auto-route for one day (drop-offs
+            follow pickup in reverse), mark hikes complete if a driver forgot to close
+            out.
           </li>
           <li>
             <Link href="/dashboard/billing" className="font-medium text-[var(--color-trail-700)] hover:underline">

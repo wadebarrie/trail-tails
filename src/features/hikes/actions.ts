@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { applyStopReorder } from "@/features/hikes/reorder-stops";
+import {
+  applyPickupReorderWithReverseDropoff,
+  resyncHikeStopSortForRoute,
+} from "@/features/hikes/stop-order";
+import { autoSortDogIds } from "@/lib/route-auto-sort";
 
 export async function assignDriverAction(hikeId: string, driverId: string | null) {
   await requireRole("admin");
@@ -30,8 +35,23 @@ export async function reorderStopsAction(
   await requireRole("admin");
 
   const supabase = await createClient();
-  const error = await applyStopReorder(supabase, hikeId, stopType, orderedStopIds);
-  if (error) return { error };
+
+  if (stopType === "pickup") {
+    const error = await applyPickupReorderWithReverseDropoff(
+      supabase,
+      hikeId,
+      orderedStopIds
+    );
+    if (error) return { error };
+  } else {
+    const error = await applyStopReorder(
+      supabase,
+      hikeId,
+      stopType,
+      orderedStopIds
+    );
+    if (error) return { error };
+  }
 
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
@@ -100,7 +120,7 @@ export async function completeHikeAction(
 export async function reorderRouteDogsAction(
   routeId: string,
   orderedDogIds: string[]
-) {
+): Promise<{ error?: string; success?: true }> {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
@@ -124,10 +144,147 @@ export async function reorderRouteDogsAction(
     if (error) return { error: error.message };
   }
 
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", profile.company_id)
+    .single();
+
+  await resyncHikeStopSortForRoute(
+    supabase,
+    profile.company_id,
+    routeId,
+    company?.timezone ?? "America/Los_Angeles"
+  );
+
   revalidatePath("/dashboard/route");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
   return { success: true };
+}
+
+async function applyRouteDogOrder(
+  routeId: string,
+  orderedDogIds: string[]
+): Promise<{ error?: string; success?: true }> {
+  return reorderRouteDogsAction(routeId, orderedDogIds);
+}
+
+export async function autoSortRouteDogsAction(routeId: string) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: dogs } = await supabase
+    .from("dogs")
+    .select(
+      `
+      id,
+      route_sort_order,
+      customers ( address_lat, address_lng )
+    `
+    )
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId)
+    .eq("is_active", true);
+
+  if (!dogs?.length) {
+    return { error: "No dogs on this route to sort." };
+  }
+
+  const inputs = dogs.map((dog) => {
+    const customer = Array.isArray(dog.customers)
+      ? dog.customers[0]
+      : dog.customers;
+    return {
+      id: dog.id,
+      lat: customer?.address_lat ?? null,
+      lng: customer?.address_lng ?? null,
+      route_sort_order: dog.route_sort_order,
+    };
+  });
+
+  const missingCoords = inputs.filter((d) => d.lat == null || d.lng == null).length;
+  const orderedIds = autoSortDogIds(inputs);
+
+  const result = await applyRouteDogOrder(routeId, orderedIds);
+  if (result.error) return result;
+
+  return {
+    success: true,
+    missingCoords,
+  };
+}
+
+export async function autoSortHikePickupsAction(hikeId: string) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id, route_id")
+    .eq("id", hikeId)
+    .maybeSingle();
+
+  if (!hike) return { error: "Hike not found." };
+
+  const { data: pickups } = await supabase
+    .from("stops")
+    .select(
+      `
+      id,
+      status,
+      sort_order,
+      dogs (
+        id,
+        customers ( address_lat, address_lng )
+      )
+    `
+    )
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "pickup")
+    .order("sort_order");
+
+  const pickupRows = pickups ?? [];
+  if (pickupRows.length === 0) {
+    return { error: "No pickup stops to sort." };
+  }
+
+  if (pickupRows.some((p) => p.status !== "scheduled")) {
+    return {
+      error: "Auto-route only works before any pickup stops have started.",
+    };
+  }
+
+  const inputs = pickupRows.map((stop) => {
+    const dog = Array.isArray(stop.dogs) ? stop.dogs[0] : stop.dogs;
+    const customer = Array.isArray(dog?.customers)
+      ? dog.customers[0]
+      : dog?.customers;
+    return {
+      id: stop.id,
+      lat: customer?.address_lat ?? null,
+      lng: customer?.address_lng ?? null,
+      route_sort_order: stop.sort_order,
+    };
+  });
+
+  const missingCoords = inputs.filter((d) => d.lat == null || d.lng == null).length;
+  const orderedPickupStopIds = autoSortDogIds(inputs);
+
+  const error = await applyPickupReorderWithReverseDropoff(
+    supabase,
+    hikeId,
+    orderedPickupStopIds
+  );
+  if (error) return { error };
+
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
+  return { success: true, missingCoords };
 }
 
 /** @deprecated Use reorderRouteDogsAction */

@@ -10,7 +10,7 @@ import {
   buildPickedUpMessage,
   logNotification,
 } from "@/features/notifications/log";
-import { applyStopReorder } from "@/features/hikes/reorder-stops";
+import { applyPickupReorderWithReverseDropoff } from "@/features/hikes/stop-order";
 import { resolveDrivingEtaMinutes } from "@/lib/google-maps/eta";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
@@ -336,46 +336,12 @@ export async function reorderDriverPickupsAction(
     return { error: "Pickup order can only be changed before the route starts." };
   }
 
-  const error = await applyStopReorder(
+  const error = await applyPickupReorderWithReverseDropoff(
     supabase,
     hikeId,
-    "pickup",
     orderedPickupStopIds
   );
   if (error) return { error };
-
-  const dropoffStopIds: string[] = [];
-  for (const pickupId of orderedPickupStopIds) {
-    const { data: pickup } = await supabase
-      .from("stops")
-      .select("dog_id")
-      .eq("id", pickupId)
-      .eq("hike_id", hikeId)
-      .eq("stop_type", "pickup")
-      .maybeSingle();
-
-    if (!pickup?.dog_id) continue;
-
-    const { data: dropoff } = await supabase
-      .from("stops")
-      .select("id")
-      .eq("hike_id", hikeId)
-      .eq("dog_id", pickup.dog_id)
-      .eq("stop_type", "dropoff")
-      .maybeSingle();
-
-    if (dropoff?.id) dropoffStopIds.push(dropoff.id);
-  }
-
-  if (dropoffStopIds.length > 0) {
-    const dropoffError = await applyStopReorder(
-      supabase,
-      hikeId,
-      "dropoff",
-      dropoffStopIds
-    );
-    if (dropoffError) return { error: dropoffError };
-  }
 
   revalidateDriverPaths();
   return { success: true };

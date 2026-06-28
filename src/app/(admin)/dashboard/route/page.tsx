@@ -126,9 +126,12 @@ export default async function RouteOrderPage() {
                   <RouteAddDogSelect routeId={route.id} dogs={addableDogs} />
 
                   <div>
-                    <h4 className="mb-3 text-sm font-medium text-stone-600">
+                    <h4 className="mb-1 text-sm font-medium text-stone-600">
                       Pickup order
                     </h4>
+                    <p className="mb-3 text-xs text-stone-500">
+                      Drop-offs run in reverse order automatically.
+                    </p>
                     {items.length > 0 ? (
                       <RouteDogsList routeId={route.id} items={items} />
                     ) : (
