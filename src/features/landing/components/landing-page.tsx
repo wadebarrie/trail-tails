@@ -10,7 +10,9 @@ import {
   HeroDashboardMock,
   SmsPhoneMock,
 } from "@/features/landing/components/mockups";
-import { DEMO_MAILTO, WAITLIST_MAILTO } from "@/features/landing/constants";
+import { DEMO_MAILTO, LANDING_FAQ, WAITLIST_MAILTO } from "@/features/landing/constants";
+
+const FAQ = LANDING_FAQ;
 
 const FEATURES = [
   {
@@ -42,33 +44,6 @@ const FEATURES = [
     title: "Human in the loop",
     description:
       "Nothing changes on a route until the office approves it.",
-  },
-];
-
-const FAQ = [
-  {
-    q: "Do customers need to download an app?",
-    a: "No. Customers receive SMS updates and can reply by text.",
-  },
-  {
-    q: "Can schedule changes happen automatically?",
-    a: "No. Customer texts create pending requests. The office approves before schedules change.",
-  },
-  {
-    q: "Does PackRoute optimize routes automatically?",
-    a: "No. You set the order. Drivers follow the route.",
-  },
-  {
-    q: "What if GPS fails?",
-    a: "Drivers can still update stops manually.",
-  },
-  {
-    q: "Does it work on iPhone and Android?",
-    a: "Yes. The driver app is mobile web.",
-  },
-  {
-    q: "Is pricing available?",
-    a: "Book a demo or get early access — we’ll walk you through pricing for your operation.",
   },
 ];
 
@@ -116,6 +91,7 @@ export function LandingPage() {
     <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
       <LandingHeader />
 
+      <main id="main-content">
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div
@@ -417,6 +393,8 @@ export function LandingPage() {
           </p>
         </div>
       </section>
+
+      </main>
 
       {/* Footer */}
       <footer className="border-t border-stone-200 bg-white py-10">

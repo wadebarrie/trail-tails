@@ -4,16 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getLoginRedirect } from "@/features/auth/access";
+import { AUTH_ROUTES } from "@/features/auth/constants";
+import { MfaVerifyForm } from "@/features/auth/components/mfa-verify-form";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 type LoginFormProps = {
   nextPath?: string;
 };
 
+type LoginStep = "credentials" | "mfa";
+
 export function LoginForm({ nextPath }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [step, setStep] = useState<LoginStep>("credentials");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -54,7 +59,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, is_active, can_drive")
+      .select("role, is_active, can_drive, is_platform_owner")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -74,6 +79,26 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return;
     }
 
+    if (profile.role === "admin") {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const enrolled = (factors?.totp ?? []).some(
+        (factor) => factor.status === "verified"
+      );
+
+      if (!enrolled) {
+        router.replace(`${AUTH_ROUTES.adminMfa}?setup=1`);
+        router.refresh();
+        return;
+      }
+
+      if (aal?.currentLevel === "aal1" && aal?.nextLevel === "aal2") {
+        setStep("mfa");
+        setPending(false);
+        return;
+      }
+    }
+
     router.replace(
       getLoginRedirect(
         profile as { role: "admin" | "driver"; can_drive: boolean },
@@ -81,6 +106,14 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       )
     );
     router.refresh();
+  }
+
+  if (step === "mfa") {
+    return (
+      <div className="mt-8">
+        <MfaVerifyForm nextPath={nextPath} />
+      </div>
+    );
   }
 
   return (

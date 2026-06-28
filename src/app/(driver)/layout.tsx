@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { requireDriverAccess } from "@/features/auth/queries";
+import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = {
+  robots: NOINDEX_ROBOTS,
+};
 
 export const dynamic = "force-dynamic";
 

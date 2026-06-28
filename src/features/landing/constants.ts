@@ -4,6 +4,8 @@ export const DEMO_MAILTO =
 export const WAITLIST_MAILTO =
   "mailto:hello@packroute.net?subject=PackRoute%20early%20access";
 
+export { LANDING_FAQ } from "@/lib/seo/metadata";
+
 export const NAV_LINKS = [
   { href: "#how-it-works", label: "How it works" },
   { href: "#features", label: "Features" },

@@ -15,8 +15,9 @@ Dev/test accounts only. Shared password for all users below.
 
 **Shortcuts**
 
-- Admin: `/login?role=admin` → `/dashboard`
+- Admin: `/login?role=admin` → `/dashboard` (TOTP MFA required on first login)
 - Driver: `/login?role=driver` → `/today`
+- Platform owner: sign in as admin → **Owner** in header → `/owner` (superadmin analytics)
 
 ---
 
@@ -24,7 +25,7 @@ Dev/test accounts only. Shared password for all users below.
 
 | Email | Name | Notes |
 |-------|------|-------|
-| `admin@trailtails.test` | Test Admin | Full admin access; `can_drive` enabled (can use driver views too) |
+| `admin@trailtails.test` | Test Admin | Full admin access; **platform owner** (`/owner`); `can_drive` enabled |
 
 ---
 

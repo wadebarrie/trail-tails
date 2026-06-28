@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
+import { AdminMfaGate } from "@/features/auth/components/admin-mfa-gate";
 import { AdminNav } from "@/features/admin/components/admin-nav";
 import { requireRole } from "@/features/auth/queries";
+import { getAdminMfaStatus } from "@/features/auth/mfa";
 import { createClient } from "@/lib/supabase/server";
+import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = {
+  robots: NOINDEX_ROBOTS,
+};
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +21,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const profile = await requireRole("admin");
+  const mfaStatus = await getAdminMfaStatus();
   const supabase = await createClient();
 
   const { count: pendingRequestCount } = await supabase
@@ -33,6 +42,14 @@ export default async function AdminLayout({
               PackRoute
             </Link>
             <div className="flex items-center gap-3 sm:gap-4">
+              {profile.is_platform_owner ? (
+                <Link
+                  href="/owner"
+                  className="hidden text-sm text-stone-600 hover:text-[var(--color-trail-700)] hover:underline sm:inline"
+                >
+                  Owner
+                </Link>
+              ) : null}
               <Link
                 href="/dashboard/help"
                 className="hidden text-sm text-stone-600 hover:text-[var(--color-trail-700)] hover:underline sm:inline"
@@ -52,7 +69,7 @@ export default async function AdminLayout({
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8">
-        {children}
+        <AdminMfaGate status={mfaStatus}>{children}</AdminMfaGate>
       </main>
     </div>
   );

@@ -7,9 +7,9 @@ import { getCurrentProfile } from "@/features/auth/queries";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; next?: string; error?: string }>;
+  searchParams: Promise<{ role?: string; next?: string; error?: string; registered?: string }>;
 }) {
-  const { role, next, error } = await searchParams;
+  const { role, next, error, registered } = await searchParams;
   const profile = await getCurrentProfile();
 
   if (profile?.is_active) {
@@ -32,6 +32,13 @@ export default async function LoginPage({
       {error === "no_profile" ? (
         <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Account setup is incomplete. Contact the office for help.
+        </p>
+      ) : null}
+
+      {registered === "1" ? (
+        <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          Account created. Sign in below — you&apos;ll set up an authenticator on
+          first login.
         </p>
       ) : null}
 

@@ -40,9 +40,13 @@ export interface Profile {
   phone: string | null;
   is_active: boolean;
   can_drive: boolean;
+  is_platform_owner: boolean;
   created_at: string;
   updated_at: string;
 }
+
+export type CompanyPlanTier = "trial" | "starter" | "growth" | "enterprise";
+export type CompanyStatus = "active" | "paused" | "churned";
 
 export interface Company {
   id: string;
@@ -52,7 +56,23 @@ export interface Company {
   default_pickup_window_end: string | null;
   default_hike_rate_cents: number | null;
   twilio_phone_number: string | null;
+  plan_tier: CompanyPlanTier;
+  status: CompanyStatus;
+  monthly_subscription_cents: number;
+  trial_ends_at: string | null;
   created_at: string;
+  updated_at: string;
+}
+
+export interface PlatformCostAssumptionsRow {
+  id: string;
+  sms_outbound_usd: number;
+  sms_inbound_usd: number;
+  eta_calculation_usd: number;
+  geocode_usd: number;
+  base_infra_per_company_usd: number;
+  supabase_platform_usd: number;
+  netlify_platform_usd: number;
   updated_at: string;
 }
 
@@ -222,6 +242,7 @@ export interface Database {
   public: {
     Tables: {
       companies: TableDef<Company>;
+      platform_cost_assumptions: TableDef<PlatformCostAssumptionsRow>;
       routes: TableDef<Route>;
       profiles: TableDef<Profile>;
       customers: TableDef<Customer>;

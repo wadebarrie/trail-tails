@@ -20,6 +20,12 @@ export function hasDualAccess(profile: Pick<Profile, "role" | "can_drive">): boo
   return profile.role === "admin" && profile.can_drive;
 }
 
+export function canAccessPlatform(
+  profile: Pick<Profile, "is_active" | "is_platform_owner">
+): boolean {
+  return profile.is_active && profile.is_platform_owner;
+}
+
 export function getDefaultHomeRoute(profile: Pick<Profile, "role">): string {
   return profile.role === "driver" ? "/today" : "/dashboard";
 }

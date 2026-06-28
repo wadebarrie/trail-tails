@@ -8,6 +8,7 @@ import {
   getHomeRouteForRole,
   isAdminPath,
   isDriverPath,
+  isPlatformPath,
   isPublicPath,
 } from "@/features/auth/constants";
 
@@ -15,6 +16,7 @@ type ProfileRow = {
   role: UserRole;
   is_active: boolean;
   can_drive: boolean;
+  is_platform_owner: boolean;
 };
 
 export async function handleAuth(request: NextRequest) {
@@ -71,6 +73,10 @@ export async function handleAuth(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
+  if (isPlatformPath(pathname) && !profile.is_platform_owner) {
+    return redirectTo(request, getHomeRouteForRole(profile.role));
+  }
+
   if (isAdminPath(pathname) && !canAccessAdmin(profile)) {
     return redirectTo(request, getHomeRouteForRole(profile.role));
   }
@@ -88,7 +94,7 @@ async function fetchProfile(
 ): Promise<ProfileRow | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, is_active, can_drive")
+    .select("role, is_active, can_drive, is_platform_owner")
     .eq("id", userId)
     .maybeSingle();
 
@@ -98,6 +104,7 @@ async function fetchProfile(
     role: data.role as UserRole,
     is_active: data.is_active,
     can_drive: data.can_drive ?? false,
+    is_platform_owner: data.is_platform_owner ?? false,
   };
 }
 

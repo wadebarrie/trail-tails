@@ -63,6 +63,7 @@ export const TEST_USERS = [
     role: "admin",
     full_name: "Test Admin",
     can_drive: true,
+    is_platform_owner: true,
   },
   {
     email: "driver@trailtails.test",
@@ -144,7 +145,10 @@ async function syncProfileFlags(user) {
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
-      body: JSON.stringify({ can_drive: user.can_drive ?? false }),
+      body: JSON.stringify({
+        can_drive: user.can_drive ?? false,
+        ...(user.is_platform_owner ? { is_platform_owner: true } : {}),
+      }),
     }
   );
 

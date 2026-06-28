@@ -30,6 +30,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   return {
     ...(profile as Profile),
     can_drive: (profile as Profile).can_drive ?? false,
+    is_platform_owner: (profile as Profile).is_platform_owner ?? false,
   };
 }
 
