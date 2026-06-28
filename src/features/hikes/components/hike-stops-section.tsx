@@ -1,8 +1,4 @@
-"use client";
-
 import { HikeStopsReorder } from "@/features/hikes/components/hike-stops-reorder";
-import { AutoRouteButton } from "@/features/routes/components/auto-route-button";
-import { autoSortHikePickupsAction } from "@/features/hikes/actions";
 import { formatTime } from "@/lib/dates";
 import { Badge } from "@/features/admin/components/ui";
 import type { StopType } from "@/types";
@@ -48,26 +44,15 @@ export function HikeStopsSection({
     sublabel: `${s.dogs?.customers?.owner_name ?? ""} · ${formatTime(s.window_start)}–${formatTime(s.window_end)} · ${s.status.replaceAll("_", " ")}`,
   }));
 
-  const canAutoRoute =
-    stopType === "pickup" &&
-    filtered.every((s) => s.status === "scheduled");
-
   return (
     <section>
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-medium text-stone-900">{title}</h2>
-          {stopType === "dropoff" ? (
-            <p className="mt-1 text-sm text-stone-500">
-              Reverse of the pickup order — updates automatically when you reorder
-              pickups.
-            </p>
-          ) : null}
-        </div>
-        {canAutoRoute ? (
-          <AutoRouteButton
-            onAutoRoute={autoSortHikePickupsAction.bind(null, hikeId)}
-          />
+      <div className="mb-3">
+        <h2 className="text-lg font-medium text-stone-900">{title}</h2>
+        {stopType === "dropoff" ? (
+          <p className="mt-1 text-sm text-stone-500">
+            Reverse of the pickup order — updates automatically when you reorder
+            pickups.
+          </p>
         ) : null}
       </div>
 

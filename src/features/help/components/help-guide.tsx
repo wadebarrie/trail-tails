@@ -143,9 +143,9 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
           {isAdmin ? (
             <p>
               Use <strong>Today / Tomorrow</strong> to assign drivers and reorder pickup
-              stops (or auto-route). Drop-offs follow pickup in reverse. Use{" "}
-              <strong>Routes</strong> for weekday schedules and default dog order. Mark
-              hikes complete from Today when a driver forgets to close out.
+              stops. Drop-offs follow pickup in reverse. Use <strong>Routes</strong> for
+              weekday schedules and default dog order. Mark hikes complete from Today when
+              a driver forgets to close out.
             </p>
           ) : null}
         </Section>

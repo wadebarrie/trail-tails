@@ -14,7 +14,7 @@
 | SMS skip scope | Customer-level — applies to **all active dogs** for that customer |
 | Drivers | One vehicle / one hike per day; one assigned driver. Co-walkers share the device |
 | Timezone | One timezone per company; default `America/Los_Angeles` |
-| Route order | Admin drag-and-drop or **Auto-route** (nearest-neighbor by geocoded address); default on `dogs.route_sort_order`, per-day override on `stops.sort_order`. Drop-offs use reverse pickup order. |
+| Route order | Admin drag-and-drop; default on `dogs.route_sort_order`, per-day override on `stops.sort_order`. Drop-offs use reverse pickup order. |
 
 ---
 
@@ -251,7 +251,7 @@ Using distinct terminal statuses (`picked_up` vs `dropped_off`) makes notificati
 
 **Indexes:** `(hike_id, stop_type, sort_order)`, `(hike_id, stop_type, status)`, `(dog_id)`
 
-**Route order:** Pickup stops use `sort_order` ascending (0 = first pickup). Dropoff stops use the **reverse** of pickup order (last pickup = first dropoff). Driver UI lists each type `ORDER BY sort_order`. Admin reorders pickups via drag-and-drop or Auto-route on the default route (updates `dogs.route_sort_order` and resyncs today/tomorrow) or on a specific day (updates pickup `stops.sort_order`; dropoffs follow automatically).
+**Route order:** Pickup stops use `sort_order` ascending (0 = first pickup). Dropoff stops use the **reverse** of pickup order (last pickup = first dropoff). Driver UI lists each type `ORDER BY sort_order`. Admin reorders pickups via drag-and-drop on the default route (updates `dogs.route_sort_order` and resyncs today/tomorrow) or on a specific day (updates pickup `stops.sort_order`; dropoffs follow automatically).
 
 ---
 
