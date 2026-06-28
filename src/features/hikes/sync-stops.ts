@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
-import { dropoffSortOrderFromPickupIndex } from "@/features/hikes/stop-order";
+import { dropoffSortOrderFromPickupIndex, syncDropoffOrderFromPickupStops } from "@/features/hikes/stop-order";
 import type { StopType } from "@/types";
 
 type ExceptionRow = {
@@ -255,6 +255,8 @@ export async function syncStopsForRouteDate(
       if (error) throw new Error(error.message);
     }
   }
+
+  await syncDropoffOrderFromPickupStops(supabase, hikeId);
 
   return hikeId;
 }

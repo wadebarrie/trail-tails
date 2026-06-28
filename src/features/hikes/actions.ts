@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
-import { applyStopReorder } from "@/features/hikes/reorder-stops";
 import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
@@ -43,13 +42,9 @@ export async function reorderStopsAction(
     );
     if (error) return { error };
   } else {
-    const error = await applyStopReorder(
-      supabase,
-      hikeId,
-      stopType,
-      orderedStopIds
-    );
-    if (error) return { error };
+    return {
+      error: "Drop-off order follows pickup order in reverse — reorder pickups instead.",
+    };
   }
 
   revalidatePath("/dashboard/hikes/today");

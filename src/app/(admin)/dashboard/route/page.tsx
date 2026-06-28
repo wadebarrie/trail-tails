@@ -133,7 +133,34 @@ export default async function RouteOrderPage() {
                       Drop-offs run in reverse order automatically.
                     </p>
                     {items.length > 0 ? (
-                      <RouteDogsList routeId={route.id} items={items} />
+                      <>
+                        <RouteDogsList routeId={route.id} items={items} />
+                        <div className="mt-6">
+                          <h4 className="mb-1 text-sm font-medium text-stone-600">
+                            Drop-off order
+                          </h4>
+                          <p className="mb-3 text-xs text-stone-500">
+                            Automatically the reverse of pickup order.
+                          </p>
+                          <ol className="space-y-2">
+                            {[...items].reverse().map((item, index) => (
+                              <li
+                                key={item.id}
+                                className="rounded-lg border border-stone-200 bg-stone-50 px-4 py-3"
+                              >
+                                <p className="font-medium text-stone-900">
+                                  {index + 1}. {item.label}
+                                </p>
+                                {item.sublabel ? (
+                                  <p className="mt-0.5 text-sm text-stone-500">
+                                    {item.sublabel}
+                                  </p>
+                                ) : null}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      </>
                     ) : (
                       <p className="text-sm text-stone-500">
                         No dogs on this route yet.
