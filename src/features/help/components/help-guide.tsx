@@ -134,9 +134,11 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
             Arrival can be detected automatically when location is enabled.
           </p>
           <p>
-            <strong>Customers</strong> receive automated texts (night-before reminder,
-            on the way, picked up / dropped off). They can reply to request schedule
-            changes — those land in Admin → Pending requests for approval.
+            <strong>Customers</strong> receive automated texts (optional night-before
+            reminder, on the way, picked up / dropped off). They can reply to request
+            schedule changes — those land in Admin → Pending requests for approval.
+            They can also text STOP REMINDERS / START REMINDERS to control the
+            ~6 PM reminder without office review.
           </p>
           {isAdmin ? (
             <p>
@@ -219,9 +221,12 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
 
         <Section id="sms" title="Customer SMS — how it works" variant={variant}>
           <p>{SMS_OVERVIEW.phone}</p>
+          <p>{SMS_OVERVIEW.outbound}</p>
+          <p>{SMS_OVERVIEW.reminders}</p>
           <p>{SMS_OVERVIEW.review}</p>
           <p>{SMS_OVERVIEW.help}</p>
           <p>{SMS_OVERVIEW.ack}</p>
+          <p>{SMS_OVERVIEW.reminderAck}</p>
 
           <h3 className={`pt-2 font-semibold ${isAdmin ? "text-stone-900" : "text-white"}`}>
             Commands customers can text
@@ -230,18 +235,61 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
 
           {isAdmin ? (
             <>
-              <h3 className="pt-2 font-semibold text-stone-900">Admin workflow</h3>
+              <h3 className="pt-2 font-semibold text-stone-900">
+                Night-before reminders (admin)
+              </h3>
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  Enabled by default for new customers. Edit a customer in{" "}
+                  <strong>Customers</strong> and toggle{" "}
+                  <strong>Night-before reminder texts</strong>.
+                </li>
+                <li>
+                  Opt-outs from SMS update the customer profile automatically — you
+                  do not need to approve them.
+                </li>
+                <li>
+                  Disabling reminders does not stop ETA or pickup/drop-off texts on
+                  days the dog is still scheduled.
+                </li>
+              </ul>
+
+              <h3 className="pt-2 font-semibold text-stone-900">
+                Schedule requests (admin)
+              </h3>
               <ol className="list-decimal space-y-2 pl-5">
-                <li>Inbound texts appear in Admin → SMS and create a pending request.</li>
+                <li>
+                  Inbound schedule texts appear in Admin → SMS and create a pending
+                  request (not reminder opt-in/out).
+                </li>
                 <li>Review the raw message in Admin → Pending requests.</li>
-                <li>Approve to apply schedule exceptions and refresh stops, or decline with an optional note.</li>
+                <li>
+                  Approve to apply schedule exceptions and refresh stops, or decline
+                  with an optional note.
+                </li>
                 <li>Approved changes sync Today / Tomorrow automatically.</li>
               </ol>
-              <p className="text-xs text-stone-500">
-                Night-before reminders send around 6 PM local time the day before a hike.
-              </p>
             </>
-          ) : null}
+          ) : (
+            <>
+              <h3 className="pt-2 font-semibold text-white">What to tell customers</h3>
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  Night-before texts (~6 PM) are optional — they can reply{" "}
+                  <strong>STOP REMINDERS</strong> or <strong>START REMINDERS</strong>{" "}
+                  any time.
+                </li>
+                <li>
+                  They still get ETA and pickup/drop-off texts when their dog is on
+                  the schedule.
+                </li>
+                <li>
+                  For skip/vacation/pause requests, the office must approve — text{" "}
+                  <strong>HELP</strong> for examples.
+                </li>
+              </ul>
+            </>
+          )}
         </Section>
 
         <Section id="explainer" title="Script — explaining SMS to a customer" variant={variant}>

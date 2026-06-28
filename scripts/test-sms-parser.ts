@@ -125,6 +125,23 @@ test("RESUME", () => {
   assert.equal(r.createsRequest, true);
 });
 
+test("STOP REMINDERS", () => {
+  const r = parseSmsCommand("STOP REMINDERS", TZ, "2025-06-25");
+  assert.equal(r.commandType, "reminders_preference");
+  assert.equal(r.createsRequest, false);
+  if (r.commandType === "reminders_preference") {
+    assert.equal(r.nightBeforeRemindersEnabled, false);
+  }
+});
+
+test("START REMINDERS", () => {
+  const r = parseSmsCommand("reminders on", TZ, "2025-06-25");
+  assert.equal(r.commandType, "reminders_preference");
+  if (r.commandType === "reminders_preference") {
+    assert.equal(r.nightBeforeRemindersEnabled, true);
+  }
+});
+
 test("unknown command", () => {
   const r = parseSmsCommand("hello there", TZ, "2025-06-25");
   assert.equal(r.commandType, "unknown");

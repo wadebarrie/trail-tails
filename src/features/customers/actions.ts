@@ -8,14 +8,42 @@ import { resolveCustomerCoordinates } from "@/lib/google-maps/geocode";
 import {
   customerSchema,
   secondaryContactPayload,
+  type CustomerFormData,
 } from "@/features/customers/schema";
+
+function parseCustomerForm(formData: FormData, mode: "create" | "update") {
+  const raw = Object.fromEntries(formData);
+  const withFlags: Record<string, unknown> = { ...raw };
+
+  withFlags.night_before_reminders_enabled =
+    formData.get("night_before_reminders_enabled") === "true";
+
+  if (mode === "update") {
+    withFlags.is_active = formData.get("is_active") === "true";
+  }
+
+  return customerSchema.safeParse(withFlags);
+}
+
+function customerInsertPayload(data: CustomerFormData) {
+  return {
+    owner_name: data.owner_name,
+    phone: data.phone,
+    ...secondaryContactPayload(data),
+    email: data.email || null,
+    address: data.address,
+    notes: data.notes || null,
+    is_active: data.is_active ?? true,
+    night_before_reminders_enabled: data.night_before_reminders_enabled ?? true,
+  };
+}
 
 export async function createCustomerAction(
   _prev: { error?: string },
   formData: FormData
 ) {
   const profile = await requireRole("admin");
-  const parsed = customerSchema.safeParse(Object.fromEntries(formData));
+  const parsed = parseCustomerForm(formData, "create");
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -27,15 +55,9 @@ export async function createCustomerAction(
   const supabase = await createClient();
   const { error } = await supabase.from("customers").insert({
     company_id: profile.company_id,
-    owner_name: parsed.data.owner_name,
-    phone: parsed.data.phone,
-    ...secondaryContactPayload(parsed.data),
-    email: parsed.data.email || null,
-    address: parsed.data.address,
+    ...customerInsertPayload(parsed.data),
     address_lat: coords.lat,
     address_lng: coords.lng,
-    notes: parsed.data.notes || null,
-    is_active: parsed.data.is_active ?? true,
   });
 
   if (error) return { error: error.message };
@@ -50,7 +72,7 @@ export async function updateCustomerAction(
   formData: FormData
 ) {
   await requireRole("admin");
-  const parsed = customerSchema.safeParse(Object.fromEntries(formData));
+  const parsed = parseCustomerForm(formData, "update");
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -69,14 +91,9 @@ export async function updateCustomerAction(
   const { error } = await supabase
     .from("customers")
     .update({
-      owner_name: parsed.data.owner_name,
-      phone: parsed.data.phone,
-      ...secondaryContactPayload(parsed.data),
-      email: parsed.data.email || null,
-      address: parsed.data.address,
+      ...customerInsertPayload(parsed.data),
       address_lat: coords.lat,
       address_lng: coords.lng,
-      notes: parsed.data.notes || null,
       is_active: parsed.data.is_active ?? true,
     })
     .eq("id", id);

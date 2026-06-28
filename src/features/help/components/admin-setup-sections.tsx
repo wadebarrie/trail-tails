@@ -154,6 +154,11 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             Optional second contact: add a secondary phone if both owners should receive
             texts and can send schedule requests.
           </li>
+          <li>
+            <strong>Night-before reminder texts</strong> (~6 PM the day before a pickup)
+            are on by default. Customers can text STOP REMINDERS / START REMINDERS, or
+            you can toggle this on their profile when editing a customer.
+          </li>
         </ul>
 
         <h3 className="pt-3 font-semibold text-stone-900">Bulk import (CSV)</h3>
@@ -231,6 +236,12 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             </Link>{" "}
             — export completed hikes by date range for invoicing (PackRoute does not
             process payments).
+          </li>
+          <li>
+            <Link href="/dashboard/help#sms" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              Customer SMS
+            </Link>{" "}
+            — full command list, reminder opt-in/out, and pending-request workflow.
           </li>
         </ul>
       </Section>

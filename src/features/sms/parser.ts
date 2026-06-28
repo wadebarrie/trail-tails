@@ -18,6 +18,13 @@ export type ParseResult =
       createsRequest: false;
     }
   | {
+      commandType: "reminders_preference";
+      payload: ParsedPayload;
+      autoReply: string;
+      createsRequest: false;
+      nightBeforeRemindersEnabled: boolean;
+    }
+  | {
       commandType: Exclude<CommandType, "help" | "unknown">;
       payload: ParsedPayload;
       autoReply: string;
@@ -81,9 +88,15 @@ SKIP 7/10 or SKIP JULY 10`,
 VACATION JULY 10-18 / AWAY JULY 10 TO 18
 PAUSE / TAKE A BREAK
 RESUME / BACK ON
-HELP`,
+STOP REMINDERS / START REMINDERS`,
   `Schedule changes are reviewed by the office before they take effect.`,
 ];
+
+export const REMINDERS_OFF_REPLY =
+  "Night-before reminder texts are off. You'll still get ETA and pickup/drop-off updates when your dog is on the schedule. Text START REMINDERS to turn reminders back on.";
+
+export const REMINDERS_ON_REPLY =
+  "Night-before reminder texts are on. You'll get a text around 6 PM the day before each scheduled pickup. Text STOP REMINDERS to opt out.";
 
 export const HELP_REPLY = HELP_REPLIES.join("\n\n");
 
@@ -372,6 +385,42 @@ function tryParseSkip(normalized: string, today: string, refYear: number): Parse
   return null;
 }
 
+function tryParseReminderPreference(normalized: string): ParseResult | null {
+  if (
+    /^(STOP|NO|TURN OFF|OPT OUT OF|UNSUBSCRIBE FROM)\s+(NIGHT\s*BEFORE\s*)?REMINDERS?$/.test(
+      normalized
+    ) ||
+    /^REMINDERS?\s+OFF$/.test(normalized) ||
+    /^NO\s+(MORE\s+)?REMINDERS?$/.test(normalized) ||
+    /^DON'?T\s+(SEND\s+)?REMINDERS?$/.test(normalized)
+  ) {
+    return {
+      commandType: "reminders_preference",
+      payload: {},
+      autoReply: REMINDERS_OFF_REPLY,
+      createsRequest: false,
+      nightBeforeRemindersEnabled: false,
+    };
+  }
+
+  if (
+    /^(START|TURN ON|SUBSCRIBE TO)\s+(NIGHT\s*BEFORE\s*)?REMINDERS?$/.test(
+      normalized
+    ) ||
+    /^REMINDERS?\s+(ON|BACK ON)$/.test(normalized)
+  ) {
+    return {
+      commandType: "reminders_preference",
+      payload: {},
+      autoReply: REMINDERS_ON_REPLY,
+      createsRequest: false,
+      nightBeforeRemindersEnabled: true,
+    };
+  }
+
+  return null;
+}
+
 function tryParsePauseResume(normalized: string, today: string): ParseResult | null {
   if (
     normalized === "PAUSE" ||
@@ -417,6 +466,9 @@ export function parseSmsCommand(
   if (isHelpCommand(normalized)) {
     return helpResult();
   }
+
+  const reminderPreference = tryParseReminderPreference(normalized);
+  if (reminderPreference) return reminderPreference;
 
   const pauseResume = tryParsePauseResume(normalized, today);
   if (pauseResume) return pauseResume;

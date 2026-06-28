@@ -11,6 +11,7 @@ export const customerSchema = z
     address: z.string().min(1, "Address is required"),
     notes: z.string().optional(),
     is_active: z.coerce.boolean().optional(),
+    night_before_reminders_enabled: z.coerce.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     const secondaryName = data.secondary_owner_name?.trim() ?? "";

@@ -103,12 +103,15 @@ Extends Supabase Auth.users. Created via trigger on signup.
 | `company_id` | `uuid` NOT NULL | FK → `companies(id)` |
 | `owner_name` | `text` NOT NULL | |
 | `phone` | `text` NOT NULL | E.164 normalized, e.g. `+15551234567` |
+| `secondary_owner_name` | `text` | Optional second contact name |
+| `secondary_phone` | `text` | Optional second contact phone |
 | `email` | `text` | Optional |
 | `address` | `text` NOT NULL | Full street address for ETA |
 | `address_lat` | `double precision` | Geocoded on save |
 | `address_lng` | `double precision` | Geocoded on save |
 | `notes` | `text` | |
 | `is_active` | `boolean` NOT NULL DEFAULT `true` | |
+| `night_before_reminders_enabled` | `boolean` NOT NULL DEFAULT `true` | When `false`, skip ~6 PM night-before SMS; ETA/pickup texts unchanged |
 | `created_at` | `timestamptz` | |
 | `updated_at` | `timestamptz` | |
 
@@ -422,9 +425,13 @@ Exceptions block generation when `date BETWEEN start_date AND COALESCE(end_date,
 
 ```
 FOR each stop WHERE hike.date = tomorrow AND stop_type = 'pickup':
+  IF customer.night_before_reminders_enabled = false: SKIP
   SEND "Rawley is scheduled for pickup tomorrow between {window}."
   LOG notification_log + sms_messages
 ```
+
+Customers can opt out via SMS (STOP REMINDERS) or admin toggles the customer profile.
+ETA and pickup/drop-off texts are unaffected.
 
 ### 7.3 Driver En Route
 
@@ -442,6 +449,7 @@ SET hike.status = 'in_progress' IF planned
 MATCH phone → customer
 PARSE body → command_type + parsed_payload
 IF help → reply immediately, NO pending_request
+IF STOP REMINDERS / START REMINDERS → UPDATE customer.night_before_reminders_enabled, reply immediately, NO pending_request
 IF unknown → reply with HELP text, NO pending_request
 ELSE:
   INSERT pending_request (customer-scoped)

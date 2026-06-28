@@ -79,6 +79,23 @@ export function CustomerForm({ customer }: CustomerFormProps) {
           className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
         />
       </div>
+      <label className="flex items-start gap-2 text-sm text-stone-700">
+        <input
+          type="checkbox"
+          name="night_before_reminders_enabled"
+          value="true"
+          defaultChecked={customer?.night_before_reminders_enabled ?? true}
+          className="mt-0.5"
+        />
+        <span>
+          <strong>Night-before reminder texts</strong>
+          <span className="mt-0.5 block text-xs font-normal text-stone-500">
+            ~6 PM text the day before a scheduled pickup. ETA and pickup/drop-off
+            texts are always sent. Customers can text STOP REMINDERS / START
+            REMINDERS.
+          </span>
+        </span>
+      </label>
       {customer ? (
         <label className="flex items-center gap-2 text-sm text-stone-700">
           <input

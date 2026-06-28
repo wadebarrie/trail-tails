@@ -51,7 +51,7 @@ export async function sendNightBeforeRemindersForCompany(
       dogs (
         name,
         customer_id,
-        customers ( owner_name, phone )
+        customers ( owner_name, phone, night_before_reminders_enabled )
       )
     `
     )
@@ -79,11 +79,20 @@ export async function sendNightBeforeRemindersForCompany(
     );
     const customer = one(
       dog?.customers as
-        | { owner_name: string; phone: string }
-        | { owner_name: string; phone: string }[]
+        | {
+            owner_name: string;
+            phone: string;
+            night_before_reminders_enabled: boolean;
+          }
+        | {
+            owner_name: string;
+            phone: string;
+            night_before_reminders_enabled: boolean;
+          }[]
         | null
     );
     if (!dog || !customer) continue;
+    if (!customer.night_before_reminders_enabled) continue;
 
     const customerId = dog.customer_id;
 

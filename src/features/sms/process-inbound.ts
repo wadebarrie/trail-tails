@@ -87,6 +87,32 @@ export async function processInboundSms(input: InboundSmsInput): Promise<Respons
     const parsed = parseSmsCommand(body, timeZone);
     const idempotencyKey = buildIdempotencyKey(fromNumber, body, receivedAt);
 
+    if (
+      parsed.commandType === "reminders_preference" &&
+      parsed.nightBeforeRemindersEnabled !== undefined
+    ) {
+      await supabase
+        .from("customers")
+        .update({
+          night_before_reminders_enabled: parsed.nightBeforeRemindersEnabled,
+        })
+        .eq("id", customer.id);
+
+      await supabase.from("sms_messages").insert({
+        company_id: customer.company_id,
+        customer_id: customer.id,
+        direction: "inbound",
+        from_number: fromNumber,
+        to_number: toNumber,
+        body,
+        twilio_sid: twilioSid,
+        status: "received",
+        pending_request_id: null,
+      });
+
+      return twimlMessageResponse(parsed.autoReply);
+    }
+
     let pendingRequestId: string | null = null;
 
     if (parsed.createsRequest) {
