@@ -94,7 +94,7 @@ function locationStatusMessage(status: GeoWatchStatus): string | null {
     case "denied":
       return "Location blocked — enable in browser settings, then refresh";
     case "unavailable":
-      return "GPS unavailable — keep screen on or tap Mark arrived manually";
+      return "GPS unavailable — open the app when you arrive or tap Mark arrived";
     default:
       return null;
   }
@@ -189,7 +189,7 @@ function getLocation(): Promise<{ lat: number; lng: number } | null> {
       (pos) =>
         resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   });
 }
@@ -365,6 +365,13 @@ function StopCard({
                       {travelProgress != null
                         ? ` · ${Math.round(travelProgress * 100)}% of trip`
                         : null}
+                    </p>
+                  ) : null}
+                  {!pending && locationStatus === "watching" ? (
+                    <p className="mt-2 text-xs text-sky-200/80">
+                      Screen stays awake while driving. If you lock your phone, open
+                      PackRoute when you pull up — we&apos;ll grab a fresh GPS fix and
+                      mark arrived automatically.
                     </p>
                   ) : null}
                   {locationStatusMessage(locationStatus) && !pending ? (

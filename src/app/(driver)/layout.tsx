@@ -3,10 +3,19 @@ import Link from "next/link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { requireDriverAccess } from "@/features/auth/queries";
+import { RegisterServiceWorker } from "@/features/pwa/register-service-worker";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
   robots: NOINDEX_ROBOTS,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PackRoute",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const dynamic = "force-dynamic";
@@ -20,6 +29,7 @@ export default async function DriverLayout({
 
   return (
     <div className="min-h-dvh bg-[var(--color-trail-800)] text-white">
+      <RegisterServiceWorker />
       <header className="flex items-center justify-between border-b border-white/10 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div>
           <p className="text-xs font-medium uppercase tracking-widest text-white/60">

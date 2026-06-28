@@ -7,6 +7,7 @@ import {
   isWithinArrivalRadius,
   travelProgressToArrival,
 } from "@/lib/geo";
+import { useWakeLock } from "@/features/driver-actions/use-wake-lock";
 
 type LatLng = {
   lat: number;
@@ -118,6 +119,8 @@ export function useAutoArrival({
 
   onArriveRef.current = onArrive;
 
+  useWakeLock(enabled);
+
   useEffect(() => {
     triggeredRef.current = false;
     initialDistanceRef.current = null;
@@ -216,6 +219,26 @@ export function useAutoArrival({
       // TIMEOUT — keep last reading; poll + watch will retry
     }
 
+    function requestImmediatePosition() {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
+        handleError,
+        { ...GEO_OPTIONS, maximumAge: 0 }
+      );
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        requestImmediatePosition();
+      }
+    }
+
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) {
+        requestImmediatePosition();
+      }
+    }
+
     const watchId = navigator.geolocation.watchPosition(
       (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
       handleError,
@@ -232,9 +255,15 @@ export function useAutoArrival({
       );
     }, POLL_MS);
 
+    requestImmediatePosition();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pageshow", handlePageShow);
+
     return () => {
       navigator.geolocation.clearWatch(watchId);
       window.clearInterval(pollId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pageshow", handlePageShow);
     };
   }, [enabled, destination?.lat, destination?.lng, origin?.lat, origin?.lng, stopId]);
 

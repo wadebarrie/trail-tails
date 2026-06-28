@@ -2,6 +2,7 @@ import { DriverDayNav } from "@/features/driver-actions/components/driver-day-na
 import { LocationServicesIndicator } from "@/features/driver-actions/components/location-services-indicator";
 import { DriverPickupReorder } from "@/features/driver-actions/components/driver-pickup-reorder";
 import { DriverStopList } from "@/features/driver-actions/components/driver-stop-list";
+import { DriverInstallHint } from "@/features/pwa/driver-install-hint";
 import type { DriverDayView } from "@/features/driver-actions/queries";
 
 export function DriverDayView({
@@ -48,6 +49,8 @@ export function DriverDayView({
           Preview only — actions unlock on the day of the hike.
         </p>
       ) : null}
+
+      {!preview ? <DriverInstallHint /> : null}
 
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
         <LocationServicesIndicator />

@@ -158,8 +158,10 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
               (customer gets an ETA text).
             </li>
             <li>
-              When you arrive, the app can auto-detect arrival within ~150 m, or tap{" "}
-              <strong>Mark arrived</strong> manually.
+              When you arrive, the app auto-detects arrival within ~150 m, or tap{" "}
+              <strong>Mark arrived</strong> manually. If your phone was locked,
+              open PackRoute when you pull up — a fresh GPS reading usually marks
+              arrived within a few seconds.
             </li>
             <li>Tap <strong>Picked up</strong> / <strong>Dropped off</strong> to confirm each stop.</li>
             <li>
@@ -190,10 +192,20 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
               Location → Allow.
             </li>
             <li>
-              <strong>Acquiring GPS…</strong> — wait a few seconds outdoors; keep the
-              screen on during the drive to the stop.
+              <strong>Acquiring GPS…</strong> — wait a few seconds outdoors. While en
+              route, the screen stays awake when your browser supports it.
             </li>
           </ul>
+          <p>
+            <strong>Locked phone?</strong> GPS pauses in the background on most phones.
+            Open PackRoute when you pull up — the app requests a fresh location right
+            away and auto-marks arrived if you&apos;re within ~150 m. Use{" "}
+            <strong>Mark arrived</strong> if it doesn&apos;t catch up.
+          </p>
+          <p>
+            <strong>Install on your home screen</strong> (Share → Add to Home Screen on
+            iPhone, or Install app in Chrome) for a full-screen driver experience.
+          </p>
           <p>
             <strong>Chrome on iPhone:</strong> use Precise Location when prompted. If auto-arrival
             still fails, use <strong>Mark arrived</strong> — the hike still completes normally.
