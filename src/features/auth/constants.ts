@@ -9,6 +9,9 @@ export const AUTH_ROUTES = {
   adminMfa: "/dashboard/mfa",
 } as const;
 
+/** TOTP factor label — must stay stable; unverified duplicates are cleaned up on setup. */
+export const MFA_FRIENDLY_NAME = "PackRoute Admin";
+
 export const DRIVER_PATH_PREFIXES = ["/today", "/tomorrow", "/help"] as const;
 
 export const PLATFORM_PATH_PREFIXES = ["/owner"] as const;
