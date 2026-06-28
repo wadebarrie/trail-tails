@@ -63,6 +63,7 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 - Enroll at `/dashboard/mfa` (redirected automatically if not set up).
 - Uses Supabase Auth MFA (`totp` factor type).
 - Enable MFA in **Supabase Dashboard → Authentication → MFA** for production.
+- Set **Site URL** to `https://packroute.netlify.app` (Authentication → URL Configuration) so redirects and email links use the correct domain. MFA QR labels use the app hostname via an explicit issuer, but Site URL should still match production.
 
 ## Manual user creation (legacy / emergencies)
 

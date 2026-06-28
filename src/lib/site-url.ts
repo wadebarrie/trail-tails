@@ -10,3 +10,20 @@ export function getSiteUrl(): string {
   }
   return "http://localhost:3000";
 }
+
+/** Hostname used for TOTP issuer (e.g. packroute.netlify.app). */
+export function getSiteHost(): string {
+  return new URL(getSiteUrl()).host;
+}
+
+/**
+ * Issuer label shown in authenticator apps during MFA setup.
+ * Prefer the current browser host so it matches where the admin signed in.
+ * Supabase otherwise defaults to the Auth Site URL hostname (may be stale).
+ */
+export function getMfaIssuer(): string {
+  if (typeof window !== "undefined" && window.location.hostname) {
+    return window.location.host;
+  }
+  return getSiteHost();
+}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getMfaIssuer } from "@/lib/site-url";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
@@ -24,6 +25,7 @@ export function MfaEnrollForm() {
       const { data, error: enrollError } = await supabase.auth.mfa.enroll({
         factorType: "totp",
         friendlyName: "PackRoute Admin",
+        issuer: getMfaIssuer(),
       });
 
       if (cancelled) return;
