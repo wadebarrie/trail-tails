@@ -48,7 +48,7 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries â€
 | `/owner` | Overview â€” KPI cards, trends, alerts, company usage table |
 | `/owner/companies/[id]` | Per-tenant detail, plan editing, recent events |
 | `/owner/events` | Cross-tenant SMS / notification / system log feed |
-| `/owner/provision` | Beta company invites (existing flow) |
+| `/owner/provision` | Beta company invites + **onboarding guide** |
 | `/owner/settings` | Configurable cost assumptions (SMS, ETA, infra) |
 
 **Metrics source:** Aggregated from existing tables (`sms_messages`, `notification_log`, `hikes`/`stops`, `dogs`, `profiles`, `system_logs`). ETA count uses `en_route` notifications as a proxy until dedicated API metering exists.

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/features/admin/components/ui";
+import { AdminSetupSections } from "@/features/help/components/admin-setup-sections";
 import {
   CUSTOMER_EXPLAINER,
   SMS_COMMANDS,
@@ -84,21 +85,35 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
         Help &amp; guide
       </h1>
       <p className={`mt-2 text-sm ${isAdmin ? "text-stone-600" : "text-white/70"}`}>
-        How PackRoute works, driver tips, location troubleshooting, and what to tell
-        customers about SMS.
+        {isAdmin
+          ? "Setup checklists, driver onboarding, daily operations, SMS, and troubleshooting."
+          : "How PackRoute works, driver tips, location troubleshooting, and what to tell customers about SMS."}
       </p>
 
       <nav
         aria-label="On this page"
         className={`mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm ${isAdmin ? "" : "text-white/80"}`}
       >
-        {[
-          ["overview", "Overview"],
-          ["driver", "Driver app"],
-          ["location", "Location / GPS"],
-          ["sms", "Customer SMS"],
-          ["explainer", "Customer script"],
-        ].map(([id, label]) => (
+        {(isAdmin
+          ? [
+              ["getting-started", "Getting started"],
+              ["team", "Adding drivers"],
+              ["customers-routes", "Customers & routes"],
+              ["security", "Account security"],
+              ["overview", "Overview"],
+              ["driver", "Driver app"],
+              ["location", "Location / GPS"],
+              ["sms", "Customer SMS"],
+              ["explainer", "Customer script"],
+            ]
+          : [
+              ["overview", "Overview"],
+              ["driver", "Driver app"],
+              ["location", "Location / GPS"],
+              ["sms", "Customer SMS"],
+              ["explainer", "Customer script"],
+            ]
+        ).map(([id, label]) => (
           <a key={id} href={`#${id}`} className={tocClass}>
             {label}
           </a>
@@ -106,6 +121,7 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
       </nav>
 
       <div className="mt-8 space-y-10">
+        {isAdmin ? <AdminSetupSections Section={Section} /> : null}
         <Section id="overview" title="How PackRoute works" variant={variant}>
           <p>
             <strong>Admin (office)</strong> sets up customers, dogs, routes, and drivers.

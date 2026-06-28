@@ -1,5 +1,6 @@
 import { PageHeader, TableShell } from "@/features/admin/components/ui";
 import { CreateCompanyInviteForm } from "@/features/platform/components/create-company-invite-form";
+import { OnboardingGuide } from "@/features/platform/components/onboarding-guide";
 import {
   listCompaniesForOwner,
   listInvitesForOwner,
@@ -19,6 +20,10 @@ export default async function OwnerProvisionPage() {
         title="Beta provisioning"
         description="Create beta companies and send one-time admin invite links."
       />
+
+      <div className="mb-10">
+        <OnboardingGuide />
+      </div>
 
       <CreateCompanyInviteForm />
 
