@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -158,6 +159,14 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           disabled={pending}
           className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2 disabled:opacity-60"
         />
+        <p className="mt-2 text-right">
+          <Link
+            href={AUTH_ROUTES.forgotPassword}
+            className="text-sm font-medium text-[var(--color-trail-700)] hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </p>
       </div>
 
       <button

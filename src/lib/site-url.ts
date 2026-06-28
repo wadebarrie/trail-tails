@@ -27,3 +27,10 @@ export function getMfaIssuer(): string {
   }
   return getSiteHost();
 }
+
+/** Redirect target for Supabase email links (password reset, etc.). */
+export function getAuthCallbackUrl(nextPath: string): string {
+  const url = new URL("/auth/callback", getSiteUrl());
+  url.searchParams.set("next", nextPath);
+  return url.toString();
+}

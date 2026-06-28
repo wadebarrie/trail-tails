@@ -212,6 +212,14 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
           contact PackRoute support before you are locked out.
         </p>
         <p>
+          Forgot your password? Use{" "}
+          <Link href="/forgot-password" className="font-medium text-[var(--color-trail-700)] hover:underline">
+            Forgot password
+          </Link>{" "}
+          on the sign-in page. After resetting, sign in again with your authenticator
+          app.
+        </p>
+        <p>
           To review or re-enroll MFA, open{" "}
           <Link href="/dashboard/mfa" className="font-medium text-[var(--color-trail-700)] hover:underline">
             two-factor settings

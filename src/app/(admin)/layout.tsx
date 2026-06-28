@@ -4,6 +4,7 @@ import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { AdminMfaGate } from "@/features/auth/components/admin-mfa-gate";
 import { AdminNav } from "@/features/admin/components/admin-nav";
+import { getCompanyName } from "@/features/company/queries";
 import { requireRole } from "@/features/auth/queries";
 import { getAdminMfaStatus } from "@/features/auth/mfa";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +24,7 @@ export default async function AdminLayout({
   const profile = await requireRole("admin");
   const mfaStatus = await getAdminMfaStatus();
   const supabase = await createClient();
+  const companyName = await getCompanyName(profile.company_id);
 
   const { count: pendingRequestCount } = await supabase
     .from("pending_requests")
@@ -35,13 +37,31 @@ export default async function AdminLayout({
       <header className="border-b border-stone-200 bg-white pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-6xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
-            <Link
-              href="/dashboard"
-              className="font-semibold text-[var(--color-trail-800)]"
-            >
-              PackRoute
-            </Link>
-            <div className="flex items-center gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <Link
+                  href="/dashboard"
+                  className="shrink-0 font-semibold text-[var(--color-trail-800)]"
+                >
+                  PackRoute
+                </Link>
+                {companyName ? (
+                  <>
+                    <span
+                      className="hidden h-4 w-px shrink-0 bg-stone-200 sm:block"
+                      aria-hidden
+                    />
+                    <span
+                      className="truncate text-sm font-medium text-stone-600"
+                      title={companyName}
+                    >
+                      {companyName}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-3 sm:gap-4">
               {profile.is_platform_owner ? (
                 <Link
                   href="/owner"

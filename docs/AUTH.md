@@ -91,3 +91,16 @@ The `handle_new_user` trigger creates the `profiles` row automatically.
 - Admin → `/login` → `/dashboard` (after MFA)
 - Driver → `/login?role=driver` → `/today`
 - Invite signup → `/signup?token=…` (public, token required)
+- Forgot password → `/forgot-password` → email link → `/reset-password`
+
+## Password reset
+
+Users can request a reset from **Forgot password?** on the login page. Supabase sends the email; the link returns through `/auth/callback` to `/reset-password`.
+
+**Supabase setup required:**
+
+1. **Authentication → URL Configuration** — Site URL `https://packroute.netlify.app`
+2. **Redirect URLs** — include `https://packroute.netlify.app/auth/callback` (and `http://localhost:3000/auth/callback` for local dev)
+3. **Authentication → Email** — configure SMTP or use Supabase default mail for reset emails
+
+After reset, users sign in again. Admins must complete MFA as usual.

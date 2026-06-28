@@ -3,6 +3,8 @@ import type { UserRole } from "@/types";
 export const AUTH_ROUTES = {
   login: "/login",
   signup: "/signup",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
   adminHome: "/dashboard",
   driverHome: "/today",
   ownerHome: "/owner",
@@ -33,7 +35,12 @@ export function getSafeRedirect(role: UserRole, next?: string): string {
 }
 
 /** Paths that never require authentication */
-export const PUBLIC_PATHS = new Set(["/", AUTH_ROUTES.login, AUTH_ROUTES.signup]);
+export const PUBLIC_PATHS = new Set([
+  "/",
+  AUTH_ROUTES.login,
+  AUTH_ROUTES.signup,
+  AUTH_ROUTES.forgotPassword,
+]);
 
 /** Path prefixes accessible without auth (webhooks, health) */
 export const PUBLIC_PREFIXES = ["/api/health", "/api/webhooks", "/auth/callback"];

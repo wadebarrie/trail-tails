@@ -7,9 +7,15 @@ import { getCurrentProfile } from "@/features/auth/queries";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; next?: string; error?: string; registered?: string }>;
+  searchParams: Promise<{
+    role?: string;
+    next?: string;
+    error?: string;
+    registered?: string;
+    reset?: string;
+  }>;
 }) {
-  const { role, next, error, registered } = await searchParams;
+  const { role, next, error, registered, reset } = await searchParams;
   const profile = await getCurrentProfile();
 
   if (profile?.is_active) {
@@ -39,6 +45,13 @@ export default async function LoginPage({
         <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           Account created. Sign in below — you&apos;ll set up an authenticator on
           first login.
+        </p>
+      ) : null}
+
+      {reset === "1" ? (
+        <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          Password updated. Sign in with your new password
+          {role !== "driver" ? " and authenticator code" : ""}.
         </p>
       ) : null}
 
