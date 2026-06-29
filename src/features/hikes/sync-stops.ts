@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
-import { dropoffSortOrderFromPickupIndex, syncDropoffOrderFromPickupStops } from "@/features/hikes/stop-order";
+import { resyncHikeStopSortOrders } from "@/features/hikes/stop-order";
 import type { StopType } from "@/types";
 
 type ExceptionRow = {
@@ -210,20 +210,18 @@ export async function syncStopsForRouteDate(
   const pickupIndexByDogId = new Map(
     sortedEligible.map((dog, index) => [dog.id, index])
   );
-  const pickupCount = sortedEligible.length;
 
   for (const dog of eligibleDogs) {
     const pickupIndex = pickupIndexByDogId.get(dog.id) ?? 0;
 
     for (const stopType of ["pickup", "dropoff"] as StopType[]) {
+      // Temporary slots — final order applied in bulk after the loop (avoids unique constraint conflicts).
       const sortOrder =
-        stopType === "pickup"
-          ? pickupIndex
-          : dropoffSortOrderFromPickupIndex(pickupIndex, pickupCount);
+        stopType === "pickup" ? 1000 + pickupIndex : 2000 + pickupIndex;
 
       const { data: existing } = await supabase
         .from("stops")
-        .select("id, status, sort_order")
+        .select("id, status")
         .eq("hike_id", hikeId)
         .eq("dog_id", dog.id)
         .eq("stop_type", stopType)
@@ -234,11 +232,6 @@ export async function syncStopsForRouteDate(
           await supabase
             .from("stops")
             .update({ status: "scheduled", sort_order: sortOrder })
-            .eq("id", existing.id);
-        } else if (existing.status === "scheduled" && existing.sort_order !== sortOrder) {
-          await supabase
-            .from("stops")
-            .update({ sort_order: sortOrder })
             .eq("id", existing.id);
         }
         continue;
@@ -256,7 +249,12 @@ export async function syncStopsForRouteDate(
     }
   }
 
-  await syncDropoffOrderFromPickupStops(supabase, hikeId);
+  const sortError = await resyncHikeStopSortOrders(
+    supabase,
+    hikeId,
+    sortedEligible
+  );
+  if (sortError) throw new Error(sortError);
 
   return hikeId;
 }

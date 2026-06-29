@@ -115,6 +115,58 @@ export async function syncDropoffOrderFromPickupStops(
   return applyStopReorder(supabase, hikeId, "dropoff", desiredDropoffIds);
 }
 
+/** Recompute pickup + drop-off sort_order without unique-constraint conflicts. */
+export async function resyncHikeStopSortOrders(
+  supabase: SupabaseClient,
+  hikeId: string,
+  dogsInRouteOrder: { id: string }[]
+): Promise<string | null> {
+  const orderedPickupStopIds = await fetchPickupStopIdsForDogsInOrder(
+    supabase,
+    hikeId,
+    dogsInRouteOrder
+  );
+  if (orderedPickupStopIds.length === 0) return null;
+
+  const pickupError = await applyStopReorder(
+    supabase,
+    hikeId,
+    "pickup",
+    orderedPickupStopIds
+  );
+  if (pickupError) return pickupError;
+
+  return syncDropoffOrderFromPickupStops(supabase, hikeId);
+}
+
+async function fetchPickupStopIdsForDogsInOrder(
+  supabase: SupabaseClient,
+  hikeId: string,
+  dogsInRouteOrder: { id: string }[]
+): Promise<string[]> {
+  const ids: string[] = [];
+
+  for (const dog of dogsInRouteOrder) {
+    const { data: stop } = await supabase
+      .from("stops")
+      .select("id, status")
+      .eq("hike_id", hikeId)
+      .eq("dog_id", dog.id)
+      .eq("stop_type", "pickup")
+      .maybeSingle();
+
+    if (
+      stop &&
+      stop.status !== "cancelled" &&
+      stop.status !== "skipped"
+    ) {
+      ids.push(stop.id);
+    }
+  }
+
+  return ids;
+}
+
 /** Recompute stop sort_order from dogs.route_sort_order (pickup forward, dropoff reverse). */
 export async function resyncHikeStopSortFromRouteDogs(
   supabase: SupabaseClient,
@@ -128,23 +180,7 @@ export async function resyncHikeStopSortFromRouteDogs(
     .eq("is_active", true)
     .order("route_sort_order");
 
-  const sorted = dogs ?? [];
-  const indexByDogId = new Map(sorted.map((dog, index) => [dog.id, index]));
-
-  for (const dog of sorted) {
-    const pickupIndex = indexByDogId.get(dog.id) ?? 0;
-
-    const { error: pickupError } = await supabase
-      .from("stops")
-      .update({ sort_order: pickupIndex })
-      .eq("hike_id", hikeId)
-      .eq("dog_id", dog.id)
-      .eq("stop_type", "pickup");
-
-    if (pickupError) return pickupError.message;
-  }
-
-  return syncDropoffOrderFromPickupStops(supabase, hikeId);
+  return resyncHikeStopSortOrders(supabase, hikeId, dogs ?? []);
 }
 
 export async function resyncHikeStopSortForRoute(
