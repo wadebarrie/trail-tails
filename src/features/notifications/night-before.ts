@@ -1,8 +1,8 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
-import { getDateInTimezone, formatTime } from "@/lib/dates";
+import { getDateInTimezone } from "@/lib/dates";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
-import { logNotification, buildNightBeforeMessage } from "@/features/notifications/log";
+import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
 import { one } from "@/lib/supabase/relations";
 
 function localHourInTimezone(timeZone: string): number {
@@ -31,12 +31,39 @@ export async function sendNightBeforeRemindersForCompany(
 
   const { data: hikes } = await supabase
     .from("hikes")
-    .select("id")
+    .select("id, driver_id")
     .eq("company_id", companyId)
     .eq("date", tomorrow);
 
   const hikeIds = (hikes ?? []).map((h) => h.id);
   if (!hikeIds.length) return { skipped: true as const, reason: "no_hike" };
+
+  const driverIds = [
+    ...new Set(
+      (hikes ?? [])
+        .map((h) => h.driver_id)
+        .filter((id): id is string => id != null)
+    ),
+  ];
+
+  const driverFirstNameById = new Map<string, string>();
+  if (driverIds.length > 0) {
+    const { data: drivers } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", driverIds);
+
+    for (const driver of drivers ?? []) {
+      driverFirstNameById.set(driver.id, driver.full_name.split(" ")[0] ?? driver.full_name);
+    }
+  }
+
+  const driverFirstNameByHikeId = new Map<string, string | null>(
+    (hikes ?? []).map((h) => [
+      h.id,
+      h.driver_id ? driverFirstNameById.get(h.driver_id) ?? null : null,
+    ])
+  );
 
   const { data: stops } = await supabase
     .from("stops")
@@ -66,6 +93,7 @@ export async function sendNightBeforeRemindersForCompany(
     dogNames: string[];
     stopIds: string[];
     windows: { start: string; end: string }[];
+    driverFirstNames: (string | null)[];
   };
 
   const byCustomer = new Map<string, CustomerBucket>();
@@ -101,16 +129,20 @@ export async function sendNightBeforeRemindersForCompany(
       dogNames: [],
       stopIds: [],
       windows: [],
+      driverFirstNames: [],
     };
     bucket.dogNames.push(dog.name);
     bucket.stopIds.push(stop.id);
     bucket.windows.push({ start: stop.window_start, end: stop.window_end });
+    bucket.driverFirstNames.push(
+      driverFirstNameByHikeId.get(stop.hike_id) ?? null
+    );
     byCustomer.set(customerId, bucket);
   }
 
   let sent = 0;
 
-  for (const { customerId, dogNames, stopIds, windows } of byCustomer.values()) {
+  for (const { customerId, dogNames, stopIds, windows, driverFirstNames } of byCustomer.values()) {
     const { data: alreadySent } = await supabase
       .from("notification_log")
       .select("id")
@@ -132,14 +164,17 @@ export async function sendNightBeforeRemindersForCompany(
             ownerName,
             dogNames,
             windows[0].start,
-            windows[0].end
+            windows[0].end,
+            driverFirstNames
           )
-      : `Tomorrow's pickups: ${dogNames
-          .map((name, i) => {
-            const w = windows[i];
-            return `${name} (${formatTime(w.start)}–${formatTime(w.end)})`;
-          })
-          .join(", ")}.`;
+      : buildNightBeforeMultiWindowMessage(
+          dogNames.map((name, i) => ({
+            dogName: name,
+            windowStart: windows[i].start,
+            windowEnd: windows[i].end,
+            driverFirstName: driverFirstNames[i],
+          }))
+        );
 
     await logNotification({
       companyId,

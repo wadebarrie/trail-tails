@@ -266,11 +266,53 @@ export function buildNightBeforeMessage(
   ownerName: string,
   dogNames: string[],
   windowStart: string,
-  windowEnd: string
+  windowEnd: string,
+  driverFirstNames: (string | null)[] = []
 ) {
   const greeting = ownerName ? `Hi ${ownerName.split(" ")[0]}!` : "Hi!";
   const dogs = formatDogList(dogNames);
   const verb = dogNames.length === 1 ? "is" : "are";
   const window = `${formatTime(windowStart)} and ${formatTime(windowEnd)}`;
-  return `${greeting} ${dogs} ${verb} booked for a hike tomorrow and will be picked up between ${window}.`;
+  const driverClause = formatNightBeforeDriverClause(dogNames, driverFirstNames);
+  return `${greeting} ${dogs} ${verb} booked for a hike tomorrow and will be picked up between ${window}.${driverClause}`;
+}
+
+export function buildNightBeforeMultiWindowMessage(
+  pickups: {
+    dogName: string;
+    windowStart: string;
+    windowEnd: string;
+    driverFirstName?: string | null;
+  }[]
+) {
+  const parts = pickups.map((p) => {
+    const window = `${formatTime(p.windowStart)}–${formatTime(p.windowEnd)}`;
+    if (p.driverFirstName) {
+      return `${p.dogName} with ${p.driverFirstName} (${window})`;
+    }
+    return `${p.dogName} (${window})`;
+  });
+  return `Tomorrow's pickups: ${parts.join(", ")}.`;
+}
+
+function formatNightBeforeDriverClause(
+  dogNames: string[],
+  driverFirstNames: (string | null)[]
+): string {
+  const pairs = dogNames.map((dog, i) => ({
+    dog,
+    driver: driverFirstNames[i] ?? null,
+  }));
+  const withDriver = pairs.filter((p) => p.driver);
+  if (withDriver.length === 0) return "";
+
+  const uniqueDrivers = new Set(withDriver.map((p) => p.driver));
+  if (uniqueDrivers.size === 1 && withDriver.length === dogNames.length) {
+    return ` ${withDriver[0].driver} will be your driver.`;
+  }
+
+  const detail = withDriver
+    .map((p) => `${p.driver} will pick up ${p.dog}`)
+    .join(" and ");
+  return ` ${detail}.`;
 }

@@ -70,4 +70,4 @@ export const SMS_COMMANDS: SmsCommandDoc[] = [
   },
 ];
 
-export const CUSTOMER_EXPLAINER = `PackRoute can text you the night before a hike (around 6 PM) with your pickup window — reply STOP REMINDERS to opt out, or START REMINDERS to turn them back on. When the driver is on the way, you'll get an ETA text. You can reply to change your schedule — text HELP for options. The office reviews every change before it takes effect, so you're never accidentally skipped.`;
+export const CUSTOMER_EXPLAINER = `PackRoute can text you the night before a hike (around 6 PM) with your pickup window and who will be driving — reply STOP REMINDERS to opt out, or START REMINDERS to turn them back on. When the driver is on the way, you'll get an ETA text. You can reply to change your schedule — text HELP for options. The office reviews every change before it takes effect, so you're never accidentally skipped.`;
