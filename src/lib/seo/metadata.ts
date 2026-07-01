@@ -18,7 +18,7 @@ export const SITE_KEYWORDS = [
   "PackRoute",
 ] as const;
 
-export const SITE_CONTACT_EMAIL = "hello@packroute.net";
+export const SITE_CONTACT_EMAIL = "hello@packroute.app";
 
 export const HOME_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 

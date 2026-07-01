@@ -1,8 +1,8 @@
-export const DEMO_MAILTO =
-  "mailto:hello@packroute.net?subject=PackRoute%20demo%20request";
+import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
 
-export const WAITLIST_MAILTO =
-  "mailto:hello@packroute.net?subject=PackRoute%20early%20access";
+export const DEMO_MAILTO = `mailto:${SITE_CONTACT_EMAIL}?subject=PackRoute%20demo%20request`;
+
+export const WAITLIST_MAILTO = `mailto:${SITE_CONTACT_EMAIL}?subject=PackRoute%20early%20access`;
 
 export { LANDING_FAQ } from "@/lib/seo/metadata";
 

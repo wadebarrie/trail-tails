@@ -5,7 +5,7 @@ function MockWindow({ children }: { children: React.ReactNode }) {
         <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
         <span className="h-2.5 w-2.5 rounded-full bg-green-300" />
-        <span className="ml-2 text-xs text-stone-400">packroute.netlify.app/dashboard</span>
+        <span className="ml-2 text-xs text-stone-400">packroute.app/dashboard</span>
       </div>
       {children}
     </div>

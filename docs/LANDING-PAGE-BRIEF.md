@@ -14,8 +14,9 @@ Handoff doc for a designer/dev building a simple, fun SaaS-style marketing page.
 
 | Resource | URL |
 |----------|-----|
-| Live app | https://packroute.netlify.app |
-| Login | https://packroute.netlify.app/login |
+| Live app | https://packroute.app |
+| Login | https://packroute.app/login |
+| Contact | hello@packroute.app |
 | Repo | https://github.com/wadebarrie/trail-tails |
 
 ---
@@ -244,7 +245,7 @@ Recommended landing CTAs:
 
 1. **Waitlist / contact form** (email + company name)
 2. **Book a demo** (Calendly link — TBD)
-3. **Login** → https://packroute.netlify.app/login
+3. **Login** → https://packroute.app/login
    - Optional: `?role=admin` or `?role=driver`
 
 Do **not** promise “Start free trial” unless self-serve onboarding is built first.
@@ -256,7 +257,7 @@ Do **not** promise “Start free trial” unless self-serve onboarding is built 
 ### Stack
 
 - Next.js 16, React 19, Tailwind CSS 4
-- Hosted on Netlify: https://packroute.netlify.app
+- Hosted on Netlify at **https://packroute.app** (custom domain; `packroute.netlify.app` redirects)
 - Current homepage is minimal (`src/app/page.tsx`) — two login buttons only
 
 ### Integration options

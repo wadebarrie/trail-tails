@@ -58,12 +58,13 @@ See [`.env.example`](.env.example). Required for the app:
 
 ## Deployment (Netlify)
 
-Production: [packroute.netlify.app](https://packroute.netlify.app)
+Production: [packroute.app](https://packroute.app) (Netlify; `packroute.netlify.app` redirects)
 
 1. Connect GitHub repo to Netlify
 2. Add env vars from `.env.local` (except `DATABASE_URL` unless needed for scripts)
-3. Set `TWILIO_WEBHOOK_URL=https://packroute.netlify.app/api/webhooks/twilio` (must match Twilio console)
-4. Build command: `npm run build` (configured in `netlify.toml`)
+3. Set `NEXT_PUBLIC_APP_URL=https://packroute.app`
+4. Set `TWILIO_WEBHOOK_URL=https://packroute.app/api/webhooks/twilio` (must match Twilio console)
+5. Build command: `npm run build` (configured in `netlify.toml`)
 
 ## Docs
 

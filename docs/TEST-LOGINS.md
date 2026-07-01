@@ -10,7 +10,7 @@ Dev/test accounts only. Shared password for all users below.
 
 | Environment | URL |
 |-------------|-----|
-| Production | https://packroute.netlify.app/login |
+| Production | https://packroute.app/login |
 | Local | http://localhost:3000/login |
 
 **Shortcuts**

@@ -11,7 +11,7 @@ export function getSiteUrl(): string {
   return "http://localhost:3000";
 }
 
-/** Hostname used for TOTP issuer (e.g. packroute.netlify.app). */
+/** Hostname used for TOTP issuer (e.g. packroute.app). */
 export function getSiteHost(): string {
   return new URL(getSiteUrl()).host;
 }
