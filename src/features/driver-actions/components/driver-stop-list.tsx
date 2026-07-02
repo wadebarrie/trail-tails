@@ -9,6 +9,7 @@ import {
   enRouteAction,
 } from "@/features/driver-actions/actions";
 import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/driver-customer-info-sheet";
+import { useDriverFeedback } from "@/features/driver-actions/components/driver-feedback";
 import { useAutoArrival, type GeoWatchStatus } from "@/features/driver-actions/use-auto-arrival";
 import { formatTime } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
@@ -232,6 +233,7 @@ function StopCard({
   readOnly?: boolean;
 }) {
   const router = useRouter();
+  const { showFeedback } = useDriverFeedback();
   const [pending, startTransition] = useTransition();
   const [infoOpen, setInfoOpen] = useState(false);
 
@@ -253,11 +255,16 @@ function StopCard({
     router.refresh();
   }
 
-  function run(action: () => Promise<{ error?: string }>) {
+  function run(
+    action: () => Promise<{ error?: string }>,
+    onSuccess?: () => void
+  ) {
     startTransition(async () => {
       const result = await action();
       if (result.error) {
         alert(result.error);
+      } else if (onSuccess) {
+        onSuccess();
       }
       refresh();
     });
@@ -280,17 +287,23 @@ function StopCard({
     });
 
   function handleEnRoute() {
-    run(async () => {
-      const coords = await getLocation();
-      return enRouteAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
-    });
+    run(
+      async () => {
+        const coords = await getLocation();
+        return enRouteAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
+      },
+      () => showFeedback(`${stop.dogName}'s family has been notified.`)
+    );
   }
 
   function handleComplete() {
-    run(async () =>
-      isPickup
-        ? completePickupAction(stop.id)
-        : completeDropoffAction(stop.id)
+    run(
+      async () =>
+        isPickup
+          ? completePickupAction(stop.id)
+          : completeDropoffAction(stop.id),
+      () =>
+        showFeedback(isPickup ? "Pickup recorded." : "Drop-off recorded.")
     );
   }
 

@@ -1,5 +1,5 @@
 import { requireDriverAccess } from "@/features/auth/queries";
-import { DriverDayView } from "@/features/driver-actions/components/driver-day-view";
+import { DriverDayShell } from "@/features/driver-actions/components/driver-day-shell";
 import {
   getDriverCompanyTimezone,
   getDriverDayView,
@@ -15,5 +15,14 @@ export default async function DriverTomorrowPage() {
     1
   );
 
-  return <DriverDayView active="tomorrow" day={day} preview />;
+  return (
+    <DriverDayShell
+      active="tomorrow"
+      day={day}
+      preview
+      driverName={profile.full_name}
+      timeZone={timeZone}
+      briefingNotes={[]}
+    />
+  );
 }
