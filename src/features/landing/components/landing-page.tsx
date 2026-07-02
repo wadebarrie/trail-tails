@@ -16,34 +16,34 @@ const FAQ = LANDING_FAQ;
 
 const FEATURES = [
   {
-    title: "Automated SMS updates",
+    title: "Customer SMS from driver taps",
     description:
-      "Night-before reminders, ETA texts, pickup confirmations, and drop-off updates.",
+      "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations — sent when drivers update stops.",
   },
   {
-    title: "Driver app that drivers actually use",
+    title: "A driver view drivers will use",
     description:
-      "Mobile web, simple Today view, status updates, and a GPS-aware workflow.",
+      "Mobile web Today view, clear stop list, fast status taps. Add to home screen — no app store required.",
   },
   {
     title: "Schedule changes by text",
     description:
-      "Customers text plain English requests. Admin approves before anything changes.",
+      "Customers text plain-English requests. Nothing changes until the office approves.",
   },
   {
-    title: "Routes and stops, your way",
+    title: "Routes your team controls",
     description:
-      "Drag-and-drop route ordering, today/tomorrow overrides, and multiple drivers.",
+      "Drag-and-drop pickup order, multiple routes and drivers, today and tomorrow overrides.",
   },
   {
-    title: "Billing built in",
+    title: "Billing prep, not billing software",
     description:
-      "Track completed hikes by date range and export CSV for QuickBooks or manual invoicing.",
+      "Track completed hikes by date range and export CSV for QuickBooks or your own invoices.",
   },
   {
-    title: "Human in the loop",
+    title: "Your team stays in control",
     description:
-      "Nothing changes on a route until the office approves it.",
+      "Routes, skips, and schedule changes go through the office — not the software.",
   },
 ];
 
@@ -100,13 +100,14 @@ export function LandingPage() {
         />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
-            <SectionLabel>Dog hike operations, simplified</SectionLabel>
+            <SectionLabel>Built for adventure dog hiking teams</SectionLabel>
             <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
-              Operations Software for Dog Hiking Companies
+              Software for adventure dog hiking companies
             </h1>
             <p className="mt-5 max-w-xl text-lg text-stone-600">
-              Manage schedules, keep customers updated, and give drivers a
-              dead-simple mobile workflow.
+              Your office plans the schedule and routes. Drivers run the day
+              from their phone. Customers get clear texts — without the group
+              chat chaos.
             </p>
             <div className="mt-8">
               <CtaButtons />
@@ -140,9 +141,9 @@ export function LandingPage() {
             and memory.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
-            PackRoute helps you run schedules, routes, drivers, customer SMS
-            updates, skip requests, and billing prep from one simple platform —
-            so you spend less time coordinating and more time on the trail.
+            PackRoute brings routes, drivers, customer SMS, skip requests, and
+            billing prep into one place — so your team spends less time
+            coordinating and more time on the trail.
           </p>
         </div>
       </section>
@@ -153,22 +154,22 @@ export function LandingPage() {
           <div className="max-w-2xl">
             <SectionLabel>How it works</SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              One platform. Three simple roles.
+              The office plans. The driver runs the route.
             </h2>
           </div>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[
               {
                 role: "Office",
-                body: "Set routes, assign dogs, approve SMS requests, manage schedules, and prepare billing.",
+                body: "Build routes, assign dogs and drivers, approve schedule requests, and prepare billing exports.",
               },
               {
                 role: "Driver",
-                body: "Open Today on their phone, follow their route, and tap simple status updates.",
+                body: "Open Today on their phone, follow their stops, and tap En Route, Arrived, Picked Up, or Dropped Off.",
               },
               {
                 role: "Customer",
-                body: "Gets texts. No app. No login. Can text simple requests like SKIP TOMORROW or HELP.",
+                body: "Gets plain-English texts. No app. Can reply with SKIP TOMORROW or LATE PICKUP — your team approves before anything changes.",
               },
             ].map((item) => (
               <div
@@ -196,11 +197,11 @@ export function LandingPage() {
           <div className="max-w-2xl">
             <SectionLabel>Features</SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              Less admin. More adventure
+              Built for how you actually operate
             </h2>
             <p className="mt-3 text-stone-600">
-              Less texting. More trail time. Everything your office and drivers
-              need — without the chaos.
+              Clear roles, fewer text threads, and tools that match a real
+              multi-driver hiking day.
             </p>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -227,15 +228,15 @@ export function LandingPage() {
           <div>
             <SectionLabel>Customer SMS</SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              Updates customers actually want — by text.
+              Updates customers want — by text.
             </h2>
             <p className="mt-4 text-stone-600">
-              Customers never need an account. They get useful updates by text
-              and can reply with simple schedule requests.
+              Customers never need an account. They get useful texts when
+              drivers update stops, and can reply with simple schedule requests.
             </p>
             <p className="mt-3 text-sm text-stone-500">
               Every schedule change is reviewed by your team before it takes
-              effect. No accidental skips.
+              effect — skips stay intentional, not accidental.
             </p>
           </div>
           <SmsPhoneMock />
@@ -251,16 +252,18 @@ export function LandingPage() {
               <span className="text-green-300">Driver app</span>
             </SectionLabel>
             <h2 className="mt-2 text-3xl font-semibold">
-              Designed around your daily operation.
+              The driver runs the route.
             </h2>
             <p className="mt-4 text-white/75">
-              Drivers open Today on their phone, see their stops, tap En Route,
-              and go. Location-aware arrival when GPS is on — manual updates
-              when it&apos;s not.
+              Drivers open Today, see their stops, and tap through the day.
+              When location is enabled, arrival near a stop can update
+              automatically — otherwise they tap Arrived. Families get the
+              message either way.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-white/70">
               <li>· Today view with pickups and drop-offs</li>
               <li>· En Route, Picked Up, Dropped Off in taps</li>
+              <li>· Optional GPS-assisted arrival — manual tap always works</li>
               <li>· Works in the mobile browser — no app store</li>
             </ul>
             <Link
@@ -283,7 +286,8 @@ export function LandingPage() {
             </h2>
             <p className="mt-4 text-stone-600">
               Routes, drivers, pending customer requests, billing summaries, and
-              notification history — all in one place for your office team.
+              notification history — one dashboard for the office team that
+              owns the schedule.
             </p>
             <Link
               href="/login?role=admin"
@@ -301,12 +305,11 @@ export function LandingPage() {
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <SectionLabel>Billing</SectionLabel>
           <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-            Simplify Hike Tracking & Billing
+            Hike counts ready for billing
           </h2>
           <p className="mt-5 text-lg text-stone-600">
-            Track completed hikes by billing period, review billable hikes, apply
-            adjustments, and export a clean CSV for QuickBooks or manual
-            invoicing.
+            Review completed hikes by billing period, apply adjustments, and
+            export a clean CSV for QuickBooks or your own invoicing workflow.
           </p>
           <p className="mt-3 text-sm text-stone-500">
             PackRoute does not process payments or send invoices — it prepares
@@ -352,11 +355,11 @@ export function LandingPage() {
       >
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-semibold sm:text-4xl">
-            Run a smoother dog hiking business.
+            Less coordinating. More hiking.
           </h2>
           <p className="mt-4 text-lg text-white/80">
-            Spend less time coordinating, texting, and counting hikes — and more
-            time delivering great adventures.
+            Give your office clear schedules, your drivers a simple day view,
+            and your customers texts they can trust.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
@@ -402,7 +405,7 @@ export function LandingPage() {
           <div>
             <p className="font-semibold text-[var(--color-trail-800)]">PackRoute</p>
             <p className="mt-1 text-sm text-stone-500">
-              Dog hike operations, simplified.
+              Software for adventure dog hiking teams.
             </p>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap justify-center gap-4 text-sm text-stone-600">

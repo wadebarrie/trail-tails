@@ -72,11 +72,11 @@ export function buildHomePageJsonLd(): string {
       description: "Contact for pricing",
     },
     featureList: [
-      "Automated SMS customer updates",
-      "Driver mobile workflow",
-      "Route and schedule management",
+      "Customer SMS from driver status updates",
+      "Driver mobile Today view",
+      "Multi-route and multi-driver scheduling",
       "Schedule change requests by text",
-      "Billing export",
+      "Billing period CSV export",
     ],
   };
 
