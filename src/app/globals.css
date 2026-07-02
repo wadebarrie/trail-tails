@@ -469,6 +469,13 @@ body {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
 
+  /* Opaque driver panels — sheets and modals with readable text (no blur) */
+  .surface-panel-dark {
+    background: var(--header-bg-dark);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--elevation-3);
+  }
+
   .surface-card {
     background: var(--color-surface);
     border: 1px solid var(--glass-border-subtle);

@@ -67,14 +67,14 @@ export function DriverCustomerInfoSheet({
       <button
         type="button"
         aria-label="Close customer info"
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/70"
         onClick={onClose}
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="driver-customer-info-title"
-        className="motion-sheet relative z-10 max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-card)] surface-glass-dark border border-white/10 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 shadow-[var(--elevation-3)]"
+        className="motion-sheet surface-panel-dark relative z-10 max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-card)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4"
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" aria-hidden />
 
