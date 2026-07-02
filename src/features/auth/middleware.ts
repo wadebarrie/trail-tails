@@ -12,12 +12,16 @@ import {
   isPlatformPath,
   isPublicPath,
 } from "@/features/auth/constants";
+import { isSubscriptionExemptPath } from "@/features/subscription/access-paths";
+import { canAccessApplication } from "@/features/subscription/helpers";
+import type { SubscriptionStatus } from "@/features/subscription/types";
 
 type ProfileRow = {
   role: UserRole;
   is_active: boolean;
   can_drive: boolean;
   is_platform_owner: boolean;
+  company_id: string;
 };
 
 export async function handleAuth(request: NextRequest) {
@@ -77,6 +81,20 @@ export async function handleAuth(request: NextRequest) {
     return redirectToLogin(request, pathname);
   }
 
+  if (isSubscriptionExemptPath(pathname)) {
+    timer.end();
+    return supabaseResponse;
+  }
+
+  if (!profile.is_platform_owner) {
+    const subscription = await fetchCompanySubscription(supabase, profile.company_id);
+    timer.mark("fetchSubscription");
+
+    if (subscription && !canAccessApplication(subscription)) {
+      return redirectTo(request, "/subscription-inactive");
+    }
+  }
+
   if (isPlatformPath(pathname) && !profile.is_platform_owner) {
     return redirectTo(request, getHomeRouteForRole(profile.role));
   }
@@ -99,7 +117,7 @@ async function fetchProfile(
 ): Promise<ProfileRow | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, is_active, can_drive, is_platform_owner")
+    .select("role, is_active, can_drive, is_platform_owner, company_id")
     .eq("id", userId)
     .maybeSingle();
 
@@ -110,6 +128,26 @@ async function fetchProfile(
     is_active: data.is_active,
     can_drive: data.can_drive ?? false,
     is_platform_owner: data.is_platform_owner ?? false,
+    company_id: data.company_id as string,
+  };
+}
+
+async function fetchCompanySubscription(
+  supabase: ReturnType<typeof createServerClient>,
+  companyId: string
+): Promise<{ status: SubscriptionStatus; trial_starts_at: string | null; trial_ends_at: string | null } | null> {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("status, trial_starts_at, trial_ends_at")
+    .eq("company_id", companyId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  return {
+    status: data.status as SubscriptionStatus,
+    trial_starts_at: data.trial_starts_at,
+    trial_ends_at: data.trial_ends_at,
   };
 }
 

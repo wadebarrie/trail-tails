@@ -63,6 +63,12 @@ export default async function OwnerOverviewPage({
         <MetricCard label="Active companies" value={metrics.activeCompanies} subtext="Active in 30d" />
         <MetricCard label="Trial companies" value={metrics.trialCompanies} />
         <MetricCard label="Paying companies" value={metrics.payingCompanies} />
+        <MetricCardUsd label="Est. MRR" amount={metrics.estimatedMrrUsd} />
+        <MetricCard
+          label="Grandfathered"
+          value={metrics.grandfatheredCompanies}
+          subtext="Custom pricing locked"
+        />
         <MetricCard label="Active dogs" value={metrics.activeDogs} />
         <MetricCard label="Active drivers" value={metrics.activeDrivers} />
         <MetricCard label="Routes this month" value={metrics.routesThisMonth} />

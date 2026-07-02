@@ -49,7 +49,9 @@ export default async function OwnerCompanyDetailPage({
           {healthStatusLabel(company.health)}
         </span>
         <span className="text-sm text-stone-600">
-          {planTierLabel(company.planTier)} · {companyStatusLabel(company.status)}
+          {planTierLabel(company.plan)} ·{" "}
+          {companyStatusLabel(company.subscriptionStatus)}
+          {company.grandfathered ? " · Grandfathered" : ""}
         </span>
         {company.alerts.length > 0 ? (
           <span className="text-sm text-amber-700">

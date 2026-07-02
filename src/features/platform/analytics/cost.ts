@@ -40,8 +40,8 @@ export function estimateCompanyCostUsd(
   );
 }
 
-export function estimateRevenueUsd(monthlySubscriptionCents: number): number {
-  return monthlySubscriptionCents / 100;
+export function estimateRevenueUsd(monthlyPrice: number): number {
+  return monthlyPrice;
 }
 
 export function formatUsd(amount: number): string {

@@ -50,10 +50,10 @@ export function CompanyUsageTable({ companies }: { companies: CompanyUsageRow[] 
                   </Link>
                 </td>
                 <td className="px-3 py-3 text-stone-700">
-                  {planTierLabel(company.planTier)}
+                  {planTierLabel(company.plan)}
                 </td>
                 <td className="px-3 py-3 text-stone-700">
-                  {companyStatusLabel(company.status)}
+                  {companyStatusLabel(company.subscriptionStatus)}
                 </td>
                 <td className="px-3 py-3 text-right tabular-nums">{company.activeDogs}</td>
                 <td className="px-3 py-3 text-right tabular-nums">

@@ -16,6 +16,8 @@
     "test:eta": "node scripts/test-eta.mjs",
     "test:sms-parser": "npx --yes tsx scripts/test-sms-parser.ts",
     "test:billing": "npx --yes tsx scripts/test-billing-status.ts",
+    "test:subscription": "npx --yes tsx scripts/test-subscription-helpers.ts",
+    "test:stripe-map": "npx --yes tsx scripts/test-stripe-subscription-map.ts",
     "test:inbound-sms": "node scripts/test-inbound-sms.mjs",
     "test:twilio": "node scripts/test-twilio.mjs"
   },
@@ -28,6 +30,7 @@
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "stripe": "^17.7.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

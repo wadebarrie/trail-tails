@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
 import { requirePlatformOwner } from "@/features/platform/queries";
+import { subscriptionUpdateSchema } from "@/features/subscription/schema";
 
 const ASSUMPTIONS_ID = "b0000000-0000-0000-0000-000000000001";
 
@@ -49,14 +50,6 @@ export async function updateCostAssumptionsAction(
   return { ok: true };
 }
 
-const companyPlanSchema = z.object({
-  company_id: z.string().uuid(),
-  plan_tier: z.enum(["trial", "starter", "growth", "enterprise"]),
-  status: z.enum(["active", "paused", "churned"]),
-  monthly_subscription_cents: z.coerce.number().int().min(0),
-  trial_ends_at: z.string().optional(),
-});
-
 export type UpdateCompanyPlanResult =
   | { ok: true }
   | { ok: false; error: string };
@@ -67,25 +60,36 @@ export async function updateCompanyPlanAction(
 ): Promise<UpdateCompanyPlanResult> {
   await requirePlatformOwner();
   const raw = Object.fromEntries(formData);
-  const parsed = companyPlanSchema.safeParse({
+  const parsed = subscriptionUpdateSchema.safeParse({
     ...raw,
     trial_ends_at: raw.trial_ends_at || undefined,
+    notes: raw.notes || undefined,
   });
 
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
 
+  const trialEndsAt = parsed.data.trial_ends_at
+    ? new Date(`${parsed.data.trial_ends_at}T23:59:59.999Z`).toISOString()
+    : null;
+
   const supabase = createServiceClient();
   const { error } = await supabase
-    .from("companies")
+    .from("subscriptions")
     .update({
-      plan_tier: parsed.data.plan_tier,
+      plan: parsed.data.plan,
       status: parsed.data.status,
-      monthly_subscription_cents: parsed.data.monthly_subscription_cents,
-      trial_ends_at: parsed.data.trial_ends_at || null,
+      monthly_price: parsed.data.monthly_price,
+      billing_currency: parsed.data.billing_currency,
+      billing_interval: parsed.data.billing_interval,
+      grandfathered: parsed.data.grandfathered ?? false,
+      trial_ends_at: trialEndsAt,
+      notes: parsed.data.notes?.trim() || null,
+      cancelled_at:
+        parsed.data.status === "cancelled" ? new Date().toISOString() : null,
     })
-    .eq("id", parsed.data.company_id);
+    .eq("company_id", parsed.data.company_id);
 
   if (error) return { ok: false, error: error.message };
 

@@ -1,3 +1,11 @@
+import type {
+  BillingCurrency,
+  BillingInterval,
+  PaymentProvider,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "@/features/subscription/types";
+
 export type UserRole = "admin" | "driver";
 export type ExceptionType = "skip_date" | "vacation" | "pause";
 export type HikeStatus = "planned" | "in_progress" | "completed";
@@ -32,6 +40,14 @@ export type NotificationType =
   | "request_declined"
   | "help";
 
+export type {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  BillingInterval,
+  BillingCurrency,
+  PaymentProvider,
+} from "@/features/subscription/types";
+
 export interface Profile {
   id: string;
   company_id: string;
@@ -45,9 +61,6 @@ export interface Profile {
   updated_at: string;
 }
 
-export type CompanyPlanTier = "trial" | "starter" | "growth" | "enterprise";
-export type CompanyStatus = "active" | "paused" | "churned";
-
 export interface Company {
   id: string;
   name: string;
@@ -56,10 +69,30 @@ export interface Company {
   default_pickup_window_end: string | null;
   default_hike_rate_cents: number | null;
   twilio_phone_number: string | null;
-  plan_tier: CompanyPlanTier;
-  status: CompanyStatus;
-  monthly_subscription_cents: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Subscription {
+  id: string;
+  company_id: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  trial_starts_at: string | null;
   trial_ends_at: string | null;
+  started_at: string;
+  cancelled_at: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  billing_interval: BillingInterval;
+  billing_currency: BillingCurrency;
+  monthly_price: number;
+  grandfathered: boolean;
+  payment_provider: PaymentProvider | null;
+  provider_customer_id: string | null;
+  provider_subscription_id: string | null;
+  provider_price_id: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -243,6 +276,7 @@ export interface Database {
   public: {
     Tables: {
       companies: TableDef<Company>;
+      subscriptions: TableDef<Subscription>;
       platform_cost_assumptions: TableDef<PlatformCostAssumptionsRow>;
       routes: TableDef<Route>;
       profiles: TableDef<Profile>;

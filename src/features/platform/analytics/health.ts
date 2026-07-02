@@ -1,6 +1,4 @@
 import type {
-  CompanyPlanTier,
-  CompanyStatus,
   CompanyUsageRow,
   HealthStatus,
   PlatformAlert,
@@ -16,8 +14,8 @@ export function daysSince(isoDate: string | null, now = Date.now()): number | nu
 export function computeHealthStatus(
   row: Pick<
     CompanyUsageRow,
-    | "planTier"
-    | "status"
+    | "plan"
+    | "subscriptionStatus"
     | "trialEndsAt"
     | "activeDogs"
     | "activeDrivers"
@@ -37,8 +35,17 @@ export function computeHealthStatus(
     ? Math.ceil((new Date(row.trialEndsAt).getTime() - Date.now()) / MS_PER_DAY)
     : null;
 
-  if (row.status === "churned") return "at_risk";
-  if (row.planTier === "trial" && inactiveDays != null && inactiveDays >= 7) {
+  if (
+    row.subscriptionStatus === "cancelled" ||
+    row.subscriptionStatus === "inactive"
+  ) {
+    return "at_risk";
+  }
+  if (
+    row.subscriptionStatus === "trial" &&
+    inactiveDays != null &&
+    inactiveDays >= 7
+  ) {
     return "trial_inactive";
   }
   if (inactiveDays != null && inactiveDays >= 7) return "at_risk";
@@ -70,9 +77,7 @@ export function computeHealthStatus(
   return "healthy";
 }
 
-export function buildCompanyAlerts(
-  row: CompanyUsageRow
-): string[] {
+export function buildCompanyAlerts(row: CompanyUsageRow): string[] {
   const alerts: string[] = [];
   const inactiveDays = daysSince(row.lastActiveAt);
 
@@ -89,6 +94,9 @@ export function buildCompanyAlerts(
     if (daysLeft <= 7 && daysLeft >= 0) {
       alerts.push(`Trial ending in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`);
     }
+  }
+  if (row.subscriptionStatus === "past_due") {
+    alerts.push("Subscription past due");
   }
   if (row.activeDogs >= 2 && row.completedHikesThisMonth < 3) {
     alerts.push("Low route completion rate");
@@ -119,7 +127,8 @@ export function collectPlatformAlerts(rows: CompanyUsageRow[]): PlatformAlert[] 
         severity:
           message.includes("Negative") ||
           message.includes("No activity") ||
-          message.includes("webhook")
+          message.includes("webhook") ||
+          message.includes("past due")
             ? "critical"
             : "warning",
         message,
@@ -168,10 +177,7 @@ export function healthStatusClass(status: HealthStatus): string {
   }
 }
 
-export function planTierLabel(tier: CompanyPlanTier): string {
-  return tier.charAt(0).toUpperCase() + tier.slice(1);
-}
-
-export function companyStatusLabel(status: CompanyStatus): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
-}
+export {
+  subscriptionPlanLabel as planTierLabel,
+  subscriptionStatusLabel as companyStatusLabel,
+} from "@/features/subscription/helpers";

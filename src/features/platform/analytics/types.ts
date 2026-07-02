@@ -1,5 +1,8 @@
-export type CompanyPlanTier = "trial" | "starter" | "growth" | "enterprise";
-export type CompanyStatus = "active" | "paused" | "churned";
+import type {
+  BillingCurrency,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "@/features/subscription/types";
 
 export type HealthStatus =
   | "healthy"
@@ -24,10 +27,14 @@ export type PlatformCostAssumptions = {
 export type CompanyUsageRow = {
   id: string;
   name: string;
-  planTier: CompanyPlanTier;
-  status: CompanyStatus;
+  plan: SubscriptionPlan;
+  subscriptionStatus: SubscriptionStatus;
   trialEndsAt: string | null;
-  monthlySubscriptionCents: number;
+  monthlyPrice: number;
+  billingCurrency: BillingCurrency;
+  billingInterval: "monthly" | "yearly";
+  grandfathered: boolean;
+  currentPeriodEnd: string | null;
   activeDogs: number;
   activeDrivers: number;
   routesThisMonth: number;
@@ -51,6 +58,7 @@ export type PlatformOverviewMetrics = {
   activeCompanies: number;
   trialCompanies: number;
   payingCompanies: number;
+  grandfatheredCompanies: number;
   activeDogs: number;
   activeDrivers: number;
   routesThisMonth: number;
@@ -61,6 +69,7 @@ export type PlatformOverviewMetrics = {
   estimatedInfraCostUsd: number;
   estimatedGrossMarginUsd: number;
   estimatedRevenueUsd: number;
+  estimatedMrrUsd: number;
 };
 
 export type TrendPoint = {

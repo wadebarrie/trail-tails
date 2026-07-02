@@ -44,10 +44,6 @@ export async function createCompanyInviteAction(
     .insert({
       name: parsed.data.company_name.trim(),
       timezone: parsed.data.timezone,
-      plan_tier: "trial",
-      status: "active",
-      monthly_subscription_cents: 0,
-      trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     })
     .select("id")
     .single();

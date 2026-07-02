@@ -5,6 +5,8 @@ import {
   estimateCompanyCostUsd,
   estimateRevenueUsd,
 } from "@/features/platform/analytics/cost";
+import { listSubscriptionSummariesByCompanyIds } from "@/features/subscription/queries";
+import type { SubscriptionSummary } from "@/features/subscription/types";
 import {
   buildCompanyAlerts,
   collectPlatformAlerts,
@@ -12,8 +14,6 @@ import {
 } from "@/features/platform/analytics/health";
 import type {
   CompanyDetailMetrics,
-  CompanyPlanTier,
-  CompanyStatus,
   CompanyUsageRow,
   PlatformCostAssumptions,
   PlatformOverviewMetrics,
@@ -21,6 +21,11 @@ import type {
   TrendPoint,
   UsageEvent,
 } from "@/features/platform/analytics/types";
+import type {
+  BillingCurrency,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "@/features/subscription/types";
 
 const ASSUMPTIONS_ID = "b0000000-0000-0000-0000-000000000001";
 
@@ -76,11 +81,21 @@ type CompanyRow = {
   id: string;
   name: string;
   timezone: string;
-  plan_tier: string;
-  status: string;
-  monthly_subscription_cents: number;
-  trial_ends_at: string | null;
   created_at: string;
+};
+
+const EMPTY_SUBSCRIPTION: SubscriptionSummary = {
+  plan: "starter",
+  status: "inactive",
+  trial_starts_at: null,
+  trial_ends_at: null,
+  monthly_price: 0,
+  billing_currency: "USD",
+  billing_interval: "monthly",
+  grandfathered: false,
+  current_period_start: null,
+  current_period_end: null,
+  cancelled_at: null,
 };
 
 export async function getCostAssumptions(): Promise<PlatformCostAssumptions> {
@@ -125,9 +140,7 @@ async function fetchCompanyUsageRows(
 
   const { data: companies, error: companiesError } = await supabase
     .from("companies")
-    .select(
-      "id, name, timezone, plan_tier, status, monthly_subscription_cents, trial_ends_at, created_at"
-    )
+    .select("id, name, timezone, created_at")
     .order("name");
 
   if (companiesError) throw new Error(companiesError.message);
@@ -135,6 +148,9 @@ async function fetchCompanyUsageRows(
   if (companyList.length === 0) return [];
 
   const companyIds = companyList.map((c) => c.id);
+  const subscriptionsByCompany = await listSubscriptionSummariesByCompanyIds(
+    companyIds
+  );
 
   const [
     dogsRes,
@@ -296,6 +312,8 @@ async function fetchCompanyUsageRows(
   }
 
   return companyList.map((company) => {
+    const subscription =
+      subscriptionsByCompany.get(company.id) ?? EMPTY_SUBSCRIPTION;
     const sms = smsStats.get(company.id) ?? { outbound: 0, inbound: 0, failed: 0 };
     const etaCalculations = etaByCompany.get(company.id) ?? 0;
     const estimatedCostUsd = estimateCompanyCostUsd(
@@ -308,16 +326,20 @@ async function fetchCompanyUsageRows(
       assumptions,
       companyList.length
     );
-    const estimatedRevenueUsd = estimateRevenueUsd(company.monthly_subscription_cents);
+    const estimatedRevenueUsd = estimateRevenueUsd(subscription.monthly_price);
     const estimatedMarginUsd = estimatedRevenueUsd - estimatedCostUsd;
 
     const base: CompanyUsageRow = {
       id: company.id,
       name: company.name,
-      planTier: company.plan_tier as CompanyPlanTier,
-      status: company.status as CompanyStatus,
-      trialEndsAt: company.trial_ends_at,
-      monthlySubscriptionCents: company.monthly_subscription_cents,
+      plan: subscription.plan as SubscriptionPlan,
+      subscriptionStatus: subscription.status as SubscriptionStatus,
+      trialEndsAt: subscription.trial_ends_at,
+      monthlyPrice: subscription.monthly_price,
+      billingCurrency: subscription.billing_currency as BillingCurrency,
+      billingInterval: subscription.billing_interval,
+      grandfathered: subscription.grandfathered,
+      currentPeriodEnd: subscription.current_period_end,
       activeDogs: activeDogs.get(company.id) ?? 0,
       activeDrivers: activeDrivers.get(company.id) ?? 0,
       routesThisMonth: routesThisMonth.get(company.id) ?? 0,
@@ -359,7 +381,10 @@ export async function getPlatformOverview(): Promise<{
               (Date.now() - new Date(c.lastActiveAt).getTime()) / 86_400_000
             )
           : 999;
-        return c.status === "active" && days <= 30;
+        return (
+          (c.subscriptionStatus === "active" || c.subscriptionStatus === "trial") &&
+          days <= 30
+        );
       })
       .map((c) => c.id)
   );
@@ -367,12 +392,13 @@ export async function getPlatformOverview(): Promise<{
   const metrics: PlatformOverviewMetrics = {
     totalCompanies: companies.length,
     activeCompanies: activeCompanyIds.size,
-    trialCompanies: companies.filter((c) => c.planTier === "trial").length,
+    trialCompanies: companies.filter((c) => c.subscriptionStatus === "trial").length,
     payingCompanies: companies.filter(
       (c) =>
-        c.monthlySubscriptionCents > 0 ||
-        (c.planTier !== "trial" && c.status === "active")
+        c.monthlyPrice > 0 &&
+        (c.subscriptionStatus === "active" || c.subscriptionStatus === "past_due")
     ).length,
+    grandfatheredCompanies: companies.filter((c) => c.grandfathered).length,
     activeDogs: companies.reduce((sum, c) => sum + c.activeDogs, 0),
     activeDrivers: companies.reduce((sum, c) => sum + c.activeDrivers, 0),
     routesThisMonth: companies.reduce((sum, c) => sum + c.routesThisMonth, 0),
@@ -392,6 +418,11 @@ export async function getPlatformOverview(): Promise<{
       (sum, c) => sum + c.estimatedMarginUsd,
       0
     ),
+    estimatedMrrUsd: companies
+      .filter((c) =>
+        ["active", "past_due", "trial"].includes(c.subscriptionStatus)
+      )
+      .reduce((sum, c) => sum + c.monthlyPrice, 0),
   };
 
   return {
