@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { LandingHeader } from "@/features/landing/components/landing-header";
-import { CtaButtons, ContactCtaButtons } from "@/features/landing/components/cta-buttons";
+import { CtaButtons } from "@/features/landing/components/cta-buttons";
+import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
+import { ContactForm } from "@/features/landing/components/contact-form";
 import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
 import {
   AdminDashboardMock,
@@ -320,16 +322,24 @@ export function LandingPage() {
         id="contact"
         className="scroll-mt-20 bg-[var(--color-trail-700)] py-16 text-white sm:py-20"
       >
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-semibold sm:text-4xl">
-            Less coordinating. More hiking.
-          </h2>
-          <p className="mt-4 text-lg text-white/80">
-            Give your office clear schedules, your drivers a simple day view,
-            and your customers texts they can trust.
-          </p>
-          <ContactCtaButtons />
-          <p className="mt-6 text-sm text-white/60">
+        <div className="mx-auto max-w-xl px-4 sm:px-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-semibold sm:text-4xl">
+              Less coordinating. More hiking.
+            </h2>
+            <p className="mt-4 text-lg text-white/80">
+              Book a demo or ask a question — we&apos;ll reply within a business
+              day.
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm sm:p-8">
+            <ContactForm variant="dark" />
+          </div>
+
+          <ContactEmailFallback variant="dark" className="mt-4 text-center" />
+
+          <p className="mt-6 text-center text-sm text-white/60">
             <Link href="/login" className="underline-offset-2 hover:underline">
               Team login
             </Link>
@@ -346,6 +356,10 @@ export function LandingPage() {
               className="underline-offset-2 hover:underline"
             >
               Driver login
+            </Link>
+            {" · "}
+            <Link href="/contact" className="underline-offset-2 hover:underline">
+              Full contact page
             </Link>
           </p>
         </div>
@@ -364,12 +378,15 @@ export function LandingPage() {
             <FooterContactEmail />
           </div>
           <nav aria-label="Footer" className="flex flex-wrap justify-center gap-4 text-sm text-stone-600">
-            <a href="#how-it-works" className="hover:text-[var(--color-trail-700)]">
+            <a href="/#how-it-works" className="hover:text-[var(--color-trail-700)]">
               How it works
             </a>
-            <a href="#features" className="hover:text-[var(--color-trail-700)]">
+            <a href="/#features" className="hover:text-[var(--color-trail-700)]">
               Features
             </a>
+            <Link href="/contact" className="hover:text-[var(--color-trail-700)]">
+              Contact
+            </Link>
             <Link href="/login" className="hover:text-[var(--color-trail-700)]">
               Login
             </Link>

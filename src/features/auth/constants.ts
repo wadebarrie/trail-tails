@@ -37,6 +37,7 @@ export function getSafeRedirect(role: UserRole, next?: string): string {
 /** Paths that never require authentication */
 export const PUBLIC_PATHS = new Set([
   "/",
+  "/contact",
   AUTH_ROUTES.login,
   AUTH_ROUTES.signup,
   AUTH_ROUTES.forgotPassword,

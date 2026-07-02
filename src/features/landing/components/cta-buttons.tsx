@@ -37,33 +37,12 @@ export function CtaButtons({
             className={secondaryClassName}
           />
         ) : (
-          <a href="#how-it-works" className={secondaryClassName}>
+          <a href="/#how-it-works" className={secondaryClassName}>
             See how it works
           </a>
         )}
       </div>
       <ContactEmailFallback className="mt-3" />
     </div>
-  );
-}
-
-/** Final CTA section buttons on dark background. */
-export function ContactCtaButtons() {
-  return (
-    <>
-      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <ContactEmailButton
-          subject={DEMO_EMAIL_SUBJECT}
-          label="Book a demo"
-          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-6 py-3 text-base font-medium text-[var(--color-trail-800)] transition hover:bg-stone-100"
-        />
-        <ContactEmailButton
-          subject={WAITLIST_EMAIL_SUBJECT}
-          label="Get early access"
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 px-6 py-3 text-base font-medium text-white transition hover:bg-white/10"
-        />
-      </div>
-      <ContactEmailFallback variant="dark" className="mt-4" />
-    </>
   );
 }
