@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { driverActionButtonClassName } from "@/features/admin/components/motion-styles";
 import type { DriverStopView } from "@/features/driver-actions/queries";
 
 function mapsUrl(stop: DriverStopView): string | null {
@@ -170,7 +171,7 @@ export function DriverCustomerInfoSheet({
             href={directionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 flex min-h-12 w-full items-center justify-center rounded-[var(--radius-card)] bg-white/10 text-sm font-semibold text-white motion-interactive hover:bg-white/15 active:scale-[0.98]"
+            className={`mt-6 flex min-h-12 w-full items-center justify-center rounded-[var(--radius-card)] bg-white/10 text-sm font-semibold text-white hover:bg-white/15 ${driverActionButtonClassName}`}
           >
             Open in Maps
           </a>

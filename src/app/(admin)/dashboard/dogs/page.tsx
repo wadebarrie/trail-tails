@@ -6,6 +6,7 @@ import {
   Badge,
   TableShell,
   SearchBar,
+  motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -85,7 +86,7 @@ export default async function DogsPage({
                   dog.schedule_type === "as_needed" ? "As-needed" : days || "—";
 
                 return (
-                  <tr key={dog.id} className="hover:bg-stone-50">
+                  <tr key={dog.id} className={motionTableRowClassName}>
                     <td className="px-4 py-3 text-stone-400">
                       {dog.route_sort_order + 1}
                     </td>

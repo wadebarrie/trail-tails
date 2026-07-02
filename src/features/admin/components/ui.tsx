@@ -4,8 +4,10 @@ import {
   secondaryButtonClassName,
 } from "@/features/admin/components/button-styles";
 import { inputClassName } from "@/features/admin/components/form-styles";
+import { motionCardClassName } from "@/features/admin/components/motion-styles";
 
 export { inputClassName };
+export { motionTableRowClassName } from "@/features/admin/components/motion-styles";
 
 export function TableShell({
   children,
@@ -57,7 +59,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`surface-elevated rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-3)] ${className}`}
+      className={`surface-elevated rounded-[var(--radius-card)] p-5 ${motionCardClassName} ${className}`}
     >
       {children}
     </div>

@@ -3,6 +3,7 @@ import {
   EmptyState,
   PageHeader,
   TableShell,
+  motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -76,7 +77,7 @@ export default async function SystemLogsPage() {
               {rows.map((row) => {
                 const contextText = formatContext(row.context);
                 return (
-                  <tr key={row.id} className="align-top hover:bg-stone-50">
+                  <tr key={row.id} className={`align-top ${motionTableRowClassName}`}>
                     <td className="whitespace-nowrap px-4 py-3 text-stone-500">
                       {new Date(row.created_at).toLocaleString()}
                     </td>

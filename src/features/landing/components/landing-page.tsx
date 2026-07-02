@@ -155,7 +155,7 @@ export function LandingPage() {
             ].map((item) => (
               <li
                 key={item.title}
-                className="surface-elevated rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-3)]"
+                className="surface-elevated rounded-[var(--radius-card)] p-5 motion-lift"
               >
                 <h3 className="font-semibold text-[var(--color-trail-800)]">
                   {item.title}
@@ -195,7 +195,7 @@ export function LandingPage() {
             ].map((item) => (
               <div
                 key={item.role}
-                className="surface-elevated rounded-[var(--radius-card)] p-6 motion-interactive hover:shadow-[var(--elevation-3)]"
+                className="surface-elevated rounded-[var(--radius-card)] p-6 motion-lift"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-trail-100)] text-sm font-semibold text-[var(--color-trail-700)]">
                   {item.role.charAt(0)}

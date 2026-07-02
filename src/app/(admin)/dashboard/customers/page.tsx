@@ -6,6 +6,7 @@ import {
   Badge,
   TableShell,
   SearchBar,
+  motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -75,7 +76,7 @@ export default async function CustomersPage({
             </thead>
             <tbody className="divide-y divide-stone-100">
               {customers.map((c) => (
-                <tr key={c.id} className="hover:bg-stone-50">
+                <tr key={c.id} className={motionTableRowClassName}>
                   <td className="px-4 py-3">
                     <Link
                       href={`/dashboard/customers/${c.id}`}

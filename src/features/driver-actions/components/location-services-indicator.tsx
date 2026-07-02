@@ -1,5 +1,6 @@
 "use client";
 
+import { motionButtonClassName } from "@/features/admin/components/motion-styles";
 import { useGeolocationStatus } from "@/features/driver-actions/use-geolocation-status";
 
 /** Fixed pill footprint — !min-h-9 overrides global button min-h-11 on mobile */
@@ -70,7 +71,7 @@ export function LocationServicesIndicator({
       <button
         type="button"
         onClick={recheck}
-        className={`${pillClassName} m-0 appearance-none font-inherit transition active:scale-[0.98] md:cursor-pointer`}
+        className={`${pillClassName} m-0 appearance-none font-inherit ${motionButtonClassName} md:cursor-pointer`}
         aria-label={`${config.label}. Tap to retry.`}
       >
         {content}

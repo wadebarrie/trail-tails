@@ -1,6 +1,6 @@
 export default function AdminHikesLoading() {
   return (
-    <div className="animate-pulse">
+    <div className="motion-skeleton">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="h-8 w-32 rounded bg-stone-200" />

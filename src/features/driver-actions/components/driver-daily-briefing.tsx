@@ -1,5 +1,6 @@
 "use client";
 
+import { driverActionButtonClassName } from "@/features/admin/components/motion-styles";
 import type { DriverBriefingNote } from "@/features/driver-actions/briefing-notes";
 
 type DriverDailyBriefingProps = {
@@ -67,7 +68,7 @@ export function DriverDailyBriefing({
       <button
         type="button"
         onClick={onStart}
-        className="mt-8 w-full rounded-2xl bg-amber-400 py-5 text-lg font-semibold text-stone-900 transition active:scale-[0.98]"
+        className={`mt-8 w-full rounded-2xl bg-amber-400 py-5 text-lg font-semibold text-stone-900 ${driverActionButtonClassName}`}
       >
         Start Morning Route →
       </button>

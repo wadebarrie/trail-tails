@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useState, useTransition } from "react";
+import { motionInteractiveClassName } from "@/features/admin/components/motion-styles";
 
 type SortableItem = {
   id: string;
@@ -64,13 +65,13 @@ function SortableRow({
         transform: CSS.Transform.toString(transform),
         transition,
       }}
-      className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
+      className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${motionInteractiveClassName} ${
         variant === "dark" ? "bg-white/5" : "bg-white"
       } ${rowClassName(variant, isDragging)}`}
     >
       <button
         type="button"
-        className={`flex min-h-11 min-w-11 shrink-0 cursor-grab items-center justify-center touch-none rounded-lg text-lg active:cursor-grabbing ${
+        className={`flex min-h-11 min-w-11 shrink-0 cursor-grab items-center justify-center touch-none rounded-lg text-lg active:cursor-grabbing ${motionInteractiveClassName} ${
           variant === "dark"
             ? "text-white/40 hover:bg-white/10 hover:text-white/70"
             : "text-stone-400 hover:bg-stone-100 hover:text-stone-600"

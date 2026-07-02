@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TableShell } from "@/features/admin/components/ui";
+import { TableShell, motionTableRowClassName } from "@/features/admin/components/ui";
 import { formatUsd } from "@/features/platform/analytics/cost";
 import {
   companyStatusLabel,
@@ -42,7 +42,7 @@ export function CompanyUsageTable({ companies }: { companies: CompanyUsageRow[] 
             </tr>
           ) : (
             companies.map((company) => (
-              <tr key={company.id} className="hover:bg-stone-50/80">
+              <tr key={company.id} className={motionTableRowClassName}>
                 <td className="px-3 py-3">
                   <Link
                     href={`/owner/companies/${company.id}`}

@@ -5,6 +5,7 @@ import {
   EmptyState,
   PageHeader,
   TableShell,
+  motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { requireRole } from "@/features/auth/queries";
@@ -177,7 +178,7 @@ export default async function BillingPage({
             </thead>
             <tbody className="divide-y divide-stone-100">
               {items.map((item) => (
-                <tr key={`${item.date}-${item.dogId}`} className="hover:bg-stone-50">
+                <tr key={`${item.date}-${item.dogId}`} className={motionTableRowClassName}>
                   <td className="px-4 py-3 text-stone-600">{item.date}</td>
                   <td className="px-4 py-3 font-medium text-stone-900">
                     {item.customerName}

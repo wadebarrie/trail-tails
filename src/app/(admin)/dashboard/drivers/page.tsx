@@ -5,6 +5,7 @@ import {
   PageHeader,
   PrimaryLink,
   TableShell,
+  motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
@@ -42,7 +43,7 @@ export default async function DriversPage() {
             </thead>
             <tbody className="divide-y divide-stone-100">
               {drivers.map((d) => (
-                <tr key={d.id} className="hover:bg-stone-50">
+                <tr key={d.id} className={motionTableRowClassName}>
                   <td className="px-4 py-3">
                     <Link
                       href={`/dashboard/drivers/${d.id}`}
