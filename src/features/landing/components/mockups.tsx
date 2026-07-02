@@ -89,6 +89,7 @@ export function HeroDashboardMock() {
 }
 
 export function SmsPhoneMock() {
+  // Keep in sync with notifications/log.ts and sms/parser.ts REQUEST_ACK_REPLY.
   const messages = [
     {
       outbound: true,
@@ -96,16 +97,20 @@ export function SmsPhoneMock() {
     },
     {
       outbound: true,
-      text: "Hi Sam! We’re on the way to pick up Cooper. ETA is approximately 12 minutes.",
+      text: "Hi Sam! We're on the way to pick up Cooper. ETA is approximately 12 minutes.",
     },
     {
       outbound: true,
-      text: "Cooper was picked up and is on the trail with the group. We'll text when he's home.",
+      text: "Cooper has been picked up. See you this afternoon!",
+    },
+    {
+      outbound: true,
+      text: "Cooper has been dropped off. Have a great day!",
     },
     { outbound: false, text: "Skip Friday" },
     {
       outbound: true,
-      text: "Got it! We’ll review your request shortly.",
+      text: "Got it! We'll review your request shortly.",
     },
   ];
 
@@ -113,7 +118,7 @@ export function SmsPhoneMock() {
     <div
       className="mx-auto w-full max-w-xs"
       role="img"
-      aria-label="Preview of customer SMS updates for dog pickup ETAs, night-before reminders, and schedule change requests"
+      aria-label="Preview of customer SMS: night-before reminder, ETA, pickup and drop-off confirmations, and a schedule change reply"
     >
       <div className="overflow-hidden rounded-[2rem] border-4 border-stone-800 bg-stone-900 p-2 shadow-2xl">
         <div className="rounded-[1.5rem] bg-stone-100 px-3 pb-4 pt-8">
