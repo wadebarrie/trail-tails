@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { primaryButtonClassName } from "@/features/admin/components/button-styles";
-import { DEMO_MAILTO, NAV_LINKS } from "@/features/landing/constants";
+import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
+import { DEMO_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
+import { NAV_LINKS } from "@/features/landing/constants";
 
 export function LandingHeader() {
   const [open, setOpen] = useState(false);
@@ -40,9 +41,11 @@ export function LandingHeader() {
           >
             Login
           </Link>
-          <a href={DEMO_MAILTO} className={`${primaryButtonClassName} px-4 py-2`}>
-            Book a demo
-          </a>
+          <ContactEmailButton
+            subject={DEMO_EMAIL_SUBJECT}
+            label="Book a demo"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--color-trail-700)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[var(--color-trail-800)]"
+          />
         </div>
 
         <button
@@ -80,12 +83,11 @@ export function LandingHeader() {
             >
               Login
             </Link>
-            <a
-              href={DEMO_MAILTO}
-              className={`${primaryButtonClassName} mt-2 justify-center`}
-            >
-              Book a demo
-            </a>
+            <ContactEmailButton
+              subject={DEMO_EMAIL_SUBJECT}
+              label="Book a demo"
+              className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[var(--color-trail-700)] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--color-trail-800)]"
+            />
           </nav>
         </div>
       ) : null}

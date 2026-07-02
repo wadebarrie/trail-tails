@@ -1,18 +1,14 @@
 import Link from "next/link";
-import {
-  primaryButtonClassName,
-  secondaryButtonClassName,
-} from "@/features/admin/components/button-styles";
 import { LandingHeader } from "@/features/landing/components/landing-header";
-import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
+import { CtaButtons, ContactCtaButtons } from "@/features/landing/components/cta-buttons";
+import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
 import {
   AdminDashboardMock,
   DriverMobileMock,
   HeroDashboardMock,
   SmsPhoneMock,
 } from "@/features/landing/components/mockups";
-import { DEMO_MAILTO, LANDING_FAQ, WAITLIST_MAILTO } from "@/features/landing/constants";
-import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
+import { LANDING_FAQ } from "@/features/landing/constants";
 
 const FAQ = LANDING_FAQ;
 
@@ -54,40 +50,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     <p className="text-sm font-medium uppercase tracking-widest text-[var(--color-trail-600)]">
       {children}
     </p>
-  );
-}
-
-function CtaButtons({
-  primary = "Book a demo",
-  showEarlyAccess = false,
-}: {
-  primary?: string;
-  showEarlyAccess?: boolean;
-}) {
-  return (
-    <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <a href={DEMO_MAILTO} className={`${primaryButtonClassName} px-6 py-3 text-base`}>
-          {primary}
-        </a>
-        {showEarlyAccess ? (
-          <a
-            href={WAITLIST_MAILTO}
-            className={`${secondaryButtonClassName} px-6 py-3 text-base`}
-          >
-            Get early access
-          </a>
-        ) : (
-          <a
-            href="#how-it-works"
-            className={`${secondaryButtonClassName} px-6 py-3 text-base`}
-          >
-            See how it works
-          </a>
-        )}
-      </div>
-      <ContactEmailFallback className="mt-3" />
-    </div>
   );
 }
 
@@ -366,21 +328,7 @@ export function LandingPage() {
             Give your office clear schedules, your drivers a simple day view,
             and your customers texts they can trust.
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a
-              href={DEMO_MAILTO}
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-6 py-3 text-base font-medium text-[var(--color-trail-800)] transition hover:bg-stone-100"
-            >
-              Book a demo
-            </a>
-            <a
-              href={WAITLIST_MAILTO}
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 px-6 py-3 text-base font-medium text-white transition hover:bg-white/10"
-            >
-              Get early access
-            </a>
-          </div>
-          <ContactEmailFallback variant="dark" className="mt-4" />
+          <ContactCtaButtons />
           <p className="mt-6 text-sm text-white/60">
             <Link href="/login" className="underline-offset-2 hover:underline">
               Team login
@@ -413,12 +361,7 @@ export function LandingPage() {
             <p className="mt-1 text-sm text-stone-500">
               Software for adventure dog hiking teams.
             </p>
-            <a
-              href={`mailto:${SITE_CONTACT_EMAIL}`}
-              className="mt-2 inline-block text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-            >
-              {SITE_CONTACT_EMAIL}
-            </a>
+            <FooterContactEmail />
           </div>
           <nav aria-label="Footer" className="flex flex-wrap justify-center gap-4 text-sm text-stone-600">
             <a href="#how-it-works" className="hover:text-[var(--color-trail-700)]">
