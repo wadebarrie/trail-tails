@@ -5,6 +5,7 @@ import {
   estimateCompanyCostUsd,
   estimateRevenueUsd,
 } from "@/features/platform/analytics/cost";
+import { listFounderProfiles } from "@/features/platform/analytics/founder-profiles";
 import { listSubscriptionSummariesByCompanyIds } from "@/features/subscription/queries";
 import type { SubscriptionSummary } from "@/features/subscription/types";
 import {
@@ -127,39 +128,54 @@ export async function getCostAssumptions(): Promise<PlatformCostAssumptions> {
     base_infra_per_company_usd: Number(data.base_infra_per_company_usd),
     supabase_platform_usd: Number(data.supabase_platform_usd),
     netlify_platform_usd: Number(data.netlify_platform_usd),
+    minutes_per_eta_notification: Number(data.minutes_per_eta_notification ?? 1),
+    minutes_per_sms_request: Number(data.minutes_per_sms_request ?? 3),
+    minutes_per_route_created: Number(data.minutes_per_route_created ?? 5),
+    minutes_per_billing_export: Number(data.minutes_per_billing_export ?? 30),
     updated_at: data.updated_at,
   };
 }
 
 async function fetchCompanyUsageRows(
-  assumptions: PlatformCostAssumptions
+  assumptions: PlatformCostAssumptions,
+  filterCompanyId?: string
 ): Promise<CompanyUsageRow[]> {
   const supabase = createServiceClient();
   const monthStart = monthStartIso();
   const thirtyDaysAgo = daysAgoIso(30);
 
-  const { data: companies, error: companiesError } = await supabase
+  let companyQuery = supabase
     .from("companies")
     .select("id, name, timezone, created_at")
     .order("name");
+
+  if (filterCompanyId) {
+    companyQuery = companyQuery.eq("id", filterCompanyId);
+  }
+
+  const { data: companies, error: companiesError } = await companyQuery;
 
   if (companiesError) throw new Error(companiesError.message);
   const companyList = (companies ?? []) as CompanyRow[];
   if (companyList.length === 0) return [];
 
   const companyIds = companyList.map((c) => c.id);
-  const subscriptionsByCompany = await listSubscriptionSummariesByCompanyIds(
-    companyIds
-  );
+  const [subscriptionsByCompany, founderProfiles] = await Promise.all([
+    listSubscriptionSummariesByCompanyIds(companyIds),
+    listFounderProfiles(),
+  ]);
 
   const [
     dogsRes,
     driversRes,
+    adminsRes,
     routesRes,
     smsMonthRes,
     notifMonthRes,
     systemMonthRes,
     hikesRes,
+    pendingMonthRes,
+    driverStopsRes,
     smsRecentRes,
     notifRecentRes,
     hikeActivityRes,
@@ -169,6 +185,11 @@ async function fetchCompanyUsageRows(
       .from("profiles")
       .select("company_id")
       .eq("role", "driver")
+      .eq("is_active", true),
+    supabase
+      .from("profiles")
+      .select("company_id")
+      .eq("role", "admin")
       .eq("is_active", true),
     supabase
       .from("routes")
@@ -194,6 +215,16 @@ async function fetchCompanyUsageRows(
       .select("id, company_id, date")
       .gte("date", monthStart.slice(0, 10))
       .in("company_id", companyIds),
+    supabase
+      .from("pending_requests")
+      .select("company_id")
+      .gte("created_at", monthStart)
+      .in("company_id", companyIds),
+    supabase
+      .from("stops")
+      .select("status, updated_at, hikes!inner(company_id)")
+      .gte("updated_at", monthStart)
+      .in("status", ["en_route", "arrived", "picked_up", "dropped_off"]),
     supabase
       .from("sms_messages")
       .select("company_id, created_at")
@@ -247,7 +278,21 @@ async function fetchCompanyUsageRows(
 
   const activeDogs = countByCompany(dogsRes.data);
   const activeDrivers = countByCompany(driversRes.data);
+  const activeAdmins = countByCompany(adminsRes.data);
   const routesThisMonth = countByCompany(routesRes.data);
+  const pendingThisMonth = countByCompany(pendingMonthRes.data);
+
+  const driverActionsThisMonth = new Map<string, number>();
+  for (const stop of driverStopsRes.data ?? []) {
+    const hikes = stop.hikes as { company_id: string } | { company_id: string }[];
+    const companyId = Array.isArray(hikes) ? hikes[0]?.company_id : hikes?.company_id;
+    if (companyId) {
+      driverActionsThisMonth.set(
+        companyId,
+        (driverActionsThisMonth.get(companyId) ?? 0) + 1
+      );
+    }
+  }
 
   const smsStats = new Map<
     string,
@@ -266,10 +311,17 @@ async function fetchCompanyUsageRows(
   }
 
   const etaByCompany = new Map<string, number>();
+  const notificationsSentByCompany = new Map<string, number>();
   const failedNotifByCompany = new Map<string, number>();
   for (const n of notifMonthRes.data ?? []) {
     if (n.notification_type === "en_route") {
       etaByCompany.set(n.company_id, (etaByCompany.get(n.company_id) ?? 0) + 1);
+    }
+    if (n.status !== "failed") {
+      notificationsSentByCompany.set(
+        n.company_id,
+        (notificationsSentByCompany.get(n.company_id) ?? 0) + 1
+      );
     }
     if (n.status === "failed") {
       failedNotifByCompany.set(
@@ -314,6 +366,7 @@ async function fetchCompanyUsageRows(
   return companyList.map((company) => {
     const subscription =
       subscriptionsByCompany.get(company.id) ?? EMPTY_SUBSCRIPTION;
+    const founder = founderProfiles.get(company.id);
     const sms = smsStats.get(company.id) ?? { outbound: 0, inbound: 0, failed: 0 };
     const etaCalculations = etaByCompany.get(company.id) ?? 0;
     const estimatedCostUsd = estimateCompanyCostUsd(
@@ -342,8 +395,12 @@ async function fetchCompanyUsageRows(
       currentPeriodEnd: subscription.current_period_end,
       activeDogs: activeDogs.get(company.id) ?? 0,
       activeDrivers: activeDrivers.get(company.id) ?? 0,
+      activeAdmins: activeAdmins.get(company.id) ?? 0,
       routesThisMonth: routesThisMonth.get(company.id) ?? 0,
       completedHikesThisMonth: completedByCompany.get(company.id) ?? 0,
+      driverActionsThisMonth: driverActionsThisMonth.get(company.id) ?? 0,
+      pendingRequestsThisMonth: pendingThisMonth.get(company.id) ?? 0,
+      notificationsSent: notificationsSentByCompany.get(company.id) ?? 0,
       smsSent: sms.outbound,
       smsInbound: sms.inbound,
       smsFailed: sms.failed,
@@ -356,6 +413,8 @@ async function fetchCompanyUsageRows(
       lastActiveAt: lastActiveByCompany.get(company.id) ?? null,
       health: "healthy",
       alerts: [],
+      caseStudyStatus: founder?.caseStudyStatus ?? "none",
+      followUpDate: founder?.followUpDate ?? null,
     };
 
     base.health = computeHealthStatus(base);
@@ -399,11 +458,31 @@ export async function getPlatformOverview(): Promise<{
         (c.subscriptionStatus === "active" || c.subscriptionStatus === "past_due")
     ).length,
     grandfatheredCompanies: companies.filter((c) => c.grandfathered).length,
+    betaPartners: companies.filter((c) => c.plan === "beta_partner").length,
+    atRiskCompanies: companies.filter((c) =>
+      ["at_risk", "trial_inactive"].includes(c.health)
+    ).length,
+    caseStudyCandidates: companies.filter(
+      (c) => c.health === "case_study_candidate" || c.caseStudyStatus === "candidate"
+    ).length,
     activeDogs: companies.reduce((sum, c) => sum + c.activeDogs, 0),
     activeDrivers: companies.reduce((sum, c) => sum + c.activeDrivers, 0),
+    activeAdmins: companies.reduce((sum, c) => sum + c.activeAdmins, 0),
     routesThisMonth: companies.reduce((sum, c) => sum + c.routesThisMonth, 0),
     completedHikesThisMonth: companies.reduce(
       (sum, c) => sum + c.completedHikesThisMonth,
+      0
+    ),
+    driverActionsThisMonth: companies.reduce(
+      (sum, c) => sum + c.driverActionsThisMonth,
+      0
+    ),
+    pendingRequestsThisMonth: companies.reduce(
+      (sum, c) => sum + c.pendingRequestsThisMonth,
+      0
+    ),
+    notificationsSentThisMonth: companies.reduce(
+      (sum, c) => sum + c.notificationsSent,
       0
     ),
     smsSentThisMonth: companies.reduce((sum, c) => sum + c.smsSent, 0),
@@ -412,6 +491,10 @@ export async function getPlatformOverview(): Promise<{
       0
     ),
     failedSmsThisMonth: companies.reduce((sum, c) => sum + c.smsFailed, 0),
+    failedNotificationsThisMonth: companies.reduce(
+      (sum, c) => sum + c.failedNotifications,
+      0
+    ),
     estimatedInfraCostUsd: companies.reduce((sum, c) => sum + c.estimatedCostUsd, 0),
     estimatedRevenueUsd: companies.reduce((sum, c) => sum + c.estimatedRevenueUsd, 0),
     estimatedGrossMarginUsd: companies.reduce(
@@ -423,6 +506,29 @@ export async function getPlatformOverview(): Promise<{
         ["active", "past_due", "trial"].includes(c.subscriptionStatus)
       )
       .reduce((sum, c) => sum + c.monthlyPrice, 0),
+    payingMrrUsd: companies
+      .filter(
+        (c) =>
+          c.monthlyPrice > 0 &&
+          (c.subscriptionStatus === "active" || c.subscriptionStatus === "past_due")
+      )
+      .reduce((sum, c) => sum + c.monthlyPrice, 0),
+    trialMrrPotentialUsd: companies
+      .filter((c) => c.subscriptionStatus === "trial" && c.monthlyPrice > 0)
+      .reduce((sum, c) => sum + c.monthlyPrice, 0),
+    betaPartnerMrrUsd: companies
+      .filter((c) => c.plan === "beta_partner" && c.monthlyPrice > 0)
+      .reduce((sum, c) => sum + c.monthlyPrice, 0),
+    grandfatheredMrrUsd: companies
+      .filter((c) => c.grandfathered && c.monthlyPrice > 0)
+      .reduce((sum, c) => sum + c.monthlyPrice, 0),
+    activeSubscriptions: companies.filter((c) => c.subscriptionStatus === "active")
+      .length,
+    pastDueSubscriptions: companies.filter((c) => c.subscriptionStatus === "past_due")
+      .length,
+    cancelledSubscriptions: companies.filter(
+      (c) => c.subscriptionStatus === "cancelled"
+    ).length,
   };
 
   return {
@@ -531,13 +637,13 @@ export async function getCompanyDetail(
 ): Promise<CompanyDetailMetrics | null> {
   await requirePlatformOwner();
   const assumptions = await getCostAssumptions();
-  const companies = await fetchCompanyUsageRows(assumptions);
-  const row = companies.find((c) => c.id === companyId);
+  const rows = await fetchCompanyUsageRows(assumptions, companyId);
+  const row = rows[0];
   if (!row) return null;
 
   const supabase = createServiceClient();
 
-  const [companyRes, routesRes, customersRes, events, profilesRes] =
+  const [companyRes, routesRes, customersRes, events, profilesRes, founder] =
     await Promise.all([
       supabase
         .from("companies")
@@ -561,6 +667,7 @@ export async function getCompanyDetail(
         .eq("is_active", true)
         .order("updated_at", { ascending: false })
         .limit(5),
+      listFounderProfiles().then((m) => m.get(companyId) ?? null),
     ]);
 
   if (companyRes.error || !companyRes.data) return null;
@@ -571,6 +678,8 @@ export async function getCompanyDetail(
     createdAt: companyRes.data.created_at,
     totalRoutes: routesRes.count ?? 0,
     totalCustomers: customersRes.count ?? 0,
+    internalNotes: founder?.internalNotes ?? null,
+    customerQuote: founder?.customerQuote ?? null,
     recentEvents: events.filter((e) => e.level === "info").slice(0, 10),
     recentErrors: events.filter((e) => e.level !== "info").slice(0, 10),
     lastActiveUsers: (profilesRes.data ?? []).map((p) => ({

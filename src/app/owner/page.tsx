@@ -30,10 +30,16 @@ export default async function OwnerOverviewPage({
   return (
     <div>
       <PageHeader
-        title="Superadmin dashboard"
-        description="Platform usage, customer health, and estimated economics across all tenants."
+        title="Founder dashboard"
+        description="Customer health, usage, value delivered, and estimated economics across all tenants."
         action={
           <div className="flex gap-2 text-sm">
+            <Link
+              href="/owner/reviews"
+              className="rounded-lg border border-stone-300 px-3 py-1.5 text-stone-700 hover:bg-stone-50"
+            >
+              Monthly reviews
+            </Link>
             <Link
               href="/owner"
               className={`rounded-lg px-3 py-1.5 ${
@@ -61,20 +67,39 @@ export default async function OwnerOverviewPage({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         <MetricCard label="Total companies" value={metrics.totalCompanies} />
         <MetricCard label="Active companies" value={metrics.activeCompanies} subtext="Active in 30d" />
+        <MetricCard label="At risk" value={metrics.atRiskCompanies} tone="warning" />
         <MetricCard label="Trial companies" value={metrics.trialCompanies} />
         <MetricCard label="Paying companies" value={metrics.payingCompanies} />
-        <MetricCardUsd label="Est. MRR" amount={metrics.estimatedMrrUsd} />
+        <MetricCard label="Beta partners" value={metrics.betaPartners} />
+        <MetricCard
+          label="Case study candidates"
+          value={metrics.caseStudyCandidates}
+          subtext="Health + flagged"
+        />
         <MetricCard
           label="Grandfathered"
           value={metrics.grandfatheredCompanies}
-          subtext="Custom pricing locked"
+          subtext="Custom pricing"
         />
+        <MetricCardUsd label="Paying MRR" amount={metrics.payingMrrUsd} />
+        <MetricCardUsd label="Trial MRR potential" amount={metrics.trialMrrPotentialUsd} />
+        <MetricCardUsd label="Est. total MRR" amount={metrics.estimatedMrrUsd} subtext="Incl. trials" />
+        <MetricCard label="Past due" value={metrics.pastDueSubscriptions} tone="warning" />
         <MetricCard label="Active dogs" value={metrics.activeDogs} />
         <MetricCard label="Active drivers" value={metrics.activeDrivers} />
+        <MetricCard label="Office admins" value={metrics.activeAdmins} />
         <MetricCard label="Routes this month" value={metrics.routesThisMonth} />
         <MetricCard label="Completed hikes" value={metrics.completedHikesThisMonth} subtext="This month" />
+        <MetricCard label="Driver actions" value={metrics.driverActionsThisMonth} subtext="This month" />
+        <MetricCard label="Pending requests" value={metrics.pendingRequestsThisMonth} subtext="This month" />
+        <MetricCard label="Notifications sent" value={metrics.notificationsSentThisMonth} subtext="This month" />
         <MetricCard label="SMS sent" value={metrics.smsSentThisMonth} subtext="This month" />
-        <MetricCard label="ETA calculations" value={metrics.etaCalculationsThisMonth} subtext="en_route proxy" />
+        <MetricCard label="ETA notifications" value={metrics.etaCalculationsThisMonth} />
+        <MetricCard
+          label="Failed notifications"
+          value={metrics.failedNotificationsThisMonth}
+          tone="warning"
+        />
         <MetricCard label="Failed SMS" value={metrics.failedSmsThisMonth} tone="warning" />
         <MetricCardUsd label="Est. infra cost" amount={metrics.estimatedInfraCostUsd} subtext="This month" />
         <MetricCardUsd
@@ -90,8 +115,8 @@ export default async function OwnerOverviewPage({
         <TrendChart title="SMS sent" points={trends.smsSent} />
         <TrendChart title="ETA calculations" points={trends.etaCalculations} />
         <TrendChart title="Completed hikes" points={trends.completedHikes} />
-        <TrendChart title="Active companies" points={trends.activeCompanies} />
-        <TrendChart title="Active dogs" points={trends.activeDogs} />
+        <TrendChart title="New companies (signups)" points={trends.activeCompanies} />
+        <TrendChart title="New active dogs (records)" points={trends.activeDogs} />
         <TrendChart
           title="Failure rate"
           points={trends.failureRate}

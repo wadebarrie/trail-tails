@@ -74,7 +74,33 @@ export function computeHealthStatus(
   if (trialDaysLeft != null && trialDaysLeft <= 7 && trialDaysLeft >= 0) {
     return "needs_attention";
   }
+  if (
+    meetsCaseStudyCandidateCriteria(row)
+  ) {
+    return "case_study_candidate";
+  }
   return "healthy";
+}
+
+function meetsCaseStudyCandidateCriteria(
+  row: Pick<
+    CompanyUsageRow,
+    | "activeDogs"
+    | "completedHikesThisMonth"
+    | "smsSent"
+    | "failedNotifications"
+    | "lastActiveAt"
+  >
+): boolean {
+  const inactiveDays = daysSince(row.lastActiveAt);
+  return (
+    row.activeDogs >= 2 &&
+    row.completedHikesThisMonth >= 8 &&
+    row.smsSent >= 15 &&
+    row.failedNotifications <= 3 &&
+    inactiveDays != null &&
+    inactiveDays <= 7
+  );
 }
 
 export function buildCompanyAlerts(row: CompanyUsageRow): string[] {
@@ -112,6 +138,17 @@ export function buildCompanyAlerts(row: CompanyUsageRow): string[] {
   if (row.activeDogs === 0) alerts.push("No active dogs");
   if (row.activeDrivers === 0) alerts.push("No active drivers");
   if (row.webhookErrors >= 2) alerts.push("Repeated webhook errors");
+  if (row.caseStudyStatus === "candidate" || row.health === "case_study_candidate") {
+    alerts.push("Case study candidate");
+  }
+  if (row.followUpDate) {
+    const daysUntil = Math.ceil(
+      (new Date(row.followUpDate).getTime() - Date.now()) / MS_PER_DAY
+    );
+    if (daysUntil <= 7 && daysUntil >= 0) {
+      alerts.push(`Follow-up in ${daysUntil} day${daysUntil === 1 ? "" : "s"}`);
+    }
+  }
 
   return alerts;
 }
@@ -158,6 +195,8 @@ export function healthStatusLabel(status: HealthStatus): string {
       return "Trial inactive";
     case "needs_attention":
       return "Needs attention";
+    case "case_study_candidate":
+      return "Case study candidate";
   }
 }
 
@@ -174,6 +213,8 @@ export function healthStatusClass(status: HealthStatus): string {
       return "bg-red-100 text-red-800";
     case "needs_attention":
       return "bg-yellow-100 text-yellow-900";
+    case "case_study_candidate":
+      return "bg-sky-100 text-sky-800";
   }
 }
 

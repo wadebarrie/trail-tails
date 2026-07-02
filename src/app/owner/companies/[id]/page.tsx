@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { PageHeader } from "@/features/admin/components/ui";
 import { CompanyPlanForm } from "@/features/platform/components/analytics/company-plan-form";
+import { FounderProfileForm } from "@/features/platform/components/analytics/founder-profile-form";
 import { UsageEventsTable } from "@/features/platform/components/analytics/usage-events-table";
 import { formatUsd } from "@/features/platform/analytics/cost";
 import {
@@ -13,6 +14,11 @@ import {
 import { getCompanyDetail } from "@/features/platform/analytics/queries";
 
 export const dynamic = "force-dynamic";
+
+function currentMonthParam(): string {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+}
 
 export default async function OwnerCompanyDetailPage({
   params,
@@ -27,18 +33,28 @@ export default async function OwnerCompanyDetailPage({
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 25);
 
+  const reviewMonth = currentMonthParam();
+
   return (
     <div>
       <PageHeader
         title={company.name}
         description={`Company detail · ${company.timezone}`}
         action={
-          <Link
-            href="/owner"
-            className="text-sm text-stone-600 hover:text-[var(--color-trail-700)] hover:underline"
-          >
-            ← Back to overview
-          </Link>
+          <div className="flex flex-wrap gap-3 text-sm">
+            <Link
+              href={`/owner/reviews/${company.id}/${reviewMonth}`}
+              className="font-medium text-[var(--color-trail-700)] hover:underline"
+            >
+              Monthly review →
+            </Link>
+            <Link
+              href="/owner"
+              className="text-stone-600 hover:text-[var(--color-trail-700)] hover:underline"
+            >
+              ← Overview
+            </Link>
+          </div>
         }
       />
 
@@ -50,18 +66,22 @@ export default async function OwnerCompanyDetailPage({
         </span>
         <span className="text-sm text-stone-600">
           {planTierLabel(company.plan)} ·{" "}
-          {companyStatusLabel(company.subscriptionStatus)}
+          {companyStatusLabel(company.subscriptionStatus)} · {company.billingCurrency}{" "}
+          {company.monthlyPrice}/mo
           {company.grandfathered ? " · Grandfathered" : ""}
         </span>
-        {company.alerts.length > 0 ? (
-          <span className="text-sm text-amber-700">
-            {company.alerts.join(" · ")}
+        {company.followUpDate ? (
+          <span className="text-sm text-stone-500">
+            Follow-up {new Date(company.followUpDate).toLocaleDateString()}
           </span>
+        ) : null}
+        {company.alerts.length > 0 ? (
+          <span className="text-sm text-amber-700">{company.alerts.join(" · ")}</span>
         ) : null}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           <StatsGrid company={company} />
 
           <section>
@@ -74,6 +94,7 @@ export default async function OwnerCompanyDetailPage({
 
         <div className="space-y-6">
           <CompanyPlanForm company={company} />
+          <FounderProfileForm company={company} />
 
           <section className="rounded-xl border border-stone-200 bg-white p-6">
             <h2 className="text-lg font-semibold text-stone-900">Last active users</h2>
@@ -111,19 +132,29 @@ function StatsGrid({
   const stats = [
     ["Active dogs", company.activeDogs],
     ["Active drivers", company.activeDrivers],
+    ["Office admins", company.activeAdmins],
     ["Total routes", company.totalRoutes],
     ["Customers", company.totalCustomers],
     ["Routes this month", company.routesThisMonth],
     ["Completed hikes", company.completedHikesThisMonth],
+    ["Driver actions", company.driverActionsThisMonth],
+    ["Pending requests", company.pendingRequestsThisMonth],
+    ["Notifications sent", company.notificationsSent],
     ["SMS sent", company.smsSent],
     ["SMS inbound", company.smsInbound],
-    ["ETA calculations", company.etaCalculations],
+    ["ETA notifications", company.etaCalculations],
     ["Failed SMS", company.smsFailed],
     ["Failed notifications", company.failedNotifications],
     ["Webhook errors", company.webhookErrors],
     ["Est. cost", formatUsd(company.estimatedCostUsd)],
     ["Est. revenue", formatUsd(company.estimatedRevenueUsd)],
     ["Est. margin", formatUsd(company.estimatedMarginUsd)],
+    [
+      "Trial ends",
+      company.trialEndsAt
+        ? new Date(company.trialEndsAt).toLocaleDateString()
+        : "—",
+    ],
     [
       "Last active",
       company.lastActiveAt

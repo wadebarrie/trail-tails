@@ -79,6 +79,39 @@ export function CostSettingsForm({
         step="0.01"
       />
 
+      <div className="border-t border-stone-100 pt-4">
+        <h3 className="text-sm font-semibold text-stone-800">Time saved assumptions</h3>
+        <p className="mt-1 text-xs text-stone-500">
+          Used for monthly operational reviews. Treat results as directional.
+        </p>
+        <div className="mt-3 space-y-4">
+          <Field
+            label="Minutes saved per ETA/update notification"
+            name="minutes_per_eta_notification"
+            defaultValue={assumptions.minutes_per_eta_notification}
+            step="0.5"
+          />
+          <Field
+            label="Minutes saved per inbound SMS request captured"
+            name="minutes_per_sms_request"
+            defaultValue={assumptions.minutes_per_sms_request}
+            step="0.5"
+          />
+          <Field
+            label="Minutes saved per route created"
+            name="minutes_per_route_created"
+            defaultValue={assumptions.minutes_per_route_created}
+            step="0.5"
+          />
+          <Field
+            label="Minutes saved per billing export"
+            name="minutes_per_billing_export"
+            defaultValue={assumptions.minutes_per_billing_export}
+            step="1"
+          />
+        </div>
+      </div>
+
       <p className="text-xs text-stone-500">
         Supabase and Netlify totals are split evenly across all companies for margin
         estimates.

@@ -11,6 +11,10 @@ export const DEFAULT_COST_ASSUMPTIONS: Omit<
   base_infra_per_company_usd: 2,
   supabase_platform_usd: 25,
   netlify_platform_usd: 19,
+  minutes_per_eta_notification: 1,
+  minutes_per_sms_request: 3,
+  minutes_per_route_created: 5,
+  minutes_per_billing_export: 30,
 };
 
 export type UsageCounts = {

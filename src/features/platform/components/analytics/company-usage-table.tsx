@@ -20,6 +20,8 @@ export function CompanyUsageTable({ companies }: { companies: CompanyUsageRow[] 
             <th className="px-3 py-3 font-medium">Status</th>
             <th className="px-3 py-3 font-medium text-right">Dogs</th>
             <th className="px-3 py-3 font-medium text-right">Drivers</th>
+            <th className="px-3 py-3 font-medium text-right">Pending</th>
+            <th className="px-3 py-3 font-medium text-right">Driver acts</th>
             <th className="px-3 py-3 font-medium text-right">Hikes</th>
             <th className="px-3 py-3 font-medium text-right">SMS</th>
             <th className="px-3 py-3 font-medium text-right">ETA</th>
@@ -34,7 +36,7 @@ export function CompanyUsageTable({ companies }: { companies: CompanyUsageRow[] 
         <tbody className="divide-y divide-stone-100">
           {companies.length === 0 ? (
             <tr>
-              <td colSpan={14} className="px-3 py-8 text-center text-stone-500">
+              <td colSpan={16} className="px-3 py-8 text-center text-stone-500">
                 No companies yet.
               </td>
             </tr>
@@ -58,6 +60,12 @@ export function CompanyUsageTable({ companies }: { companies: CompanyUsageRow[] 
                 <td className="px-3 py-3 text-right tabular-nums">{company.activeDogs}</td>
                 <td className="px-3 py-3 text-right tabular-nums">
                   {company.activeDrivers}
+                </td>
+                <td className="px-3 py-3 text-right tabular-nums">
+                  {company.pendingRequestsThisMonth}
+                </td>
+                <td className="px-3 py-3 text-right tabular-nums">
+                  {company.driverActionsThisMonth}
                 </td>
                 <td className="px-3 py-3 text-right tabular-nums">
                   {company.completedHikesThisMonth}

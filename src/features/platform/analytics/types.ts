@@ -4,13 +4,16 @@ import type {
   SubscriptionStatus,
 } from "@/features/subscription/types";
 
+export type CaseStudyStatus = "none" | "candidate" | "in_progress" | "published";
+
 export type HealthStatus =
   | "healthy"
   | "low_usage"
   | "high_cost"
   | "at_risk"
   | "trial_inactive"
-  | "needs_attention";
+  | "needs_attention"
+  | "case_study_candidate";
 
 export type PlatformCostAssumptions = {
   id: string;
@@ -21,6 +24,10 @@ export type PlatformCostAssumptions = {
   base_infra_per_company_usd: number;
   supabase_platform_usd: number;
   netlify_platform_usd: number;
+  minutes_per_eta_notification: number;
+  minutes_per_sms_request: number;
+  minutes_per_route_created: number;
+  minutes_per_billing_export: number;
   updated_at: string;
 };
 
@@ -37,8 +44,12 @@ export type CompanyUsageRow = {
   currentPeriodEnd: string | null;
   activeDogs: number;
   activeDrivers: number;
+  activeAdmins: number;
   routesThisMonth: number;
   completedHikesThisMonth: number;
+  driverActionsThisMonth: number;
+  pendingRequestsThisMonth: number;
+  notificationsSent: number;
   smsSent: number;
   smsInbound: number;
   smsFailed: number;
@@ -51,6 +62,8 @@ export type CompanyUsageRow = {
   lastActiveAt: string | null;
   health: HealthStatus;
   alerts: string[];
+  caseStudyStatus: CaseStudyStatus;
+  followUpDate: string | null;
 };
 
 export type PlatformOverviewMetrics = {
@@ -58,18 +71,33 @@ export type PlatformOverviewMetrics = {
   activeCompanies: number;
   trialCompanies: number;
   payingCompanies: number;
+  betaPartners: number;
   grandfatheredCompanies: number;
+  atRiskCompanies: number;
+  caseStudyCandidates: number;
   activeDogs: number;
   activeDrivers: number;
+  activeAdmins: number;
   routesThisMonth: number;
   completedHikesThisMonth: number;
+  driverActionsThisMonth: number;
+  pendingRequestsThisMonth: number;
+  notificationsSentThisMonth: number;
   smsSentThisMonth: number;
   etaCalculationsThisMonth: number;
+  failedNotificationsThisMonth: number;
   failedSmsThisMonth: number;
   estimatedInfraCostUsd: number;
   estimatedGrossMarginUsd: number;
   estimatedRevenueUsd: number;
   estimatedMrrUsd: number;
+  payingMrrUsd: number;
+  trialMrrPotentialUsd: number;
+  betaPartnerMrrUsd: number;
+  grandfatheredMrrUsd: number;
+  pastDueSubscriptions: number;
+  cancelledSubscriptions: number;
+  activeSubscriptions: number;
 };
 
 export type TrendPoint = {
@@ -109,6 +137,8 @@ export type CompanyDetailMetrics = CompanyUsageRow & {
   createdAt: string;
   totalRoutes: number;
   totalCustomers: number;
+  internalNotes: string | null;
+  customerQuote: string | null;
   recentEvents: UsageEvent[];
   recentErrors: UsageEvent[];
   lastActiveUsers: { name: string; role: string; lastSeen: string | null }[];
