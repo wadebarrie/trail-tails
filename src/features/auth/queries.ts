@@ -1,37 +1,42 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { perfAsync } from "@/lib/perf";
 import type { Profile, UserRole } from "@/types";
 import { AUTH_ROUTES, getHomeRouteForRole } from "./constants";
 import { canAccessAdmin, canAccessDriver } from "./access";
 
 export async function getCurrentUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  return perfAsync("auth session lookup", async () => {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
-  if (error || !user) return null;
-  return user;
+    if (error || !user) return null;
+    return user;
+  });
 }
 
 export async function getCurrentProfile(): Promise<Profile | null> {
-  const user = await getCurrentUser();
-  if (!user) return null;
+  return perfAsync("auth profile lookup", async () => {
+    const user = await getCurrentUser();
+    if (!user) return null;
 
-  const supabase = await createClient();
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
+    const supabase = await createClient();
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  if (error || !profile) return null;
-  return {
-    ...(profile as Profile),
-    can_drive: (profile as Profile).can_drive ?? false,
-    is_platform_owner: (profile as Profile).is_platform_owner ?? false,
-  };
+    if (error || !profile) return null;
+    return {
+      ...(profile as Profile),
+      can_drive: (profile as Profile).can_drive ?? false,
+      is_platform_owner: (profile as Profile).is_platform_owner ?? false,
+    };
+  });
 }
 
 export async function requireProfile(): Promise<Profile> {

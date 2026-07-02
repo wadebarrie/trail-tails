@@ -2,6 +2,7 @@ import { listCustomerContacts } from "@/lib/customer-contacts";
 import { formatTime } from "@/lib/dates";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
+import { perfAsync } from "@/lib/perf";
 import { getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
 import type { NotificationType } from "@/types";
 
@@ -83,40 +84,42 @@ function resolveNotificationBody(
  * Never throws — driver workflow must not be blocked.
  */
 export async function logNotification(input: LogNotificationInput) {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    logError("sms", "Notification skipped — SUPABASE_SERVICE_ROLE_KEY missing", {
-      companyId: input.companyId,
-      context: { notificationType: input.notificationType, stopId: input.stopId },
-    });
-    return;
-  }
-
-  try {
-    const contacts = await resolveCustomerContacts(input.customerId);
-    if (!contacts.length) {
-      logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
+  return perfAsync(`sms ${input.notificationType}`, async () => {
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      logError("sms", "Notification skipped — SUPABASE_SERVICE_ROLE_KEY missing", {
+        companyId: input.companyId,
+        context: { notificationType: input.notificationType, stopId: input.stopId },
+      });
       return;
     }
 
-    const twilio = getTwilioConfig();
-    if (!twilio) {
-      logWarn("sms", "SMS not sent — Twilio is not configured", smsContext(input));
-      return;
-    }
+    try {
+      const contacts = await resolveCustomerContacts(input.customerId);
+      if (!contacts.length) {
+        logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
+        return;
+      }
 
-    const dogName = await resolveDogName(input.dogId);
+      const twilio = getTwilioConfig();
+      if (!twilio) {
+        logWarn("sms", "SMS not sent — Twilio is not configured", smsContext(input));
+        return;
+      }
 
-    for (const contact of contacts) {
-      await sendNotificationToContact(input, contact, twilio, dogName);
+      const dogName = await resolveDogName(input.dogId);
+
+      for (const contact of contacts) {
+        await sendNotificationToContact(input, contact, twilio, dogName);
+      }
+    } catch (error) {
+      logErrorFromException(
+        "sms",
+        "Unexpected error while sending notification",
+        error,
+        smsContext(input)
+      );
     }
-  } catch (error) {
-    logErrorFromException(
-      "sms",
-      "Unexpected error while sending notification",
-      error,
-      smsContext(input)
-    );
-  }
+  });
 }
 
 async function sendNotificationToContact(

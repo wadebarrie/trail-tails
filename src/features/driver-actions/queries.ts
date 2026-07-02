@@ -2,6 +2,7 @@ import type { Profile } from "@/types";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
+import { perfAsync } from "@/lib/perf";
 import type { StopStatus, StopType } from "@/types";
 
 export type DriverStopView = {
@@ -143,30 +144,32 @@ export async function getDriverDayView(
   profile: DriverProfile,
   offsetDays = 0
 ): Promise<DriverDayView> {
-  const date = getDateInTimezone(timeZone, offsetDays);
-  const hikes = await getHikesWithStopsForDate(companyId, date);
+  return perfAsync(`query driver-day-view offset=${offsetDays}`, async () => {
+    const date = getDateInTimezone(timeZone, offsetDays);
+    const hikes = await getHikesWithStopsForDate(companyId, date);
 
-  const routes: DriverRouteView[] = hikes
-    .filter((entry) => driverSeesRoute(entry, profile))
-    .filter((entry) => entry.hike)
-    .map((entry) => {
-      const rawStops = (entry.hike?.stops ?? []) as Record<string, unknown>[];
-      const mapped = rawStops.map(mapStop).filter((s) => isActiveStop(s.status));
-      return {
-        routeId: entry.route.id,
-        routeName: entry.route.name,
-        hikeId: entry.hike!.id,
-        pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
-        dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),
-      };
-    })
-    .filter((r) => r.pickups.length > 0 || r.dropoffs.length > 0);
+    const routes: DriverRouteView[] = hikes
+      .filter((entry) => driverSeesRoute(entry, profile))
+      .filter((entry) => entry.hike)
+      .map((entry) => {
+        const rawStops = (entry.hike?.stops ?? []) as Record<string, unknown>[];
+        const mapped = rawStops.map(mapStop).filter((s) => isActiveStop(s.status));
+        return {
+          routeId: entry.route.id,
+          routeName: entry.route.name,
+          hikeId: entry.hike!.id,
+          pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
+          dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),
+        };
+      })
+      .filter((r) => r.pickups.length > 0 || r.dropoffs.length > 0);
 
-  return {
-    date,
-    dateLabel: formatDateLabel(date, timeZone),
-    routes,
-  };
+    return {
+      date,
+      dateLabel: formatDateLabel(date, timeZone),
+      routes,
+    };
+  });
 }
 
 /** @deprecated Use getDriverDayView */

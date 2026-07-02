@@ -1,5 +1,5 @@
-import { createServiceClient } from "@/lib/supabase/service";
-import { logErrorFromException, logWarn } from "@/lib/logger";
+import { logWarn } from "@/lib/logger";
+import { perfAsync } from "@/lib/perf";
 import { processInboundSms } from "@/features/sms/process-inbound";
 import {
   emptyTwimlResponse,
@@ -49,11 +49,13 @@ export async function POST(request: Request) {
     return emptyTwimlResponse();
   }
 
-  return processInboundSms({
-    fromNumber,
-    toNumber,
-    body,
-    twilioSid,
-    defaultCompanyId: DEFAULT_COMPANY_ID,
-  });
+  return perfAsync("api webhook/twilio", () =>
+    processInboundSms({
+      fromNumber,
+      toNumber,
+      body,
+      twilioSid,
+      defaultCompanyId: DEFAULT_COMPANY_ID,
+    })
+  );
 }

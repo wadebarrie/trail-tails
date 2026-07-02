@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
+import { perfAsync } from "@/lib/perf";
 import { resyncHikeStopSortOrders } from "@/features/hikes/stop-order";
 import type { StopType } from "@/types";
 
@@ -97,18 +98,20 @@ async function applyRouteDefaultDriver(
 
 /** Sync stops for every route on a given date. */
 export async function syncStopsForDate(companyId: string, date: string) {
-  const supabase = createServiceClient();
-  const { data: routes } = await supabase
-    .from("routes")
-    .select("id")
-    .eq("company_id", companyId)
-    .order("sort_order");
+  return perfAsync(`query sync-stops ${date}`, async () => {
+    const supabase = createServiceClient();
+    const { data: routes } = await supabase
+      .from("routes")
+      .select("id")
+      .eq("company_id", companyId)
+      .order("sort_order");
 
-  const ids: (string | null)[] = [];
-  for (const route of routes ?? []) {
-    ids.push(await syncStopsForRouteDate(companyId, route.id, date));
-  }
-  return ids.filter((id): id is string => id != null);
+    const ids: (string | null)[] = [];
+    for (const route of routes ?? []) {
+      ids.push(await syncStopsForRouteDate(companyId, route.id, date));
+    }
+    return ids.filter((id): id is string => id != null);
+  });
 }
 
 /** Add/cancel stops for one route on one date. */

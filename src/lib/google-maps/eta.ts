@@ -1,4 +1,5 @@
 import { logWarn } from "@/lib/logger";
+import { perfAsync } from "@/lib/perf";
 
 export type LatLng = {
   lat: number;
@@ -131,10 +132,12 @@ export async function resolveDrivingEtaMinutes(
 ): Promise<number | null> {
   if (!isValidPoint(origin) || !isValidPoint(destination)) return null;
 
-  const result = await getDrivingEta(origin, destination);
-  if (!result.ok) {
-    logWarn("eta", result.error, { context: { origin, destination } });
-    return null;
-  }
-  return result.result.durationMinutes;
+  return perfAsync("eta calculation", async () => {
+    const result = await getDrivingEta(origin, destination);
+    if (!result.ok) {
+      logWarn("eta", result.error, { context: { origin, destination } });
+      return null;
+    }
+    return result.result.durationMinutes;
+  });
 }

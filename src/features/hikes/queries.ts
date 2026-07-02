@@ -2,6 +2,7 @@ import { getCurrentProfile } from "@/features/auth/queries";
 import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import { createClient } from "@/lib/supabase/server";
 import { logErrorFromException, logWarn } from "@/lib/logger";
+import { PerfTimer } from "@/lib/perf";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import {
   getRouteScheduleDays,
@@ -65,6 +66,8 @@ export async function getHikesWithStopsForDate(
   companyId: string,
   date: string
 ): Promise<HikeWithRoute[]> {
+  const timer = new PerfTimer(`query hikes-for-date ${date}`);
+
   try {
     await ensureHikeForDate(companyId, date);
   } catch (error) {
@@ -73,6 +76,7 @@ export async function getHikesWithStopsForDate(
       context: { date },
     });
   }
+  timer.mark("sync");
 
   const supabase = await createClient();
 
@@ -85,6 +89,7 @@ export async function getHikesWithStopsForDate(
   const timeZone = company?.timezone ?? "America/Los_Angeles";
   const dayOfWeek = getDayOfWeek(date, timeZone);
   const routes = await listRoutes(companyId);
+  timer.mark("routes");
 
   const results: HikeWithRoute[] = [];
 
@@ -114,6 +119,7 @@ export async function getHikesWithStopsForDate(
     results.push({ route, hike: hike ?? null });
   }
 
+  timer.end(`${results.length} routes`);
   return results;
 }
 

@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { perfAsync } from "@/lib/perf";
 
 export type TwilioConfig = {
   accountSid: string;
@@ -31,42 +32,44 @@ type SendSmsResult =
 
 /** Send an outbound SMS via Twilio REST API. */
 export async function sendSms(to: string, body: string): Promise<SendSmsResult> {
-  const config = getTwilioConfig();
-  if (!config) {
-    return { ok: false, error: "Twilio is not configured" };
-  }
+  return perfAsync("twilio send", async () => {
+    const config = getTwilioConfig();
+    if (!config) {
+      return { ok: false, error: "Twilio is not configured" };
+    }
 
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${config.accountSid}/Messages.json`;
-  const auth = Buffer.from(`${config.accountSid}:${config.authToken}`).toString(
-    "base64"
-  );
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${config.accountSid}/Messages.json`;
+    const auth = Buffer.from(`${config.accountSid}:${config.authToken}`).toString(
+      "base64"
+    );
 
-  const params = new URLSearchParams({
-    To: to,
-    From: config.fromNumber,
-    Body: body,
+    const params = new URLSearchParams({
+      To: to,
+      From: config.fromNumber,
+      Body: body,
+    });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params.toString(),
+    });
+
+    const data = (await response.json()) as { sid?: string; message?: string };
+
+    if (!response.ok) {
+      return { ok: false, error: data.message ?? "Twilio send failed" };
+    }
+
+    if (!data.sid) {
+      return { ok: false, error: "Twilio response missing message SID" };
+    }
+
+    return { ok: true, sid: data.sid };
   });
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${auth}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params.toString(),
-  });
-
-  const data = (await response.json()) as { sid?: string; message?: string };
-
-  if (!response.ok) {
-    return { ok: false, error: data.message ?? "Twilio send failed" };
-  }
-
-  if (!data.sid) {
-    return { ok: false, error: "Twilio response missing message SID" };
-  }
-
-  return { ok: true, sid: data.sid };
 }
 
 /** Validate X-Twilio-Signature on inbound webhook requests. */

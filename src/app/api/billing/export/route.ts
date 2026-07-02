@@ -2,6 +2,7 @@ import { canAccessAdmin } from "@/features/auth/access";
 import { getCurrentProfile } from "@/features/auth/queries";
 import { billingReportToCsv } from "@/features/billing/csv";
 import { getBillingLineItems } from "@/features/billing/queries";
+import { perfAsync } from "@/lib/perf";
 
 export async function GET(request: Request) {
   const profile = await getCurrentProfile();
@@ -23,7 +24,9 @@ export async function GET(request: Request) {
     return new Response("start must be on or before end", { status: 400 });
   }
 
-  const items = await getBillingLineItems(profile.company_id, start, end);
+  const items = await perfAsync("api billing/export", () =>
+    getBillingLineItems(profile.company_id, start, end)
+  );
   const csv = billingReportToCsv(items);
 
   return new Response(csv, {

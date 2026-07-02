@@ -9,9 +9,12 @@ import { requireRole } from "@/features/auth/queries";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getDateInTimezone } from "@/lib/dates";
+import { PerfTimer } from "@/lib/perf";
 
 export default async function DashboardPage() {
+  const timer = new PerfTimer("page dashboard");
   const profile = await requireRole("admin");
+  timer.mark("auth");
   const supabase = await createClient();
 
   const { data: company } = await supabase
@@ -19,16 +22,19 @@ export default async function DashboardPage() {
     .select("timezone")
     .eq("id", profile.company_id)
     .single();
+  timer.mark("timezone");
 
   const tz = company?.timezone ?? "America/Los_Angeles";
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
   const todayEntries = await getHikesWithStopsForDate(profile.company_id, today);
+  timer.mark("hikes-today");
   const tomorrowEntries = await getHikesWithStopsForDate(
     profile.company_id,
     tomorrow
   );
+  timer.mark("hikes-tomorrow");
 
   const [
     { count: pendingCount },
@@ -56,6 +62,7 @@ export default async function DashboardPage() {
       .select("*", { count: "exact", head: true })
       .eq("company_id", profile.company_id),
   ]);
+  timer.end();
 
   const todayStops = todayEntries.reduce(
     (n, e) => n + (e.hike?.stops?.length ?? 0),

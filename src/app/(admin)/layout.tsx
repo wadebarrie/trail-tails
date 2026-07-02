@@ -8,6 +8,7 @@ import { getCompanyName } from "@/features/company/queries";
 import { requireRole } from "@/features/auth/queries";
 import { getAdminMfaStatus } from "@/features/auth/mfa";
 import { createClient } from "@/lib/supabase/server";
+import { PerfTimer } from "@/lib/perf";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -21,16 +22,21 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const timer = new PerfTimer("page admin-layout");
   const profile = await requireRole("admin");
+  timer.mark("auth");
   const mfaStatus = await getAdminMfaStatus();
+  timer.mark("mfa");
   const supabase = await createClient();
   const companyName = await getCompanyName(profile.company_id);
+  timer.mark("company");
 
   const { count: pendingRequestCount } = await supabase
     .from("pending_requests")
     .select("*", { count: "exact", head: true })
     .eq("company_id", profile.company_id)
     .eq("status", "pending");
+  timer.end();
 
   return (
     <div className="min-h-dvh bg-stone-50">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runNightBeforeCron } from "@/features/notifications/night-before";
 import { logWarn } from "@/lib/logger";
+import { perfAsync } from "@/lib/perf";
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
@@ -17,6 +18,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const results = await runNightBeforeCron();
+  const results = await perfAsync("api cron/night-before", () =>
+    runNightBeforeCron()
+  );
   return NextResponse.json({ ok: true, results });
 }

@@ -12,6 +12,7 @@ import {
 } from "@/features/notifications/log";
 import { applyPickupReorderWithReverseDropoff } from "@/features/hikes/stop-order";
 import { resolveDrivingEtaMinutes } from "@/lib/google-maps/eta";
+import { PerfTimer } from "@/lib/perf";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
 
@@ -68,8 +69,11 @@ export async function enRouteAction(
   lat: number | null,
   lng: number | null
 ) {
+  const timer = new PerfTimer("driver-action en-route");
   await requireDriverAccess();
+  timer.mark("auth");
   const stop = await loadStop(stopId);
+  timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
 
   if (
@@ -78,6 +82,7 @@ export async function enRouteAction(
     stop.status === "picked_up" ||
     stop.status === "dropped_off"
   ) {
+    timer.end("already done");
     return { success: true, alreadyDone: true };
   }
 
@@ -92,6 +97,7 @@ export async function enRouteAction(
       ? { lat: customer.address_lat, lng: customer.address_lng }
       : null;
   const etaMinutes = await resolveDrivingEtaMinutes(origin, destination);
+  timer.mark("eta");
 
   const { error } = await supabase
     .from("stops")
@@ -106,6 +112,7 @@ export async function enRouteAction(
     .eq("status", "scheduled");
 
   if (error) return { error: error.message };
+  timer.mark("db-update");
 
   await supabase
     .from("hikes")
@@ -129,8 +136,10 @@ export async function enRouteAction(
         ),
     });
   }
+  timer.mark("sms");
 
   revalidateDriverPaths();
+  timer.end();
   return { success: true };
 }
 
@@ -139,8 +148,11 @@ export async function arrivedAction(
   lat: number | null = null,
   lng: number | null = null
 ) {
+  const timer = new PerfTimer("driver-action arrived");
   await requireDriverAccess();
+  timer.mark("auth");
   const stop = await loadStop(stopId);
+  timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
 
   if (
@@ -148,6 +160,7 @@ export async function arrivedAction(
     stop.status === "dropped_off" ||
     stop.status === "arrived"
   ) {
+    timer.end("already done");
     return { success: true, alreadyDone: true };
   }
 
@@ -169,6 +182,7 @@ export async function arrivedAction(
     .eq("status", "en_route");
 
   if (error) return { error: error.message };
+  timer.mark("db-update");
 
   const dog = one(stop.dogs);
   const customer = one(dog?.customers);
@@ -188,18 +202,24 @@ export async function arrivedAction(
         ),
     });
   }
+  timer.mark("sms");
 
   revalidateDriverPaths();
+  timer.end();
   return { success: true };
 }
 
 export async function completePickupAction(stopId: string) {
+  const timer = new PerfTimer("driver-action picked-up");
   await requireDriverAccess();
+  timer.mark("auth");
   const stop = await loadStop(stopId);
+  timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
   if (stop.stop_type !== "pickup") return { error: "Not a pickup stop." };
 
   if (stop.status === "picked_up") {
+    timer.end("already done");
     return { success: true, alreadyDone: true };
   }
 
@@ -218,6 +238,7 @@ export async function completePickupAction(stopId: string) {
     .eq("status", "arrived");
 
   if (error) return { error: error.message };
+  timer.mark("db-update");
 
   const dog = one(stop.dogs);
   if (dog) {
@@ -230,18 +251,24 @@ export async function completePickupAction(stopId: string) {
       body: buildPickedUpMessage(dog.name),
     });
   }
+  timer.mark("sms");
 
   revalidateDriverPaths();
+  timer.end();
   return { success: true };
 }
 
 export async function completeDropoffAction(stopId: string) {
+  const timer = new PerfTimer("driver-action dropped-off");
   await requireDriverAccess();
+  timer.mark("auth");
   const stop = await loadStop(stopId);
+  timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
   if (stop.stop_type !== "dropoff") return { error: "Not a drop-off stop." };
 
   if (stop.status === "dropped_off") {
+    timer.end("already done");
     return { success: true, alreadyDone: true };
   }
 
@@ -260,6 +287,7 @@ export async function completeDropoffAction(stopId: string) {
     .eq("status", "arrived");
 
   if (error) return { error: error.message };
+  timer.mark("db-update");
 
   const dog = one(stop.dogs);
   if (dog) {
@@ -272,10 +300,13 @@ export async function completeDropoffAction(stopId: string) {
       body: buildDroppedOffMessage(dog.name),
     });
   }
+  timer.mark("sms");
 
   await markHikeCompletedIfDone(stop.hike_id);
+  timer.mark("hike-check");
 
   revalidateDriverPaths();
+  timer.end();
   return { success: true };
 }
 

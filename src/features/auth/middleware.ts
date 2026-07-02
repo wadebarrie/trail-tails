@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseAnonKey } from "@/lib/env";
+import { PerfTimer } from "@/lib/perf";
 import type { UserRole } from "@/types";
 import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import {
@@ -20,6 +21,7 @@ type ProfileRow = {
 };
 
 export async function handleAuth(request: NextRequest) {
+  const timer = new PerfTimer(`middleware ${request.nextUrl.pathname}`);
   let supabaseResponse = NextResponse.next({ request });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -49,6 +51,7 @@ export async function handleAuth(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  timer.mark("getUser");
 
   const { pathname } = request.nextUrl;
 
@@ -67,6 +70,7 @@ export async function handleAuth(request: NextRequest) {
   }
 
   const profile = await fetchProfile(supabase, user.id);
+  timer.mark("fetchProfile");
 
   if (!profile?.is_active) {
     await supabase.auth.signOut();
@@ -85,6 +89,7 @@ export async function handleAuth(request: NextRequest) {
     return redirectTo(request, getHomeRouteForRole(profile.role));
   }
 
+  timer.end();
   return supabaseResponse;
 }
 
