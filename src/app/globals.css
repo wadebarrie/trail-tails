@@ -57,6 +57,53 @@
   --type-caption-line: 1.3;
   --type-caption-weight: 500;
   --type-caption-tracking: 0.01em;
+
+  /* Liquid glass — atmosphere, depth, motion */
+  --gradient-page: linear-gradient(
+    165deg,
+    #faf8f3 0%,
+    #f4f1ea 38%,
+    color-mix(in srgb, var(--color-sky-100) 45%, #faf8f3) 100%
+  );
+  --gradient-hero: radial-gradient(
+      ellipse 80% 60% at 50% -10%,
+      color-mix(in srgb, var(--color-sky-200) 55%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(180deg, #faf8f3 0%, #f4f1ea 100%);
+  --gradient-auth: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--color-sky-50) 80%, #faf8f3) 0%,
+    #faf8f3 45%,
+    #f4f1ea 100%
+  );
+  --gradient-driver: linear-gradient(
+    165deg,
+    #1a3d35 0%,
+    var(--color-ink) 55%,
+    #1f2a30 100%
+  );
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.9);
+  --glass-bg-dark: rgba(37, 50, 56, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-border-subtle: color-mix(in srgb, var(--color-border) 75%, transparent);
+  --glass-blur: 16px;
+  --glass-shadow: 0 1px 2px rgba(37, 50, 56, 0.04), 0 8px 24px rgba(37, 50, 56, 0.06);
+
+  --elevation-1: 0 1px 2px rgba(37, 50, 56, 0.05), 0 2px 8px rgba(37, 50, 56, 0.04);
+  --elevation-2: 0 2px 4px rgba(37, 50, 56, 0.05), 0 8px 24px rgba(37, 50, 56, 0.07);
+  --elevation-3: 0 4px 8px rgba(37, 50, 56, 0.06), 0 16px 40px rgba(37, 50, 56, 0.08);
+
+  --radius-surface: 0.75rem;
+  --radius-card: 1rem;
+  --radius-pill: 9999px;
+
+  --ease-spring: cubic-bezier(0.34, 1.25, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
 }
 
 @theme {
@@ -376,5 +423,108 @@ body {
 
   .packroute-day-picker .rdp-nav_button:hover {
     background-color: var(--color-trail-100);
+  }
+}
+
+@layer utilities {
+  .surface-glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border-subtle);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .surface-glass-strong {
+    background: var(--glass-bg-strong);
+    border: 1px solid var(--glass-border-subtle);
+    box-shadow: var(--elevation-2);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .surface-glass-dark {
+    background: var(--glass-bg-dark);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .surface-card {
+    background: var(--color-surface);
+    border: 1px solid var(--glass-border-subtle);
+    box-shadow: var(--elevation-1);
+  }
+
+  .surface-elevated {
+    background: var(--color-surface);
+    border: 1px solid var(--glass-border-subtle);
+    box-shadow: var(--elevation-2);
+  }
+
+  .bg-atmosphere {
+    background: var(--gradient-page);
+  }
+
+  .bg-atmosphere-hero {
+    background: var(--gradient-hero);
+  }
+
+  .bg-atmosphere-auth {
+    background: var(--gradient-auth);
+  }
+
+  .bg-atmosphere-driver {
+    background: var(--gradient-driver);
+  }
+
+  .motion-interactive {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-smooth);
+  }
+
+  .motion-popover {
+    animation: popover-in var(--duration-normal) var(--ease-spring) both;
+  }
+
+  .motion-sheet {
+    animation: sheet-up var(--duration-normal) var(--ease-spring) both;
+  }
+
+  @keyframes popover-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes sheet-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-interactive,
+    .motion-popover,
+    .motion-sheet {
+      animation: none;
+      transition: none;
+    }
+
+    .motion-interactive:active {
+      transform: none;
+    }
   }
 }

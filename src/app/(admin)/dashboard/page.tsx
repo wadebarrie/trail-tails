@@ -116,7 +116,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <Link key={card.href} href={card.href}>
-            <Card className="transition hover:border-[var(--color-trail-600)] hover:shadow-md">
+            <Card>
               <div className="flex items-start justify-between">
                 <p className="text-sm font-medium text-stone-500">{card.title}</p>
                 {card.alert ? <Badge tone="amber">Action needed</Badge> : null}

@@ -7,7 +7,7 @@ import { LEGAL_LAST_UPDATED } from "@/lib/legal/constants";
 
 export function LegalPageShell({ document }: { document: LegalDocumentContent }) {
   return (
-    <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
+    <div className="min-h-dvh bg-atmosphere-hero text-stone-900">
       <LandingHeader />
 
       <main id="main-content" className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">

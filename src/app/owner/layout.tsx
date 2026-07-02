@@ -19,8 +19,8 @@ export default async function OwnerLayout({
   await requirePlatformOwner();
 
   return (
-    <div className="min-h-dvh bg-stone-50">
-      <header className="border-b border-stone-200 bg-white pt-[env(safe-area-inset-top)]">
+    <div className="min-h-dvh bg-atmosphere">
+      <header className="sticky top-0 z-40 surface-glass border-b border-[var(--glass-border-subtle)] pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">

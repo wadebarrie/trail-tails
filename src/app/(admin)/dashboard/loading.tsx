@@ -10,7 +10,7 @@ export default function AdminDashboardLoading() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm"
+            className="surface-elevated rounded-[var(--radius-card)] p-5"
           >
             <div className="h-4 w-24 rounded bg-stone-100" />
             <div className="mt-3 h-8 w-20 rounded bg-stone-200" />

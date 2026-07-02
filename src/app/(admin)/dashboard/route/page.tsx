@@ -99,7 +99,7 @@ export default async function RouteOrderPage() {
             return (
               <section
                 key={route.id}
-                className="rounded-xl border border-stone-200 bg-white p-5"
+                className="surface-elevated rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-3)]"
               >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 pb-4">
                   <div>

@@ -21,7 +21,7 @@ export function MetricCard({
           : "text-stone-900";
 
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4">
+    <div className="surface-elevated rounded-[var(--radius-card)] p-4 motion-interactive hover:shadow-[var(--elevation-3)]">
       <p className="text-xs font-medium uppercase tracking-wide text-stone-500">
         {label}
       </p>

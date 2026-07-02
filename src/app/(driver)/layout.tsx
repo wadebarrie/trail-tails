@@ -28,9 +28,9 @@ export default async function DriverLayout({
   const profile = await requireDriverAccess();
 
   return (
-    <div className="min-h-dvh bg-[var(--color-trail-800)] text-white">
+    <div className="min-h-dvh bg-atmosphere-driver text-white">
       <RegisterServiceWorker />
-      <header className="flex items-center justify-between border-b border-white/10 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      <header className="surface-glass-dark sticky top-0 z-40 flex items-center justify-between border-b border-white/10 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div>
           <p className="text-xs font-medium uppercase tracking-widest text-white/60">
             PackRoute · Driver

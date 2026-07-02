@@ -68,7 +68,7 @@ function TravelConnector({
     >
       <div className="relative h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400/90 to-sky-400/90 transition-[width] duration-300 ease-linear"
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400/75 to-sky-400/75 transition-[width] duration-[var(--duration-normal)] ease-linear"
           style={{ width: `${Math.round(pct * 100)}%` }}
         />
         {Array.from({ length: TICKS }, (_, i) => {
@@ -209,7 +209,7 @@ function InfoIconButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="inline-flex size-7 !min-h-7 !min-w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 leading-none text-white/80 transition hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-95"
+      className="inline-flex size-7 !min-h-7 !min-w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 leading-none text-white/80 motion-interactive hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-[0.98]"
     >
       <svg
         viewBox="0 0 24 24"
@@ -321,10 +321,10 @@ function StopCard({
 
   return (
     <div
-      className={`rounded-2xl border p-5 transition ${
+      className={`rounded-[var(--radius-card)] border p-5 motion-interactive ${
         isDone
           ? "border-green-500/30 bg-green-500/10"
-          : "border-white/10 bg-white/5"
+          : "surface-glass-dark border-white/10"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -371,7 +371,7 @@ function StopCard({
               type="button"
               disabled={submitting}
               onClick={handleEnRoute}
-              className="w-full rounded-2xl bg-amber-400 py-5 text-lg font-semibold text-stone-900 transition active:scale-[0.98] disabled:opacity-50"
+              className="w-full rounded-[var(--radius-card)] bg-amber-400 py-5 text-lg font-semibold text-stone-900 motion-interactive active:scale-[0.98] disabled:opacity-50"
             >
               En Route
             </button>
@@ -419,7 +419,7 @@ function StopCard({
                 className={
                   canAutoDetect
                     ? "w-full rounded-xl py-3 text-sm font-medium text-white/70 underline-offset-2 hover:text-white hover:underline disabled:opacity-50"
-                    : "w-full rounded-2xl bg-sky-400 py-5 text-lg font-semibold text-stone-900 transition active:scale-[0.98] disabled:opacity-50"
+                    : "w-full rounded-[var(--radius-card)] bg-sky-400 py-5 text-lg font-semibold text-stone-900 motion-interactive active:scale-[0.98] disabled:opacity-50"
                 }
               >
                 {canAutoDetect ? "Mark arrived manually" : "Arrived"}
@@ -430,7 +430,7 @@ function StopCard({
               type="button"
               disabled={submitting}
               onClick={handleComplete}
-              className="w-full rounded-2xl bg-white py-5 text-lg font-semibold text-[var(--color-trail-800)] transition active:scale-[0.98] disabled:opacity-50"
+              className="w-full rounded-[var(--radius-card)] bg-white py-5 text-lg font-semibold text-[var(--color-trail-800)] motion-interactive active:scale-[0.98] disabled:opacity-50"
             >
               {isPickup ? "Picked Up" : "Dropped Off"}
             </button>
@@ -466,7 +466,7 @@ export function DriverStopList({
         {title}
       </h2>
       {stops.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-white/20 px-4 py-8 text-center text-white/50">
+        <p className="surface-glass-dark rounded-[var(--radius-card)] border border-dashed border-white/20 px-4 py-8 text-center text-white/50">
           {emptyMessage}
         </p>
       ) : (
