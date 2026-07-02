@@ -29,7 +29,7 @@ const FEATURES = [
   {
     title: "Customer SMS, office-approved",
     description:
-      "Reminders, ETAs, and pickup confirmations — no app or account. Customers text to skip a day, set vacation dates, or pause service; your office approves before anything changes.",
+      "Automated texts from driver taps: night-before confirmations, ETAs, and pickup or drop-off updates — no manual messaging. Customers manage bookings by text too; office approves changes.",
   },
   {
     title: "Billing export",
@@ -179,12 +179,60 @@ export function LandingPage() {
             <div>
               <SectionLabel>Customer experience</SectionLabel>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-                What dog owners see — by text
+                Proactive updates — sent automatically
               </h2>
               <p className="mt-4 text-stone-600">
-                No app or login. Reminders, ETAs, and pickup confirmations when
-                drivers update stops — plus simple replies like &ldquo;Skip
-                Friday&rdquo; that wait for office approval.
+                No app or login for customers — and no manual texts from your
+                drivers. When drivers tap through their route, PackRoute sends
+                the messages families expect.
+              </p>
+              <ul className="mt-5 space-y-2.5 text-sm text-stone-600">
+                <li className="flex gap-2">
+                  <span
+                    className="mt-0.5 shrink-0 text-[var(--color-trail-600)]"
+                    aria-hidden
+                  >
+                    ·
+                  </span>
+                  <span>
+                    <strong className="font-medium text-stone-800">
+                      Night-before confirmations
+                    </strong>{" "}
+                    with pickup window and driver name
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span
+                    className="mt-0.5 shrink-0 text-[var(--color-trail-600)]"
+                    aria-hidden
+                  >
+                    ·
+                  </span>
+                  <span>
+                    <strong className="font-medium text-stone-800">
+                      Real-time status updates
+                    </strong>{" "}
+                    for en-route ETAs, pickups, and drop-offs
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span
+                    className="mt-0.5 shrink-0 text-[var(--color-trail-600)]"
+                    aria-hidden
+                  >
+                    ·
+                  </span>
+                  <span>
+                    <strong className="font-medium text-stone-800">
+                      Fully automated
+                    </strong>{" "}
+                    — driver taps trigger customer texts, not group chats
+                  </span>
+                </li>
+              </ul>
+              <p className="mt-5 text-sm text-stone-500">
+                Customers can still text to skip a day, set vacation dates, or
+                pause service — your office approves before anything changes.
               </p>
             </div>
             <SmsPhoneMock />
