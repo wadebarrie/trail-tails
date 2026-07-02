@@ -1,22 +1,173 @@
 @import "tailwindcss";
 
 :root {
-  --color-trail-50: #f0f7f4;
-  --color-trail-100: #dceee6;
-  --color-trail-600: #2d6a4f;
-  --color-trail-700: #1b4332;
-  --color-trail-800: #081c15;
-  --color-cta: #2d6a4f;
-  --color-cta-hover: #245a42;
-  --color-cta-active: #1b4332;
+  /* Brand core */
+  --color-forest: #1f5a4a;
+  --color-sage: #a8c3b0;
+  --color-sky: #5f8fa8;
+  --color-sand: #e9e2d3;
+  --color-ink: #253238;
+
+  /* Supporting neutrals */
+  --color-bg: #faf8f3;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f4f1ea;
+  --color-border: #e1ddd3;
+  --color-text-muted: #6b746f;
+
+  /* Legacy trail scale — mapped to PackRoute palette */
+  --color-trail-50: var(--color-surface-subtle);
+  --color-trail-100: #e4ede7;
+  --color-trail-600: var(--color-forest);
+  --color-trail-700: #1a4d3f;
+  --color-trail-800: var(--color-ink);
+
+  --color-cta: var(--color-forest);
+  --color-cta-hover: #1a4d3f;
+  --color-cta-active: #153830;
+
+  /* Typography tokens */
+  --type-h1-size: 2.5rem;
+  --type-h1-line: 1.05;
+  --type-h1-weight: 650;
+  --type-h1-tracking: -0.04em;
+
+  --type-h2-size: 1.75rem;
+  --type-h2-line: 1.15;
+  --type-h2-weight: 650;
+  --type-h2-tracking: -0.03em;
+
+  --type-h3-size: 1.25rem;
+  --type-h3-line: 1.25;
+  --type-h3-weight: 600;
+  --type-h3-tracking: -0.02em;
+
+  --type-body-size: 1rem;
+  --type-body-line: 1.55;
+  --type-body-weight: 400;
+  --type-body-tracking: -0.01em;
+
+  --type-ui-size: 0.875rem;
+  --type-ui-line: 1.2;
+  --type-ui-weight: 500;
+  --type-ui-tracking: -0.01em;
+
+  --type-caption-size: 0.75rem;
+  --type-caption-line: 1.3;
+  --type-caption-weight: 500;
+  --type-caption-tracking: 0.01em;
+}
+
+@theme {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 650;
+
+  --tracking-tight: -0.03em;
+  --tracking-tighter: -0.04em;
+
+  --text-xs: var(--type-caption-size);
+  --text-xs--line-height: var(--type-caption-line);
+  --text-sm: var(--type-ui-size);
+  --text-sm--line-height: var(--type-ui-line);
+  --text-base: var(--type-body-size);
+  --text-base--line-height: var(--type-body-line);
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: var(--type-h3-size);
+  --text-xl--line-height: var(--type-h3-line);
+  --text-2xl: var(--type-h2-size);
+  --text-2xl--line-height: var(--type-h2-line);
+  --text-3xl: 2rem;
+  --text-3xl--line-height: 1.12;
+  --text-4xl: var(--type-h1-size);
+  --text-4xl--line-height: var(--type-h1-line);
+  --text-5xl: 2.75rem;
+  --text-5xl--line-height: 1.05;
+
+  /* Brand neutrals (stone scale remap) */
+  --color-stone-50: var(--color-bg);
+  --color-stone-100: var(--color-surface-subtle);
+  --color-stone-200: var(--color-border);
+  --color-stone-300: #d4cfc4;
+  --color-stone-400: #9ba39e;
+  --color-stone-500: var(--color-text-muted);
+  --color-stone-600: #5a635e;
+  --color-stone-700: #434b47;
+  --color-stone-800: #343c38;
+  --color-stone-900: var(--color-ink);
+
+  /* Clear Sky Blue — informational / route clarity */
+  --color-sky-50: #eff4f7;
+  --color-sky-100: #dfe9ef;
+  --color-sky-200: #bfd3df;
+  --color-sky-300: #8fafc4;
+  --color-sky-400: #6f9ab3;
+  --color-sky-500: var(--color-sky);
+  --color-sky-600: #4f7a91;
+  --color-sky-700: #3f6478;
+  --color-sky-800: #2f4f5f;
+
+  /* Calm success — forest + sage */
+  --color-green-50: #eef4f1;
+  --color-green-100: #dde9e3;
+  --color-green-200: #c5d9cd;
+  --color-green-300: var(--color-sage);
+  --color-green-400: #7da892;
+  --color-green-500: #4f8772;
+  --color-green-600: var(--color-forest);
+  --color-green-700: #1a4d3f;
+  --color-green-800: #153830;
+  --color-green-900: #102b24;
+
+  --color-emerald-50: var(--color-green-50);
+  --color-emerald-100: var(--color-green-100);
+  --color-emerald-200: var(--color-green-200);
+  --color-emerald-700: var(--color-green-700);
+  --color-emerald-800: var(--color-green-800);
+  --color-emerald-900: var(--color-green-900);
+
+  --color-brand-forest: var(--color-forest);
+  --color-brand-sage: var(--color-sage);
+  --color-brand-sky: var(--color-sky);
+  --color-brand-sand: var(--color-sand);
+  --color-brand-ink: var(--color-ink);
 }
 
 body {
   @apply bg-stone-50 text-stone-900 antialiased;
+  letter-spacing: var(--type-body-tracking);
 }
 
-/* Mobile-first: comfortable tap targets */
 @layer base {
+  h1 {
+    font-size: var(--type-h1-size);
+    line-height: var(--type-h1-line);
+    font-weight: var(--type-h1-weight);
+    letter-spacing: var(--type-h1-tracking);
+  }
+
+  h2 {
+    font-size: var(--type-h2-size);
+    line-height: var(--type-h2-line);
+    font-weight: var(--type-h2-weight);
+    letter-spacing: var(--type-h2-tracking);
+  }
+
+  h3 {
+    font-size: var(--type-h3-size);
+    line-height: var(--type-h3-line);
+    font-weight: var(--type-h3-weight);
+    letter-spacing: var(--type-h3-tracking);
+  }
+
   button:not(:disabled),
   [role="button"],
   input:not([type="checkbox"]):not([type="radio"]),

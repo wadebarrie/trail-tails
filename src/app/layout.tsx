@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 import {
   HOME_TITLE,
   SITE_DESCRIPTION,
@@ -11,8 +11,8 @@ import {
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#1b4332",
+  themeColor: "#1F5A4A",
 };
 
 export default function RootLayout({
@@ -95,7 +95,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} min-h-dvh font-sans antialiased`}
+        className={`${inter.variable} ${geistMono.variable} min-h-dvh font-sans antialiased`}
       >
         {children}
       </body>
