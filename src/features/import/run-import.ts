@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { syncStopsForTodayAndTomorrow } from "@/features/hikes/sync-stops";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCustomerCoordinates } from "@/lib/google-maps/geocode";
 import { csvToRecords, parseCsv } from "@/lib/csv";
@@ -313,6 +314,14 @@ export async function runBulkImport(
   revalidatePath("/dashboard/customers");
   revalidatePath("/dashboard/dogs");
   revalidatePath("/dashboard/import");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
+
+  if (result.dogsCreated > 0 || result.customersCreated > 0) {
+    await syncStopsForTodayAndTomorrow(companyId);
+  }
 
   return result;
 }

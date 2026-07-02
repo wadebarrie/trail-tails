@@ -3,10 +3,53 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
+import { getCompanyTimezone } from "@/features/company/queries";
+import { getDateInTimezone } from "@/lib/dates";
+import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
 } from "@/features/hikes/stop-order";
+
+function revalidateHikePaths() {
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
+}
+
+/** Admin: regenerate hikes and stops for a date (after schedule changes). */
+export async function syncHikesForDateAction(
+  date: string
+): Promise<{ success?: true; error?: string }> {
+  const profile = await requireRole("admin");
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { error: "Invalid date." };
+  }
+
+  try {
+    await syncStopsForDate(profile.company_id, date);
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Sync failed.",
+    };
+  }
+
+  revalidateHikePaths();
+  return { success: true };
+}
+
+/** Admin: sync today or tomorrow by offset from company timezone. */
+export async function syncHikesForOffsetAction(
+  offsetDays: 0 | 1
+): Promise<{ success?: true; error?: string }> {
+  const profile = await requireRole("admin");
+  const timeZone = await getCompanyTimezone(profile.company_id);
+  const date = getDateInTimezone(timeZone, offsetDays);
+  return syncHikesForDateAction(date);
+}
 
 export async function assignDriverAction(hikeId: string, driverId: string | null) {
   await requireRole("admin");

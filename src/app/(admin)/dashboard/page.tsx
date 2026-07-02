@@ -6,6 +6,7 @@ import {
   PrimaryLink,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { getCompanyTimezone } from "@/features/company/queries";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getDateInTimezone } from "@/lib/dates";
@@ -16,21 +17,15 @@ export default async function DashboardPage() {
   const profile = await requireRole("admin");
   timer.mark("auth");
   const supabase = await createClient();
-
-  const { data: company } = await supabase
-    .from("companies")
-    .select("timezone")
-    .eq("id", profile.company_id)
-    .single();
+  const tz = await getCompanyTimezone(profile.company_id);
   timer.mark("timezone");
 
-  const tz = company?.timezone ?? "America/Los_Angeles";
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
   const [todayEntries, tomorrowEntries] = await Promise.all([
-    getHikesWithStopsForDate(profile.company_id, today),
-    getHikesWithStopsForDate(profile.company_id, tomorrow),
+    getHikesWithStopsForDate(profile.company_id, today, { timeZone: tz }),
+    getHikesWithStopsForDate(profile.company_id, tomorrow, { timeZone: tz }),
   ]);
   timer.mark("hikes");
 

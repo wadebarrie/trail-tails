@@ -114,6 +114,19 @@ export async function syncStopsForDate(companyId: string, date: string) {
   });
 }
 
+/** Sync today and tomorrow for a company (after dog/route/import changes). */
+export async function syncStopsForTodayAndTomorrow(companyId: string) {
+  const { getCompanyTimezone } = await import("@/features/company/queries");
+  const { getDateInTimezone } = await import("@/lib/dates");
+  const timeZone = await getCompanyTimezone(companyId);
+  const today = getDateInTimezone(timeZone, 0);
+  const tomorrow = getDateInTimezone(timeZone, 1);
+  await Promise.all([
+    syncStopsForDate(companyId, today),
+    syncStopsForDate(companyId, tomorrow),
+  ]);
+}
+
 /** Add/cancel stops for one route on one date. */
 export async function syncStopsForRouteDate(
   companyId: string,

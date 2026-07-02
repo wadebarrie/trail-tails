@@ -1,6 +1,8 @@
 import { PageHeader, EmptyState } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { getCompanyTimezone } from "@/features/company/queries";
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
+import { SyncRoutesButton } from "@/features/hikes/components/sync-routes-button";
 import {
   getHikesNeedingCloseOut,
   getHikesWithStopsForDate,
@@ -11,18 +13,11 @@ import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 export default async function TodayHikesPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
-
-  const { data: company } = await supabase
-    .from("companies")
-    .select("timezone")
-    .eq("id", profile.company_id)
-    .single();
-
-  const tz = company?.timezone ?? "America/Los_Angeles";
+  const tz = await getCompanyTimezone(profile.company_id);
   const date = getDateInTimezone(tz, 0);
 
   const [hikes, closeOutHikes] = await Promise.all([
-    getHikesWithStopsForDate(profile.company_id, date),
+    getHikesWithStopsForDate(profile.company_id, date, { timeZone: tz }),
     getHikesNeedingCloseOut(profile.company_id, date),
   ]);
 
@@ -41,7 +36,11 @@ export default async function TodayHikesPage() {
 
   return (
     <div>
-      <PageHeader title="Today" description={formatDateLabel(date, tz)} />
+      <PageHeader
+        title="Today"
+        description={formatDateLabel(date, tz)}
+        action={<SyncRoutesButton offsetDays={0} />}
+      />
 
       {openCloseOut.length > 0 ? (
         <section className="mb-10">

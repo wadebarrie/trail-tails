@@ -9,6 +9,7 @@ import {
   resolveExceptionEndDate,
   scheduleExceptionStopSync,
 } from "@/features/dogs/exception-sync.server";
+import { syncStopsForTodayAndTomorrow } from "@/features/hikes/sync-stops";
 import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
 import { optionalUuidLike, uuidLike } from "@/lib/validation";
@@ -85,6 +86,14 @@ export async function createDogAction(
     );
   }
 
+  if (parsed.data.route_id && parsed.data.is_active !== false) {
+    await syncStopsForTodayAndTomorrow(profile.company_id);
+    revalidatePath("/dashboard/hikes/today");
+    revalidatePath("/dashboard/hikes/tomorrow");
+    revalidatePath("/today");
+    revalidatePath("/tomorrow");
+  }
+
   revalidatePath("/dashboard/dogs");
   redirect("/dashboard/dogs");
 }
@@ -94,7 +103,7 @@ export async function updateDogAction(
   _prev: { error?: string },
   formData: FormData
 ) {
-  await requireRole("admin");
+  const profile = await requireRole("admin");
   const parsed = dogSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
@@ -127,6 +136,14 @@ export async function updateDogAction(
     await supabase.from("dog_schedule_days").insert(
       days.map((day_of_week) => ({ dog_id: id, day_of_week }))
     );
+  }
+
+  if (parsed.data.route_id) {
+    await syncStopsForTodayAndTomorrow(profile.company_id);
+    revalidatePath("/dashboard/hikes/today");
+    revalidatePath("/dashboard/hikes/tomorrow");
+    revalidatePath("/today");
+    revalidatePath("/tomorrow");
   }
 
   revalidatePath("/dashboard/dogs");

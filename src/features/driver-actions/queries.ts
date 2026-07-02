@@ -1,4 +1,5 @@
 import type { Profile } from "@/types";
+import { getCompanyTimezone } from "@/features/company/queries";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
@@ -146,7 +147,9 @@ export async function getDriverDayView(
 ): Promise<DriverDayView> {
   return perfAsync(`query driver-day-view offset=${offsetDays}`, async () => {
     const date = getDateInTimezone(timeZone, offsetDays);
-    const hikes = await getHikesWithStopsForDate(companyId, date);
+    const hikes = await getHikesWithStopsForDate(companyId, date, {
+      timeZone,
+    });
 
     const routes: DriverRouteView[] = hikes
       .filter((entry) => driverSeesRoute(entry, profile))
@@ -182,13 +185,5 @@ export async function getDriverTodayView(
 }
 
 export async function getDriverCompanyTimezone(companyId: string) {
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("companies")
-    .select("timezone")
-    .eq("id", companyId)
-    .single();
-
-  return data?.timezone ?? "America/Los_Angeles";
+  return getCompanyTimezone(companyId);
 }

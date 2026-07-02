@@ -19,13 +19,21 @@ export async function sendNightBeforeRemindersForCompany(
   companyId: string,
   timeZone: string
 ) {
-  if (localHourInTimezone(timeZone) !== 18) {
+  const localHour = localHourInTimezone(timeZone);
+  const today = getDateInTimezone(timeZone, 0);
+
+  // Morning sync so today's driver routes are ready before first pickup.
+  if (localHour === 5) {
+    await syncStopsForDate(companyId, today);
+    return { skipped: true as const, reason: "morning_sync" };
+  }
+
+  if (localHour !== 18) {
     return { skipped: true as const, reason: "not_6pm" };
   }
 
   const supabase = createServiceClient();
   const tomorrow = getDateInTimezone(timeZone, 1);
-  const today = getDateInTimezone(timeZone, 0);
 
   await syncStopsForDate(companyId, tomorrow);
 
