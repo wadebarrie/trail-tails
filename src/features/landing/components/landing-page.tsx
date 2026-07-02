@@ -4,6 +4,7 @@ import {
   secondaryButtonClassName,
 } from "@/features/admin/components/button-styles";
 import { LandingHeader } from "@/features/landing/components/landing-header";
+import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import {
   AdminDashboardMock,
   DriverMobileMock,
@@ -63,25 +64,28 @@ function CtaButtons({
   showEarlyAccess?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-      <a href={DEMO_MAILTO} className={`${primaryButtonClassName} px-6 py-3 text-base`}>
-        {primary}
-      </a>
-      {showEarlyAccess ? (
-        <a
-          href={WAITLIST_MAILTO}
-          className={`${secondaryButtonClassName} px-6 py-3 text-base`}
-        >
-          Get early access
+    <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <a href={DEMO_MAILTO} className={`${primaryButtonClassName} px-6 py-3 text-base`}>
+          {primary}
         </a>
-      ) : (
-        <a
-          href="#how-it-works"
-          className={`${secondaryButtonClassName} px-6 py-3 text-base`}
-        >
-          See how it works
-        </a>
-      )}
+        {showEarlyAccess ? (
+          <a
+            href={WAITLIST_MAILTO}
+            className={`${secondaryButtonClassName} px-6 py-3 text-base`}
+          >
+            Get early access
+          </a>
+        ) : (
+          <a
+            href="#how-it-works"
+            className={`${secondaryButtonClassName} px-6 py-3 text-base`}
+          >
+            See how it works
+          </a>
+        )}
+      </div>
+      <ContactEmailFallback className="mt-3" />
     </div>
   );
 }
@@ -375,6 +379,7 @@ export function LandingPage() {
               Get early access
             </a>
           </div>
+          <ContactEmailFallback variant="dark" className="mt-4" />
           <p className="mt-6 text-sm text-white/60">
             <Link href="/login" className="underline-offset-2 hover:underline">
               Team login
