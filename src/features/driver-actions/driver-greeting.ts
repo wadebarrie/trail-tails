@@ -111,3 +111,18 @@ export function allStopsComplete(day: DriverDayView): boolean {
     countCompletedDropoffs(day) === dropoffs
   );
 }
+
+/** True when the driver has already started today — skip morning briefing on re-login. */
+export function isRouteDayInProgress(day: DriverDayView): boolean {
+  const allStops = day.routes.flatMap((route) => [
+    ...route.pickups,
+    ...route.dropoffs,
+  ]);
+  return allStops.some(
+    (stop) =>
+      stop.status === "en_route" ||
+      stop.status === "arrived" ||
+      stop.status === "picked_up" ||
+      stop.status === "dropped_off"
+  );
+}

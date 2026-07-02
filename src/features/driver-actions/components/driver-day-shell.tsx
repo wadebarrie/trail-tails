@@ -20,6 +20,7 @@ import {
   countPickupStops,
   driverGreeting,
   estimatePickupCompletionTime,
+  isRouteDayInProgress,
   routeSummaryLabel,
 } from "@/features/driver-actions/driver-greeting";
 import {
@@ -128,8 +129,13 @@ function DriverDayShellInner({
       setBriefingOpen(false);
       return;
     }
+    if (isRouteDayInProgress(day)) {
+      dismissBriefingForDate(day.date);
+      setBriefingOpen(false);
+      return;
+    }
     setBriefingOpen(!isBriefingDismissed(day.date));
-  }, [active, day.date, preview, totalPickups]);
+  }, [active, day, day.date, preview, totalPickups]);
 
   function handleStartRoute() {
     dismissBriefingForDate(day.date);
