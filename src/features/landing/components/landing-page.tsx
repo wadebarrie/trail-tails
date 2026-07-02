@@ -8,7 +8,6 @@ import {
   AdminDashboardMock,
   DriverMobileMock,
   HeroDashboardMock,
-  SmsPhoneMock,
 } from "@/features/landing/components/mockups";
 import { LANDING_FAQ } from "@/features/landing/constants";
 import { HOME_H1 } from "@/lib/seo/metadata";
@@ -17,36 +16,26 @@ const FAQ = LANDING_FAQ;
 
 const FEATURES = [
   {
-    title: "Customer SMS from driver taps",
+    title: "Routes and schedules",
     description:
-      "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations — sent when drivers update stops.",
+      "Pickup order, driver assignment, recurring dogs, and today or tomorrow overrides — without rebuilding from a spreadsheet each morning.",
   },
   {
-    title: "A driver view drivers will use",
+    title: "Driver workflow on mobile",
     description:
-      "Mobile web Today view, clear stop list, fast status taps. Add to home screen — no app store required.",
+      "Today view, stop list, and status taps. Add to home screen — no app store required.",
   },
   {
-    title: "Schedule changes by text",
+    title: "Customer SMS, office-approved",
     description:
-      "Customers text plain-English requests. Nothing changes until the office approves.",
+      "Reminders, ETAs, and pickup confirmations when drivers update stops. Texted schedule requests wait for your team first.",
   },
   {
-    title: "Routes your team controls",
+    title: "Billing export",
     description:
-      "Drag-and-drop pickup order, multiple routes and drivers, today and tomorrow overrides.",
+      "Completed hikes by date range, exported as CSV for QuickBooks or your own invoicing.",
   },
-  {
-    title: "Billing prep, not billing software",
-    description:
-      "Track completed hikes by date range and export CSV for QuickBooks or your own invoices.",
-  },
-  {
-    title: "Your team stays in control",
-    description:
-      "Routes, skips, and schedule changes go through the office — not the software.",
-  },
-];
+] as const;
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -62,361 +51,242 @@ export function LandingPage() {
       <LandingHeader />
 
       <main id="main-content">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_color-mix(in_srgb,var(--color-sky-200)_40%,transparent)_0%,_transparent_55%)]"
-        />
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
-          <div>
-            <SectionLabel>Route planning &amp; customer updates</SectionLabel>
-            <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
-              {HOME_H1}
-            </h1>
-            <p className="mt-5 max-w-xl text-lg text-stone-600">
-              PackRoute helps small dog hiking teams manage pickup routes,
-              group hikes, driver workflows, and customer communication. Your
-              office plans the schedule; drivers run the route from their phone;
-              customers get clear texts — without the group chat chaos.
-            </p>
-            <div className="mt-8">
-              <CtaButtons />
+        {/* Hero */}
+        <section className="relative overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_color-mix(in_srgb,var(--color-sky-200)_40%,transparent)_0%,_transparent_55%)]"
+          />
+          <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
+            <div>
+              <SectionLabel>Route planning &amp; customer updates</SectionLabel>
+              <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
+                {HOME_H1}
+              </h1>
+              <p className="mt-5 max-w-xl text-lg text-stone-600">
+                Your office plans routes and schedules. Drivers run the day from
+                their phone. Customers get clear texts — without the group chat
+                chaos.
+              </p>
+              <div className="mt-8">
+                <CtaButtons />
+              </div>
+              <p className="mt-4 text-sm text-stone-500">
+                Already on PackRoute?{" "}
+                <Link
+                  href="/login"
+                  className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+                >
+                  Team login
+                </Link>
+              </p>
             </div>
-            <p className="mt-4 text-sm text-stone-500">
-              Already on PackRoute?{" "}
-              <Link
-                href="/login"
-                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-              >
+            <div className="lg:pl-4">
+              <HeroDashboardMock />
+            </div>
+          </div>
+        </section>
+
+        {/* Who it's for */}
+        <section className="border-y border-[var(--glass-border-subtle)] surface-glass py-14 sm:py-16">
+          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+            <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
+              Built for adventure dog hiking teams
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-stone-600">
+              Multiple drivers, pickup routes, group hikes, and schedule changes
+              — usually held together with spreadsheets and group texts.
+              PackRoute is dog walking business software that puts routes,
+              drivers, customer SMS, and billing prep in one place.
+            </p>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how-it-works" className="scroll-mt-20 py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="max-w-2xl">
+              <SectionLabel>How it works</SectionLabel>
+              <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+                The office plans. The driver runs the route.
+              </h2>
+            </div>
+            <div className="mt-10 grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  role: "Office",
+                  body: "Build routes, assign dogs and drivers, approve schedule requests, and export billing.",
+                },
+                {
+                  role: "Driver",
+                  body: "Open Today on their phone, follow stops in order, and tap En Route through Dropped Off.",
+                },
+                {
+                  role: "Customer",
+                  body: "Gets plain-English texts — no app. Can reply with SKIP TOMORROW or LATE PICKUP; your team approves first.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.role}
+                  className="surface-elevated rounded-[var(--radius-card)] p-6 motion-lift"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-trail-100)] text-sm font-semibold text-[var(--color-trail-700)]">
+                    {item.role.charAt(0)}
+                  </div>
+                  <h3 className="mt-3 text-lg font-semibold text-[var(--color-trail-800)]">
+                    {item.role}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features" className="scroll-mt-20 surface-glass py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="max-w-2xl">
+              <SectionLabel>Features</SectionLabel>
+              <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+                What you get
+              </h2>
+            </div>
+            <div className="mt-10 grid gap-5 sm:grid-cols-2">
+              {FEATURES.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="surface-card rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-2)]"
+                >
+                  <h3 className="font-semibold text-[var(--color-trail-800)]">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Product previews */}
+        <section id="product" className="scroll-mt-20 py-14 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="max-w-2xl">
+              <SectionLabel>See it in action</SectionLabel>
+              <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+                Office dashboard and driver view
+              </h2>
+            </div>
+
+            <div className="mt-12 grid gap-16 lg:grid-cols-2 lg:gap-12">
+              <div className="flex flex-col gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-[var(--color-trail-800)]">
+                    Office dashboard
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                    Routes, drivers, pending requests, and billing summaries —
+                    one view for the team that owns the schedule.
+                  </p>
+                  <Link
+                    href="/login?role=admin"
+                    className="mt-3 inline-flex text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+                  >
+                    Office login →
+                  </Link>
+                </div>
+                <AdminDashboardMock />
+              </div>
+
+              <div className="flex flex-col gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-[var(--color-trail-800)]">
+                    Driver mobile view
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                    Today&apos;s stops in order, status taps, optional
+                    GPS-assisted arrival — works in the mobile browser.
+                  </p>
+                  <Link
+                    href="/login?role=driver"
+                    className="mt-3 inline-flex text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+                  >
+                    Driver login →
+                  </Link>
+                </div>
+                <DriverMobileMock />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="scroll-mt-20 surface-glass py-14 sm:py-16">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <SectionLabel>FAQ</SectionLabel>
+            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+              Common questions
+            </h2>
+            <dl className="mt-8 divide-y divide-stone-200 surface-elevated overflow-hidden rounded-[var(--radius-card)]">
+              {FAQ.map((item) => (
+                <details key={item.q} className="group px-5 py-4">
+                  <summary className="cursor-pointer list-none font-medium text-stone-900 marker:content-none [&::-webkit-details-marker]:hidden">
+                    <span className="flex items-center justify-between gap-4">
+                      {item.q}
+                      <span
+                        aria-hidden
+                        className="text-stone-400 transition group-open:rotate-45"
+                      >
+                        +
+                      </span>
+                    </span>
+                  </summary>
+                  <dd className="mt-3 text-sm leading-relaxed text-stone-600">
+                    {item.a}
+                  </dd>
+                </details>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section
+          id="contact"
+          className="scroll-mt-20 bg-[var(--color-trail-700)] py-14 text-white sm:py-16"
+        >
+          <div className="mx-auto max-w-xl px-4 sm:px-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-semibold sm:text-4xl">
+                Less coordinating. More hiking.
+              </h2>
+              <p className="mt-4 text-lg text-white/80">
+                Book a demo or ask a question — we&apos;ll reply within a
+                business day.
+              </p>
+            </div>
+
+            <div className="mt-8 rounded-[var(--radius-card)] border border-white/15 surface-glass-dark p-6 sm:p-8">
+              <ContactForm variant="dark" />
+            </div>
+
+            <ContactEmailFallback variant="dark" className="mt-4 text-center" />
+
+            <p className="mt-6 text-center text-sm text-white/60">
+              <Link href="/login" className="underline-offset-2 hover:underline">
                 Team login
+              </Link>
+              {" · "}
+              <Link href="/contact" className="underline-offset-2 hover:underline">
+                Full contact page
               </Link>
             </p>
           </div>
-          <div className="lg:pl-4">
-            <HeroDashboardMock />
-          </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="border-y border-[var(--glass-border-subtle)] surface-glass py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-semibold text-[var(--color-trail-800)] sm:text-4xl">
-            Your business is not a regular dog walking business.
-          </h2>
-          <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            Adventure dog hiking companies manage recurring dogs, multiple
-            drivers, pickup routes, group hikes, schedule changes, customer
-            texts, and billing periods — often across spreadsheets, group chats,
-            and memory.
-          </p>
-          <p className="mt-4 text-lg leading-relaxed text-stone-600">
-            PackRoute is dog walking business software that brings routes,
-            drivers, customer SMS, skip requests, and billing prep into one
-            place — so your team spends less time coordinating and more time on
-            the trail.
-          </p>
-        </div>
-      </section>
-
-      {/* Operations */}
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-2xl">
-            <SectionLabel>Built for operators</SectionLabel>
-            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              Dog walking software built around routes, schedules, and field
-              operations
-            </h2>
-            <p className="mt-3 text-stone-600">
-              For adventure dog hiking companies with multiple drivers and
-              active dogs — not generic task lists or pet sitting apps.
-            </p>
-          </div>
-          <ul className="mt-10 grid gap-5 sm:grid-cols-2">
-            {[
-              {
-                title: "Built for dog walking routes, not generic task lists",
-                body: "Plan pickup routes, set stop order, and run morning or afternoon routes separately — the way group walk businesses actually operate.",
-              },
-              {
-                title: "Scheduling for group hikes and pack walks",
-                body: "Recurring dogs, as-needed bookings, route assignment, and daily overrides without rebuilding your whole schedule.",
-              },
-              {
-                title: "Customer updates without extra admin work",
-                body: "Night-before reminders, ETAs, and pickup or drop-off texts when drivers tap — not manual copy-paste from a group chat.",
-              },
-              {
-                title: "A calmer alternative to spreadsheets and manual texts",
-                body: "Fewer office interruptions, less driver confusion, and fewer “where is my dog?” messages from customers.",
-              },
-            ].map((item) => (
-              <li
-                key={item.title}
-                className="surface-elevated rounded-[var(--radius-card)] p-5 motion-lift"
-              >
-                <h3 className="font-semibold text-[var(--color-trail-800)]">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  {item.body}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how-it-works" className="scroll-mt-20 py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-2xl">
-            <SectionLabel>How it works</SectionLabel>
-            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              The office plans. The driver runs the route.
-            </h2>
-          </div>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[
-              {
-                role: "Office",
-                body: "Build routes, assign dogs and drivers, approve schedule requests, and prepare billing exports.",
-              },
-              {
-                role: "Driver",
-                body: "Open Today on their phone, follow their stops, and tap En Route, Arrived, Picked Up, or Dropped Off.",
-              },
-              {
-                role: "Customer",
-                body: "Gets plain-English texts. No app. Can reply with SKIP TOMORROW or LATE PICKUP — your team approves before anything changes.",
-              },
-            ].map((item) => (
-              <div
-                key={item.role}
-                className="surface-elevated rounded-[var(--radius-card)] p-6 motion-lift"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-trail-100)] text-sm font-semibold text-[var(--color-trail-700)]">
-                  {item.role.charAt(0)}
-                </div>
-                <h3 className="mt-3 text-lg font-semibold text-[var(--color-trail-800)]">
-                  {item.role}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  {item.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="scroll-mt-20 surface-glass py-16 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="max-w-2xl">
-            <SectionLabel>Features</SectionLabel>
-            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              Built for how you actually operate
-            </h2>
-            <p className="mt-3 text-stone-600">
-              Dog walking management software with clear roles — office plans,
-              drivers execute, customers stay informed.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((feature) => (
-              <div
-                key={feature.title}
-                className="surface-card rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-2)]"
-              >
-                <h3 className="font-semibold text-[var(--color-trail-800)]">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SMS */}
-      <section id="sms" className="scroll-mt-20 py-16 sm:py-20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <div>
-            <SectionLabel>Customer SMS</SectionLabel>
-            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              Updates customers want — by text.
-            </h2>
-            <p className="mt-4 text-stone-600">
-              Customers never need an account. They get useful texts when
-              drivers update stops, and can reply with simple schedule requests.
-            </p>
-            <p className="mt-3 text-sm text-stone-500">
-              Every schedule change is reviewed by your team before it takes
-              effect — skips stay intentional, not accidental.
-            </p>
-          </div>
-          <SmsPhoneMock />
-        </div>
-      </section>
-
-      {/* Driver teaser */}
-      <section className="bg-atmosphere-driver py-16 text-white sm:py-20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <DriverMobileMock />
-          <div className="lg:order-first">
-            <SectionLabel>
-              <span className="text-green-300">Driver app</span>
-            </SectionLabel>
-            <h2 className="mt-2 text-3xl font-semibold">
-              The driver runs the route.
-            </h2>
-            <p className="mt-4 text-white/75">
-              Drivers open Today and see what to do next — their stops, in
-              order. Tap En Route, Arrived, Picked Up, or Dropped Off. When
-              location is enabled, arrival near a stop can update automatically;
-              otherwise they tap Arrived. Families get the message either way.
-            </p>
-            <ul className="mt-6 space-y-2 text-sm text-white/70">
-              <li>· Today view with pickups and drop-offs</li>
-              <li>· En Route, Picked Up, Dropped Off in taps</li>
-              <li>· Optional GPS-assisted arrival — manual tap always works</li>
-              <li>· Works in the mobile browser — no app store</li>
-            </ul>
-            <Link
-              href="/login?role=driver"
-              className="mt-6 inline-flex text-sm font-medium text-green-300 underline-offset-2 hover:underline"
-            >
-              Driver login →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Admin teaser */}
-      <section className="surface-glass py-16 sm:py-20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-          <div>
-            <SectionLabel>Office dashboard</SectionLabel>
-            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-              See today at a glance.
-            </h2>
-            <p className="mt-4 text-stone-600">
-              Routes, drivers, pending customer requests, billing summaries, and
-              notification history — one dashboard for the office team that
-              owns the schedule.
-            </p>
-            <Link
-              href="/login?role=admin"
-              className="mt-6 inline-flex text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-            >
-              Office login →
-            </Link>
-          </div>
-          <AdminDashboardMock />
-        </div>
-      </section>
-
-      {/* Billing */}
-      <section className="border-y border-[var(--glass-border-subtle)] bg-atmosphere py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <SectionLabel>Billing</SectionLabel>
-          <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-            Hike counts ready for billing
-          </h2>
-          <p className="mt-5 text-lg text-stone-600">
-            Review completed hikes by billing period, apply adjustments, and
-            export a clean CSV for QuickBooks or your own invoicing workflow.
-          </p>
-          <p className="mt-3 text-sm text-stone-500">
-            PackRoute does not process payments or send invoices — it prepares
-            the numbers so you can bill your way.
-          </p>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="scroll-mt-20 py-16 sm:py-20">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <SectionLabel>FAQ</SectionLabel>
-          <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-            Common questions
-          </h2>
-          <dl className="mt-8 divide-y divide-stone-200 surface-elevated overflow-hidden rounded-[var(--radius-card)]">
-            {FAQ.map((item) => (
-              <details key={item.q} className="group px-5 py-4">
-                <summary className="cursor-pointer list-none font-medium text-stone-900 marker:content-none [&::-webkit-details-marker]:hidden">
-                  <span className="flex items-center justify-between gap-4">
-                    {item.q}
-                    <span
-                      aria-hidden
-                      className="text-stone-400 transition group-open:rotate-45"
-                    >
-                      +
-                    </span>
-                  </span>
-                </summary>
-                <dd className="mt-3 text-sm leading-relaxed text-stone-600">
-                  {item.a}
-                </dd>
-              </details>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section
-        id="contact"
-        className="scroll-mt-20 bg-[var(--color-trail-700)] py-16 text-white sm:py-20"
-      >
-        <div className="mx-auto max-w-xl px-4 sm:px-6">
-          <div className="text-center">
-            <h2 className="text-3xl font-semibold sm:text-4xl">
-              Less coordinating. More hiking.
-            </h2>
-            <p className="mt-4 text-lg text-white/80">
-              Book a demo or ask a question — we&apos;ll reply within a business
-              day.
-            </p>
-          </div>
-
-          <div className="mt-8 rounded-[var(--radius-card)] border border-white/15 surface-glass-dark p-6 sm:p-8">
-            <ContactForm variant="dark" />
-          </div>
-
-          <ContactEmailFallback variant="dark" className="mt-4 text-center" />
-
-          <p className="mt-6 text-center text-sm text-white/60">
-            <Link href="/login" className="underline-offset-2 hover:underline">
-              Team login
-            </Link>
-            {" · "}
-            <Link
-              href="/login?role=admin"
-              className="underline-offset-2 hover:underline"
-            >
-              Office login
-            </Link>
-            {" · "}
-            <Link
-              href="/login?role=driver"
-              className="underline-offset-2 hover:underline"
-            >
-              Driver login
-            </Link>
-            {" · "}
-            <Link href="/contact" className="underline-offset-2 hover:underline">
-              Full contact page
-            </Link>
-          </p>
-        </div>
-      </section>
-
+        </section>
       </main>
 
       <MarketingFooter

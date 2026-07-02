@@ -11,7 +11,6 @@ export { LANDING_FAQ } from "@/lib/seo/metadata";
 export const NAV_LINKS = [
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#features", label: "Features" },
-  { href: "/#sms", label: "SMS" },
   { href: "/#faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ] as const;
