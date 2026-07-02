@@ -137,11 +137,7 @@ function driverSeesRoute(
   if (profile.role === "admin" && profile.can_drive) return true;
   if (!entry.hike) return false;
   if (entry.hike.driver_id === profile.id) return true;
-  const defaultDriver =
-    entry.period === "morning"
-      ? entry.route.default_driver_id
-      : entry.route.default_afternoon_driver_id;
-  return defaultDriver === profile.id;
+  return entry.route.default_driver_id === profile.id;
 }
 
 export async function getDriverDayView(
@@ -164,7 +160,7 @@ export async function getDriverDayView(
         const mapped = rawStops.map(mapStop).filter((s) => isActiveStop(s.status));
         return {
           routeId: entry.route.id,
-          routeName: `${entry.route.name} — ${hikePeriodWalkLabel(entry.period)}`,
+          routeName: `${entry.route.name} — ${hikePeriodWalkLabel(entry.route.period)}`,
           hikeId: entry.hike!.id,
           pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
           dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),

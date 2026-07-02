@@ -6,6 +6,7 @@ import {
   CreateRouteForm,
   EditRouteForm,
 } from "@/features/routes/components/route-form";
+import { hikePeriodLabel } from "@/features/hikes/hike-period";
 import { getRouteScheduleDays, listRoutes } from "@/features/routes/queries";
 import { requireRole } from "@/features/auth/queries";
 import { formatScheduleDayLabels } from "@/lib/dates";
@@ -21,7 +22,7 @@ export default async function RouteOrderPage() {
     supabase
       .from("dogs")
       .select(
-        "id, name, route_id, route_sort_order, schedule_type, walk_period, customers(owner_name), routes(name)"
+        "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
       )
       .eq("company_id", profile.company_id)
       .eq("is_active", true)
@@ -41,7 +42,7 @@ export default async function RouteOrderPage() {
     <div>
       <PageHeader
         title="Routes"
-        description="Set which days each route runs, assign dogs and default drivers, and order pickups. Enable an afternoon walk when your company runs twice daily."
+        description="Each route is a morning or afternoon walk with its own dogs, driver, and schedule. Create separate routes when you run twice daily."
       />
 
       <Card className="mb-10">
@@ -86,20 +87,11 @@ export default async function RouteOrderPage() {
             const items = routeDogs.map((dog) => ({
               id: dog.id,
               label: dog.name,
-              sublabel: [
-                one(
-                  dog.customers as
-                    | { owner_name: string }
-                    | { owner_name: string }[]
-                )?.owner_name,
-                dog.walk_period === "both"
-                  ? "Morning & afternoon"
-                  : dog.walk_period === "afternoon"
-                    ? "Afternoon only"
-                    : null,
-              ]
-                .filter(Boolean)
-                .join(" · "),
+              sublabel: one(
+                dog.customers as
+                  | { owner_name: string }
+                  | { owner_name: string }[]
+              )?.owner_name,
             }));
 
             const scheduleDays = getRouteScheduleDays(route);
@@ -111,6 +103,9 @@ export default async function RouteOrderPage() {
               >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 pb-4">
                   <div>
+                    <p className="text-sm font-medium text-stone-700">
+                      {hikePeriodLabel(route.period)} route
+                    </p>
                     <p className="text-sm text-stone-500">
                       {formatScheduleDayLabels(scheduleDays)}
                     </p>
@@ -118,31 +113,18 @@ export default async function RouteOrderPage() {
                       {routeDogs.length} dog{routeDogs.length === 1 ? "" : "s"}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <RouteDriverSelect
-                      routeId={route.id}
-                      currentDriverId={route.default_driver_id}
-                      drivers={drivers ?? []}
-                      period="morning"
-                      label="Morning driver:"
-                    />
-                    {route.runs_afternoon ? (
-                      <RouteDriverSelect
-                        routeId={route.id}
-                        currentDriverId={route.default_afternoon_driver_id}
-                        drivers={drivers ?? []}
-                        period="afternoon"
-                        label="Afternoon driver:"
-                      />
-                    ) : null}
-                  </div>
+                  <RouteDriverSelect
+                    routeId={route.id}
+                    currentDriverId={route.default_driver_id}
+                    drivers={drivers ?? []}
+                  />
                 </div>
 
                 <EditRouteForm
                   routeId={route.id}
                   defaultName={route.name}
                   defaultDays={scheduleDays}
-                  defaultRunsAfternoon={route.runs_afternoon}
+                  defaultPeriod={route.period}
                 />
 
                 <div className="mt-6 space-y-4 border-t border-stone-100 pt-4">

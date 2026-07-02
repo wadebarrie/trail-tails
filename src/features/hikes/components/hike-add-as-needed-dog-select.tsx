@@ -1,8 +1,6 @@
 "use client";
 
 import { addAsNeededDogToDayAction } from "@/features/hikes/actions";
-import type { HikePeriod } from "@/features/hikes/hike-period";
-import { hikePeriodLabel } from "@/features/hikes/hike-period";
 
 export type AddableAsNeededDog = {
   id: string;
@@ -13,37 +11,33 @@ export type AddableAsNeededDog = {
 export function HikeAddAsNeededDogSelect({
   routeId,
   date,
-  period,
   dogs,
 }: {
   routeId: string;
   date: string;
-  period: HikePeriod;
   dogs: AddableAsNeededDog[];
 }) {
   async function add(formData: FormData) {
     const dogId = String(formData.get("dog_id") ?? "");
     if (!dogId) return;
-    await addAsNeededDogToDayAction(routeId, date, dogId, period);
+    await addAsNeededDogToDayAction(routeId, date, dogId);
   }
 
   if (!dogs.length) {
     return null;
   }
 
-  const fieldId = `add-as-needed-${routeId}-${period}`;
-
   return (
     <form action={add} className="flex flex-wrap items-end gap-2">
       <div className="min-w-[12rem] flex-1">
         <label
-          htmlFor={fieldId}
+          htmlFor={`add-as-needed-${routeId}`}
           className="block text-sm font-medium text-stone-700"
         >
-          Add as-needed dog ({hikePeriodLabel(period).toLowerCase()})
+          Add as-needed dog
         </label>
         <select
-          id={fieldId}
+          id={`add-as-needed-${routeId}`}
           name="dog_id"
           required
           defaultValue=""

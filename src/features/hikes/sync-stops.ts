@@ -1,11 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
 import { perfAsync } from "@/lib/perf";
-import {
-  dogMatchesPeriod,
-  periodsForRoute,
-  type HikePeriod,
-} from "@/features/hikes/hike-period";
+import type { HikePeriod } from "@/features/hikes/hike-period";
 import { resyncHikeStopSortOrders, appendNewDogsToDailyPlan } from "@/features/hikes/stop-order";
 import type { StopType } from "@/types";
 
@@ -30,7 +26,6 @@ function isBlockedByException(
 type DogSchedule = {
   id: string;
   schedule_type: "recurring" | "as_needed";
-  walk_period: "morning" | "afternoon" | "both";
   pickup_window_start: string;
   pickup_window_end: string;
   dropoff_window_start: string | null;
@@ -63,37 +58,35 @@ function stopWindowsForDog(
 async function ensureHikeRow(
   companyId: string,
   routeId: string,
-  date: string,
-  period: HikePeriod
+  date: string
 ): Promise<string> {
   const supabase = createServiceClient();
 
-  const { data: existing } = await supabase
-    .from("hikes")
-    .select("id, driver_id")
-    .eq("company_id", companyId)
-    .eq("route_id", routeId)
-    .eq("date", date)
-    .eq("period", period)
-    .maybeSingle();
-
-  if (existing) {
-    if (!existing.driver_id) {
-      await applyRouteDefaultDriver(supabase, existing.id, routeId, period);
-    }
-    return existing.id;
-  }
-
   const { data: route } = await supabase
     .from("routes")
-    .select("default_driver_id, default_afternoon_driver_id")
+    .select("period, default_driver_id")
     .eq("id", routeId)
     .single();
 
-  const driverId =
-    period === "morning"
-      ? route?.default_driver_id ?? null
-      : route?.default_afternoon_driver_id ?? null;
+  const period = (route?.period ?? "morning") as HikePeriod;
+
+  const { data: existing } = await supabase
+    .from("hikes")
+    .select("id, driver_id, period")
+    .eq("company_id", companyId)
+    .eq("route_id", routeId)
+    .eq("date", date)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.period !== period) {
+      await supabase.from("hikes").update({ period }).eq("id", existing.id);
+    }
+    if (!existing.driver_id) {
+      await applyRouteDefaultDriver(supabase, existing.id, routeId);
+    }
+    return existing.id;
+  }
 
   const { data: created, error } = await supabase
     .from("hikes")
@@ -102,7 +95,7 @@ async function ensureHikeRow(
       route_id: routeId,
       date,
       period,
-      driver_id: driverId,
+      driver_id: route?.default_driver_id ?? null,
     })
     .select("id")
     .single();
@@ -117,25 +110,19 @@ async function ensureHikeRow(
 async function applyRouteDefaultDriver(
   supabase: ReturnType<typeof createServiceClient>,
   hikeId: string,
-  routeId: string,
-  period: HikePeriod
+  routeId: string
 ) {
   const { data: route } = await supabase
     .from("routes")
-    .select("default_driver_id, default_afternoon_driver_id")
+    .select("default_driver_id")
     .eq("id", routeId)
     .single();
 
-  const driverId =
-    period === "morning"
-      ? route?.default_driver_id
-      : route?.default_afternoon_driver_id;
-
-  if (!driverId) return;
+  if (!route?.default_driver_id) return;
 
   await supabase
     .from("hikes")
-    .update({ driver_id: driverId })
+    .update({ driver_id: route.default_driver_id })
     .eq("id", hikeId)
     .is("driver_id", null);
 }
@@ -182,14 +169,14 @@ export async function syncStopsForTodayAndTomorrow(companyId: string) {
   ]);
 }
 
-async function syncStopsForRouteDatePeriod(
+async function syncStopsForRouteDateInner(
   companyId: string,
   routeId: string,
   date: string,
   period: HikePeriod
 ): Promise<string> {
   const supabase = createServiceClient();
-  const hikeId = await ensureHikeRow(companyId, routeId, date, period);
+  const hikeId = await ensureHikeRow(companyId, routeId, date);
 
   const { data: recurringDogs } = await supabase
     .from("dogs")
@@ -197,7 +184,6 @@ async function syncStopsForRouteDatePeriod(
       `
       id,
       schedule_type,
-      walk_period,
       pickup_window_start,
       pickup_window_end,
       dropoff_window_start,
@@ -229,7 +215,6 @@ async function syncStopsForRouteDatePeriod(
             `
             id,
             schedule_type,
-            walk_period,
             pickup_window_start,
             pickup_window_end,
             dropoff_window_start,
@@ -247,7 +232,7 @@ async function syncStopsForRouteDatePeriod(
   const scheduledDogs = [
     ...((recurringDogs ?? []) as DogSchedule[]),
     ...((asNeededDogs ?? []) as DogSchedule[]),
-  ].filter((dog) => dogMatchesPeriod(dog.walk_period, period));
+  ];
 
   const dogIds = scheduledDogs.map((d) => d.id);
 
@@ -362,7 +347,7 @@ async function syncStopsForRouteDatePeriod(
   return hikeId;
 }
 
-/** Add/cancel stops for one route on one date (morning and/or afternoon hikes). */
+/** Add/cancel stops for one route on one date. */
 export async function syncStopsForRouteDate(
   companyId: string,
   routeId: string,
@@ -386,47 +371,31 @@ export async function syncStopsForRouteDate(
       .eq("route_id", routeId),
     supabase
       .from("routes")
-      .select("runs_afternoon")
+      .select("period")
       .eq("id", routeId)
       .single(),
   ]);
 
   const scheduleDays = (routeDays ?? []).map((d) => d.day_of_week);
   const runsToday = routeRunsOnDay(scheduleDays, dayOfWeek);
-  const runsAfternoon = route?.runs_afternoon ?? false;
-  const activePeriods = periodsForRoute(runsAfternoon);
+  const period = (route?.period ?? "morning") as HikePeriod;
 
-  const { data: existingHikes } = await supabase
+  const { data: existingHike } = await supabase
     .from("hikes")
-    .select("id, period")
+    .select("id")
     .eq("company_id", companyId)
     .eq("route_id", routeId)
-    .eq("date", date);
+    .eq("date", date)
+    .maybeSingle();
 
   if (!runsToday) {
-    await cancelScheduledStopsForHikes(
-      (existingHikes ?? []).map((hike) => hike.id)
-    );
-    return existingHikes?.[0]?.id ?? null;
+    if (existingHike) {
+      await cancelScheduledStopsForHikes([existingHike.id]);
+    }
+    return existingHike?.id ?? null;
   }
 
-  let lastHikeId: string | null = null;
-  for (const period of activePeriods) {
-    lastHikeId = await syncStopsForRouteDatePeriod(
-      companyId,
-      routeId,
-      date,
-      period
-    );
-  }
-
-  const inactiveHikeIds = (existingHikes ?? [])
-    .filter((hike) => !activePeriods.includes(hike.period as HikePeriod))
-    .map((hike) => hike.id);
-
-  await cancelScheduledStopsForHikes(inactiveHikeIds);
-
-  return lastHikeId;
+  return syncStopsForRouteDateInner(companyId, routeId, date, period);
 }
 
 export function addDaysToDate(dateStr: string, days: number): string {

@@ -6,7 +6,6 @@ import { requireRole } from "@/features/auth/queries";
 import { getCompanyTimezone } from "@/features/company/queries";
 import { getDateInTimezone } from "@/lib/dates";
 import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
-import type { HikePeriod } from "@/features/hikes/hike-period";
 import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
@@ -220,12 +219,11 @@ export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
   return reorderRouteDogsAction(route.id, orderedDogIds);
 }
 
-/** Admin: add an as-needed dog to a specific route, date, and walk period. */
+/** Admin: add an as-needed dog to a specific route and date. */
 export async function addAsNeededDogToDayAction(
   routeId: string,
   date: string,
-  dogId: string,
-  period: HikePeriod = "morning"
+  dogId: string
 ): Promise<{ success?: true; error?: string }> {
   const profile = await requireRole("admin");
 
@@ -233,23 +231,16 @@ export async function addAsNeededDogToDayAction(
     return { error: "Invalid date." };
   }
 
-  if (period !== "morning" && period !== "afternoon") {
-    return { error: "Invalid walk period." };
-  }
-
   const supabase = await createClient();
 
   const { data: route } = await supabase
     .from("routes")
-    .select("id, runs_afternoon")
+    .select("id, period")
     .eq("id", routeId)
     .eq("company_id", profile.company_id)
     .maybeSingle();
 
   if (!route) return { error: "Route not found." };
-  if (period === "afternoon" && !route.runs_afternoon) {
-    return { error: "This route does not run an afternoon walk." };
-  }
 
   const { data: dog } = await supabase
     .from("dogs")
@@ -268,7 +259,7 @@ export async function addAsNeededDogToDayAction(
     .select("id, route_id")
     .eq("dog_id", dogId)
     .eq("date", date)
-    .eq("period", period)
+    .eq("period", route.period)
     .maybeSingle();
 
   if (existingAssignment) {
@@ -276,7 +267,7 @@ export async function addAsNeededDogToDayAction(
       return { success: true };
     }
     return {
-      error: `This dog is already scheduled on another route for that ${period} walk.`,
+      error: `This dog is already scheduled on another ${route.period} route for that day.`,
     };
   }
 
@@ -285,7 +276,7 @@ export async function addAsNeededDogToDayAction(
     dog_id: dogId,
     route_id: routeId,
     date,
-    period,
+    period: route.period,
   });
 
   if (insertError) return { error: insertError.message };
@@ -355,8 +346,7 @@ export async function updateStopWindowAction(
 export async function removeAsNeededDogFromDayAction(
   routeId: string,
   date: string,
-  dogId: string,
-  period: HikePeriod = "morning"
+  dogId: string
 ): Promise<{ success?: true; error?: string }> {
   const profile = await requireRole("admin");
 
@@ -364,11 +354,16 @@ export async function removeAsNeededDogFromDayAction(
     return { error: "Invalid date." };
   }
 
-  if (period !== "morning" && period !== "afternoon") {
-    return { error: "Invalid walk period." };
-  }
-
   const supabase = await createClient();
+
+  const { data: route } = await supabase
+    .from("routes")
+    .select("period")
+    .eq("id", routeId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!route) return { error: "Route not found." };
 
   const { data: dog } = await supabase
     .from("dogs")
@@ -392,7 +387,7 @@ export async function removeAsNeededDogFromDayAction(
     .eq("dog_id", dogId)
     .eq("route_id", routeId)
     .eq("date", date)
-    .eq("period", period)
+    .eq("period", route.period)
     .maybeSingle();
 
   if (!assignment) return { error: "Dog is not on this day's route plan." };
@@ -403,7 +398,6 @@ export async function removeAsNeededDogFromDayAction(
     .eq("company_id", profile.company_id)
     .eq("route_id", routeId)
     .eq("date", date)
-    .eq("period", period)
     .maybeSingle();
 
   if (hike) {

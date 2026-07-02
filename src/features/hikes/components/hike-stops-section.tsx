@@ -4,7 +4,6 @@ import { StopWindowEditor } from "@/features/hikes/components/stop-window-editor
 import { formatWindowRange } from "@/lib/dates";
 import { Badge } from "@/features/admin/components/ui";
 import type { DogScheduleType, StopType } from "@/types";
-import type { HikePeriod } from "@/features/hikes/hike-period";
 
 type StopRow = {
   id: string;
@@ -33,7 +32,6 @@ export function HikeStopsSection({
   hikeId,
   routeId,
   date,
-  period,
   stopType,
   title,
   stops,
@@ -41,7 +39,6 @@ export function HikeStopsSection({
   hikeId: string;
   routeId?: string;
   date?: string;
-  period?: HikePeriod;
   stopType: StopType;
   title: string;
   stops: StopRow[];
@@ -130,13 +127,11 @@ export function HikeStopsSection({
             {stopType === "pickup" &&
             routeId &&
             date &&
-            period &&
             stop.dogs?.schedule_type === "as_needed" &&
             stop.status === "scheduled" ? (
               <RemoveAsNeededDogButton
                 routeId={routeId}
                 date={date}
-                period={period}
                 dogId={stop.dog_id}
                 dogName={stop.dogs.name}
               />

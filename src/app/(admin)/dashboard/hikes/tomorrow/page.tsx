@@ -18,15 +18,15 @@ export default async function TomorrowHikesPage() {
     timeZone: tz,
   });
 
-  const addableByRoutePeriod = new Map(
+  const addableByRouteId = new Map(
     await Promise.all(
       hikes.map(async (entry) => [
-        `${entry.route.id}:${entry.period}`,
+        entry.route.id,
         await listAddableAsNeededDogsForRouteDate(
           profile.company_id,
           entry.route.id,
           date,
-          entry.period
+          entry.route.period
         ),
       ] as const)
     )
@@ -52,14 +52,11 @@ export default async function TomorrowHikesPage() {
         <div className="space-y-8">
           {hikes.map((entry) => (
             <AdminHikeRouteSection
-              key={`${entry.route.id}:${entry.period}`}
+              key={entry.route.id}
               entry={entry}
               drivers={drivers ?? []}
               date={date}
-              addableAsNeededDogs={
-                addableByRoutePeriod.get(`${entry.route.id}:${entry.period}`) ??
-                []
-              }
+              addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}
             />
           ))}
         </div>

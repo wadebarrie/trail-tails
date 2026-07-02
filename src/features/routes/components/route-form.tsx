@@ -4,19 +4,18 @@ import { useActionState } from "react";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { createRouteAction, updateRouteAction } from "@/features/routes/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
+import type { HikePeriod } from "@/features/hikes/hike-period";
 
 function RouteFormFields({
   defaultName = "",
   defaultDays = [] as number[],
-  defaultRunsAfternoon = false,
-  showAfternoonToggle = false,
+  defaultPeriod = "morning" as HikePeriod,
   submitLabel,
   pending,
 }: {
   defaultName?: string;
   defaultDays?: number[];
-  defaultRunsAfternoon?: boolean;
-  showAfternoonToggle?: boolean;
+  defaultPeriod?: HikePeriod;
   submitLabel: string;
   pending: boolean;
 }) {
@@ -35,24 +34,34 @@ function RouteFormFields({
           type="text"
           required
           defaultValue={defaultName}
-          placeholder="e.g. Vancouver"
+          placeholder="e.g. North Van Morning"
           className="mt-1 w-full max-w-md rounded-lg border border-stone-300 px-3 py-2 text-sm"
         />
       </div>
 
-      <ScheduleDaysField defaultDays={defaultDays} />
-
-      {showAfternoonToggle ? (
-        <label className="flex items-center gap-2 text-sm text-stone-700">
-          <input
-            type="checkbox"
-            name="runs_afternoon"
-            value="true"
-            defaultChecked={defaultRunsAfternoon}
-          />
-          Also runs an afternoon walk
+      <div>
+        <label
+          htmlFor="route-period"
+          className="block text-sm font-medium text-stone-700"
+        >
+          Walk time
         </label>
-      ) : null}
+        <select
+          id="route-period"
+          name="period"
+          defaultValue={defaultPeriod}
+          className="mt-1 w-full max-w-md rounded-lg border border-stone-300 px-3 py-2 text-sm"
+        >
+          <option value="morning">Morning</option>
+          <option value="afternoon">Afternoon</option>
+        </select>
+        <p className="mt-1 text-xs text-stone-500">
+          Morning and afternoon walks are separate routes — different dogs,
+          drivers, and schedules.
+        </p>
+      </div>
+
+      <ScheduleDaysField defaultDays={defaultDays} />
 
       <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
     </>
@@ -94,12 +103,12 @@ export function EditRouteForm({
   routeId,
   defaultName,
   defaultDays,
-  defaultRunsAfternoon,
+  defaultPeriod,
 }: {
   routeId: string;
   defaultName: string;
   defaultDays: number[];
-  defaultRunsAfternoon: boolean;
+  defaultPeriod: HikePeriod;
 }) {
   const boundUpdate = updateRouteAction.bind(null, routeId);
   const [state, formAction, pending] = useActionState(
@@ -113,8 +122,7 @@ export function EditRouteForm({
       <RouteFormFields
         defaultName={defaultName}
         defaultDays={defaultDays}
-        defaultRunsAfternoon={defaultRunsAfternoon}
-        showAfternoonToggle
+        defaultPeriod={defaultPeriod}
         submitLabel="Save route"
         pending={pending}
       />

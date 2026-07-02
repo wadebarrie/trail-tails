@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 import { PerfTimer } from "@/lib/perf";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
-import { periodsForRoute, type HikePeriod } from "@/features/hikes/hike-period";
+import type { HikePeriod } from "@/features/hikes/hike-period";
 import {
   getRouteScheduleDays,
   listRoutes,
@@ -42,7 +42,6 @@ const HIKE_SELECT = `
 
 export type HikeWithRoute = {
   route: RouteWithSchedule;
-  period: HikePeriod;
   hike: {
     id: string;
     date: string;
@@ -117,20 +116,11 @@ export async function getHikesWithStopsForDate(
       .filter((route) =>
         routeRunsOnDay(getRouteScheduleDays(route), dayOfWeek)
       )
-      .flatMap((route) =>
-        periodsForRoute(route.runs_afternoon).map((period) => ({
-          route,
-          period,
-          hike: null,
-        }))
-      );
+      .map((route) => ({ route, hike: null }));
   }
 
-  const hikeByRoutePeriod = new Map(
-    (hikes ?? []).map((hike) => [
-      `${hike.route_id as string}:${hike.period as HikePeriod}`,
-      hike,
-    ])
+  const hikeByRouteId = new Map(
+    (hikes ?? []).map((hike) => [hike.route_id as string, hike])
   );
 
   const results: HikeWithRoute[] = [];
@@ -140,17 +130,14 @@ export async function getHikesWithStopsForDate(
       continue;
     }
 
-    for (const period of periodsForRoute(route.runs_afternoon)) {
-      const hike = hikeByRoutePeriod.get(`${route.id}:${period}`);
-      results.push({
-        route,
-        period,
-        hike: (hike as HikeWithRoute["hike"]) ?? null,
-      });
-    }
+    const hike = hikeByRouteId.get(route.id);
+    results.push({
+      route,
+      hike: (hike as HikeWithRoute["hike"]) ?? null,
+    });
   }
 
-  timer.end(`${results.length} hikes`);
+  timer.end(`${results.length} routes`);
   return results;
 }
 

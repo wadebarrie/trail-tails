@@ -231,13 +231,9 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             pickup order. Drop-offs always run in the reverse of pickup order.
           </li>
           <li>
-            Enable <strong>Also runs an afternoon walk</strong> when your company does
-            two hikes per day. Set separate default drivers for morning and afternoon if
-            needed — the same person can cover both.
-          </li>
-          <li>
-            On each recurring dog, set <strong>Walks per day</strong> to morning only,
-            afternoon only, or both.
+            Set each route to <strong>Morning</strong> or <strong>Afternoon</strong>.
+            Companies that run twice daily use separate routes — different dogs,
+            drivers, and schedules.
           </li>
           <li>
             Use{" "}
@@ -263,13 +259,12 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             planned pickup order, and planned windows for that day only.
           </li>
           <li>
-            Add <strong>as-needed</strong> dogs to a route for that specific day and
-            walk (morning or afternoon). Removing them from the day does not change
-            their long-term profile.
+            Add <strong>as-needed</strong> dogs to a route for that specific day.
+            Removing them from the day does not change their long-term profile.
           </li>
           <li>
-            Routes that run twice daily appear as separate sections — morning walk and
-            afternoon walk — each with its own driver and daily plan.
+            Morning and afternoon walks appear as separate routes on Today and
+            Tomorrow, each with its own driver and daily plan.
           </li>
           <li>
             Reorder pickups or edit planned windows per stop. Changes stay on that

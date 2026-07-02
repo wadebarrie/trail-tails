@@ -3,7 +3,7 @@ import type { HikePeriod } from "@/features/hikes/hike-period";
 import { one } from "@/lib/supabase/relations";
 import type { AddableAsNeededDog } from "@/features/hikes/components/hike-add-as-needed-dog-select";
 
-/** As-needed dogs not yet assigned on this date and walk period. */
+/** As-needed dogs not yet assigned on this route's date and walk period. */
 export async function listAddableAsNeededDogsForRouteDate(
   companyId: string,
   routeId: string,

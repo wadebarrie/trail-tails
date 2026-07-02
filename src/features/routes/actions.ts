@@ -10,7 +10,7 @@ import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-s
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
   schedule_days: z.string().min(1, "Select at least one day"),
-  runs_afternoon: z.coerce.boolean().optional(),
+  period: z.enum(["morning", "afternoon"]).default("morning"),
 });
 
 async function saveRouteScheduleDays(
@@ -83,6 +83,7 @@ export async function createRouteAction(
     .insert({
       company_id: profile.company_id,
       name: parsed.data.name.trim(),
+      period: parsed.data.period,
       sort_order: (lastRoute?.sort_order ?? -1) + 1,
     })
     .select("id")
@@ -127,7 +128,7 @@ export async function updateRouteAction(
     .from("routes")
     .update({
       name: parsed.data.name.trim(),
-      runs_afternoon: parsed.data.runs_afternoon ?? false,
+      period: parsed.data.period,
     })
     .eq("id", routeId)
     .eq("company_id", profile.company_id);
@@ -260,18 +261,14 @@ export async function removeDogFromRouteAction(routeId: string, dogId: string) {
 
 export async function assignRouteDriverAction(
   routeId: string,
-  driverId: string | null,
-  period: "morning" | "afternoon" = "morning"
+  driverId: string | null
 ) {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
-  const driverColumn =
-    period === "morning" ? "default_driver_id" : "default_afternoon_driver_id";
-
   const { error } = await supabase
     .from("routes")
-    .update({ [driverColumn]: driverId })
+    .update({ default_driver_id: driverId })
     .eq("id", routeId)
     .eq("company_id", profile.company_id);
 
@@ -292,7 +289,6 @@ export async function assignRouteDriverAction(
     .update({ driver_id: driverId })
     .eq("company_id", profile.company_id)
     .eq("route_id", routeId)
-    .eq("period", period)
     .in("date", [today, tomorrow]);
 
   revalidatePath("/dashboard/route");

@@ -26,7 +26,7 @@ export function AdminHikeRouteSection({
   date?: string;
   addableAsNeededDogs?: AddableAsNeededDog[];
 }) {
-  const { route, period, hike } = entry;
+  const { route, hike } = entry;
   const stops = (hike?.stops ?? []) as Parameters<
     typeof HikeStopsSection
   >[0]["stops"];
@@ -39,7 +39,7 @@ export function AdminHikeRouteSection({
             {route.name}
             <span className="font-normal text-stone-500">
               {" "}
-              — {hikePeriodWalkLabel(period)}
+              — {hikePeriodWalkLabel(route.period)}
             </span>
           </h2>
           {dateLabel ? (
@@ -65,13 +65,13 @@ export function AdminHikeRouteSection({
       {date && addableAsNeededDogs.length > 0 ? (
         <div className={hike ? "mb-6" : "mt-4"}>
           <p className="mb-2 text-sm text-stone-600">
-            Book an as-needed dog onto this day&apos;s {hikePeriodWalkLabel(period)}.
-            This does not change their long-term schedule.
+            Book an as-needed dog onto this day&apos;s{" "}
+            {hikePeriodWalkLabel(route.period)}. This does not change their
+            long-term schedule.
           </p>
           <HikeAddAsNeededDogSelect
             routeId={route.id}
             date={date}
-            period={period}
             dogs={addableAsNeededDogs}
           />
         </div>
@@ -83,7 +83,6 @@ export function AdminHikeRouteSection({
             hikeId={hike.id}
             routeId={route.id}
             date={date}
-            period={period}
             stopType="pickup"
             title="Pickups"
             stops={stops}
@@ -92,7 +91,6 @@ export function AdminHikeRouteSection({
             hikeId={hike.id}
             routeId={route.id}
             date={date}
-            period={period}
             stopType="dropoff"
             title="Drop-offs"
             stops={stops}
