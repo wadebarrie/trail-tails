@@ -12,6 +12,7 @@ import {
   SmsPhoneMock,
 } from "@/features/landing/components/mockups";
 import { DEMO_MAILTO, LANDING_FAQ, WAITLIST_MAILTO } from "@/features/landing/constants";
+import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
 
 const FAQ = LANDING_FAQ;
 
@@ -412,6 +413,12 @@ export function LandingPage() {
             <p className="mt-1 text-sm text-stone-500">
               Software for adventure dog hiking teams.
             </p>
+            <a
+              href={`mailto:${SITE_CONTACT_EMAIL}`}
+              className="mt-2 inline-block text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+            >
+              {SITE_CONTACT_EMAIL}
+            </a>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap justify-center gap-4 text-sm text-stone-600">
             <a href="#how-it-works" className="hover:text-[var(--color-trail-700)]">
