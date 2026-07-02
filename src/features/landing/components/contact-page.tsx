@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import { ContactForm } from "@/features/landing/components/contact-form";
-import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
 import { LandingHeader } from "@/features/landing/components/landing-header";
+import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
 
 export function ContactPageContent() {
@@ -41,31 +41,13 @@ export function ContactPageContent() {
         </p>
       </main>
 
-      <footer className="border-t border-stone-200 bg-white py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:px-6 sm:text-left">
-          <div>
-            <p className="font-semibold text-[var(--color-trail-800)]">PackRoute</p>
-            <p className="mt-1 text-sm text-stone-500">
-              Software for adventure dog hiking teams.
-            </p>
-            <FooterContactEmail />
-          </div>
-          <nav
-            aria-label="Footer"
-            className="flex flex-wrap justify-center gap-4 text-sm text-stone-600"
-          >
-            <Link href="/#how-it-works" className="hover:text-[var(--color-trail-700)]">
-              How it works
-            </Link>
-            <Link href="/#features" className="hover:text-[var(--color-trail-700)]">
-              Features
-            </Link>
-            <Link href="/login" className="hover:text-[var(--color-trail-700)]">
-              Login
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <MarketingFooter
+        extraLinks={[
+          { href: "/#how-it-works", label: "How it works" },
+          { href: "/#features", label: "Features" },
+          { href: "/login", label: "Login" },
+        ]}
+      />
     </div>
   );
 }

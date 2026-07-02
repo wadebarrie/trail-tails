@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { acceptInviteAction } from "@/features/platform/actions";
@@ -80,6 +81,30 @@ export function SignupForm({ token, preview }: SignupFormProps) {
           disabled={pending}
           className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2 disabled:opacity-60"
         />
+      </div>
+
+      <div className="space-y-2 text-xs leading-relaxed text-stone-500">
+        <p>
+          By creating an account, you agree to PackRoute&apos;s{" "}
+          <Link
+            href="/legal/terms"
+            className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+          >
+            Terms of Service
+          </Link>{" "}
+          and acknowledge the{" "}
+          <Link
+            href="/legal/privacy"
+            className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
+        <p>
+          By joining the PackRoute beta, you understand that beta features may
+          change, may contain bugs, and are provided for evaluation and feedback.
+        </p>
       </div>
 
       <SubmitButton pending={pending} className="w-full rounded-xl py-3">

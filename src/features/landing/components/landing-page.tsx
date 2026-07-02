@@ -3,7 +3,7 @@ import { LandingHeader } from "@/features/landing/components/landing-header";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
 import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import { ContactForm } from "@/features/landing/components/contact-form";
-import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
+import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import {
   AdminDashboardMock,
   DriverMobileMock,
@@ -419,38 +419,15 @@ export function LandingPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-stone-200 bg-white py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:px-6 sm:text-left">
-          <div>
-            <p className="font-semibold text-[var(--color-trail-800)]">PackRoute</p>
-            <p className="mt-1 text-sm text-stone-500">
-              Dog walking route planning for adventure hike teams.
-            </p>
-            <FooterContactEmail />
-          </div>
-          <nav aria-label="Footer" className="flex flex-wrap justify-center gap-4 text-sm text-stone-600">
-            <a href="/#how-it-works" className="hover:text-[var(--color-trail-700)]">
-              How it works
-            </a>
-            <a href="/#features" className="hover:text-[var(--color-trail-700)]">
-              Features
-            </a>
-            <Link href="/contact" className="hover:text-[var(--color-trail-700)]">
-              Contact
-            </Link>
-            <Link
-              href="/dog-walking-software"
-              className="hover:text-[var(--color-trail-700)]"
-            >
-              Dog walking software
-            </Link>
-            <Link href="/login" className="hover:text-[var(--color-trail-700)]">
-              Login
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <MarketingFooter
+        extraLinks={[
+          { href: "/#how-it-works", label: "How it works" },
+          { href: "/#features", label: "Features" },
+          { href: "/contact", label: "Contact" },
+          { href: "/dog-walking-software", label: "Dog walking software" },
+          { href: "/login", label: "Login" },
+        ]}
+      />
     </div>
   );
 }

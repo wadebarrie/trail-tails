@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
-import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
 import { LandingHeader } from "@/features/landing/components/landing-header";
+import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import { DOG_WALKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
 
 const CAPABILITIES = [
@@ -120,33 +120,13 @@ export function DogWalkingSoftwarePageContent() {
         </section>
       </main>
 
-      <footer className="border-t border-stone-200 bg-white py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:px-6 sm:text-left">
-          <div>
-            <p className="font-semibold text-[var(--color-trail-800)]">
-              PackRoute
-            </p>
-            <p className="mt-1 text-sm text-stone-500">
-              Dog walking route planning for adventure hike teams.
-            </p>
-            <FooterContactEmail />
-          </div>
-          <nav
-            aria-label="Footer"
-            className="flex flex-wrap justify-center gap-4 text-sm text-stone-600"
-          >
-            <Link href="/" className="hover:text-[var(--color-trail-700)]">
-              Home
-            </Link>
-            <Link href="/contact" className="hover:text-[var(--color-trail-700)]">
-              Contact
-            </Link>
-            <Link href="/login" className="hover:text-[var(--color-trail-700)]">
-              Login
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <MarketingFooter
+        extraLinks={[
+          { href: "/", label: "Home" },
+          { href: "/contact", label: "Contact" },
+          { href: "/login", label: "Login" },
+        ]}
+      />
     </div>
   );
 }

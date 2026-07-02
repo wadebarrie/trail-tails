@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { FORMSPREE_ENDPOINT } from "@/features/landing/constants";
 
@@ -119,6 +120,18 @@ export function ContactForm({ variant = "light", className = "" }: ContactFormPr
           className={inputClass}
         />
       </div>
+
+      <p className={`text-xs leading-relaxed ${isDark ? "text-white/60" : "text-stone-500"}`}>
+        We&apos;ll use your information to respond to your request and, if
+        applicable, provide PackRoute product updates. You can opt out anytime.{" "}
+        <Link
+          href="/legal/privacy"
+          className={`font-medium underline-offset-2 hover:underline ${isDark ? "text-white/80" : "text-[var(--color-trail-700)]"}`}
+        >
+          Privacy Policy
+        </Link>
+        .
+      </p>
 
       <button type="submit" disabled={pending} className={buttonClass}>
         {pending ? "Sending…" : "Send message"}
