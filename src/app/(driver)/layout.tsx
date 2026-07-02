@@ -28,7 +28,7 @@ export default async function DriverLayout({
   const profile = await requireDriverAccess();
 
   return (
-    <div className="min-h-dvh bg-[var(--color-trail-800)] text-white">
+    <div className="min-h-dvh bg-[var(--color-driver-shell)] text-white">
       <RegisterServiceWorker />
       <header className="flex items-center justify-between border-b border-white/10 px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div>

@@ -16,11 +16,12 @@
   --color-text-muted: #6b746f;
 
   /* Legacy trail scale — mapped to PackRoute palette */
-  --color-trail-50: var(--color-surface-subtle);
+  --color-trail-50: #f0f7f4;
   --color-trail-100: #e4ede7;
   --color-trail-600: var(--color-forest);
   --color-trail-700: #1a4d3f;
   --color-trail-800: var(--color-ink);
+  --color-driver-shell: #081c15;
 
   --color-cta: var(--color-forest);
   --color-cta-hover: #1a4d3f;
@@ -92,18 +93,6 @@
   --text-5xl: 2.75rem;
   --text-5xl--line-height: 1.05;
 
-  /* Brand neutrals (stone scale remap) */
-  --color-stone-50: var(--color-bg);
-  --color-stone-100: var(--color-surface-subtle);
-  --color-stone-200: var(--color-border);
-  --color-stone-300: #d4cfc4;
-  --color-stone-400: #9ba39e;
-  --color-stone-500: var(--color-text-muted);
-  --color-stone-600: #5a635e;
-  --color-stone-700: #434b47;
-  --color-stone-800: #343c38;
-  --color-stone-900: var(--color-ink);
-
   /* Clear Sky Blue — informational / route clarity */
   --color-sky-50: #eff4f7;
   --color-sky-100: #dfe9ef;
@@ -174,5 +163,67 @@ body {
   select,
   textarea {
     @apply min-h-11;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    appearance: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    border: 1.5px solid #d6d3d1;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  input[type="checkbox"] {
+    border-radius: 0.3125rem;
+  }
+
+  input[type="radio"] {
+    border-radius: 9999px;
+  }
+
+  input[type="checkbox"]:hover:not(:disabled),
+  input[type="radio"]:hover:not(:disabled) {
+    border-color: var(--color-sage);
+  }
+
+  input[type="checkbox"]:checked {
+    border-color: var(--color-forest);
+    background-color: var(--color-forest);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.875rem 0.875rem;
+  }
+
+  input[type="radio"]:checked {
+    border-color: var(--color-forest);
+    background-color: #ffffff;
+    box-shadow: inset 0 0 0 0.28125rem var(--color-forest);
+  }
+
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"]:focus-visible {
+    outline: 2px solid var(--color-trail-100);
+    outline-offset: 2px;
+    border-color: var(--color-forest);
+  }
+
+  input[type="checkbox"]:disabled,
+  input[type="radio"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background-color: #f5f5f4;
+  }
+
+  input[type="checkbox"]:checked:disabled,
+  input[type="radio"]:checked:disabled {
+    opacity: 0.65;
   }
 }

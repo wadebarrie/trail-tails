@@ -73,7 +73,7 @@ export function DriverCustomerInfoSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="driver-customer-info-title"
-        className="relative z-10 max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[var(--color-trail-800)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl"
+        className="relative z-10 max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[var(--color-driver-shell)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl"
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" aria-hidden />
 
