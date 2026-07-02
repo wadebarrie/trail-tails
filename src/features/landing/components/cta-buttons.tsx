@@ -1,15 +1,25 @@
 "use client";
 
-import {
-  primaryButtonClassName,
-  secondaryButtonClassName,
-} from "@/features/admin/components/button-styles";
 import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
 import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import {
   DEMO_EMAIL_SUBJECT,
   WAITLIST_EMAIL_SUBJECT,
 } from "@/features/landing/contact-email-actions";
+
+const landingButtonBase =
+  "inline-flex h-12 items-center justify-center rounded-lg px-6 text-base font-medium transition-colors";
+
+function primaryButtonClasses() {
+  return `${landingButtonBase} bg-[var(--color-cta)] text-white hover:bg-[var(--color-cta-hover)] active:bg-[var(--color-cta-active)]`;
+}
+
+function secondaryButtonClasses(variant: "light" | "dark") {
+  if (variant === "dark") {
+    return `${landingButtonBase} border border-white/30 bg-white/10 text-white hover:bg-white/20`;
+  }
+  return `${landingButtonBase} border border-stone-300 bg-white text-stone-700 hover:bg-stone-50 active:bg-stone-100`;
+}
 
 export function CtaButtons({
   primary = "Book a demo",
@@ -27,12 +37,9 @@ export function CtaButtons({
   secondaryClassName?: string;
 }) {
   const resolvedPrimaryClassName =
-    primaryClassName ?? `${primaryButtonClassName} px-6 py-3 text-base`;
+    primaryClassName ?? primaryButtonClasses();
   const resolvedSecondaryClassName =
-    secondaryClassName ??
-    (variant === "dark"
-      ? "inline-flex min-h-11 items-center justify-center rounded-lg border border-white/30 bg-white/10 px-6 py-3 text-base font-medium text-white transition-colors hover:bg-white/20"
-      : `${secondaryButtonClassName} px-6 py-3 text-base`);
+    secondaryClassName ?? secondaryButtonClasses(variant);
 
   const rowClassName =
     align === "center"
