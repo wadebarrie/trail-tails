@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
-import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { DOG_WALKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
@@ -115,9 +114,8 @@ export function DogWalkingSoftwarePageContent() {
               day.
             </p>
             <div className="mt-8">
-              <CtaButtons />
+              <CtaButtons variant="dark" align="center" />
             </div>
-            <ContactEmailFallback variant="dark" className="mt-4" />
           </div>
         </section>
       </main>
