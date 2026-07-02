@@ -90,9 +90,10 @@ export function CustomerForm({ customer }: CustomerFormProps) {
         <span>
           <strong>Night-before reminder texts</strong>
           <span className="mt-0.5 block text-xs font-normal text-stone-500">
-            ~6 PM text the day before a scheduled pickup. ETA and pickup/drop-off
-            texts are always sent. Customers can text STOP REMINDERS / START
-            REMINDERS.
+            Text the day before a scheduled pickup with the pickup window and
+            driver name. Send time is set in company Settings. ETA and
+            pickup/drop-off texts still send. Customers can text STOP REMINDERS
+            / START REMINDERS.
           </span>
         </span>
       </label>

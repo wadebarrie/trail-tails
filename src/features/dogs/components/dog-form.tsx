@@ -20,6 +20,9 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
   const [scheduleType, setScheduleType] = useState<DogScheduleType>(
     dog?.schedule_type ?? "recurring"
   );
+  const [hasDropoffWindow, setHasDropoffWindow] = useState(
+    Boolean(dog?.dropoff_window_start && dog?.dropoff_window_end)
+  );
   const isAsNeeded = scheduleType === "as_needed";
 
   return (
@@ -95,6 +98,37 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
       <p className="-mt-2 text-xs text-stone-500">
         Starting point when building a daily route plan. Adjust planned ETAs on
         the Today or Tomorrow pages.
+      </p>
+
+      <label className="flex items-center gap-2 text-sm text-stone-700">
+        <input
+          type="checkbox"
+          name="use_dropoff_window"
+          value="true"
+          checked={hasDropoffWindow}
+          onChange={(e) => setHasDropoffWindow(e.target.checked)}
+        />
+        Set drop-off window
+      </label>
+      {hasDropoffWindow ? (
+        <div className="grid grid-cols-2 gap-4">
+          <Field
+            label="Drop-off window start"
+            name="dropoff_window_start"
+            type="time"
+            defaultValue={dog?.dropoff_window_start?.slice(0, 5) ?? "15:00"}
+          />
+          <Field
+            label="Drop-off window end"
+            name="dropoff_window_end"
+            type="time"
+            defaultValue={dog?.dropoff_window_end?.slice(0, 5) ?? "15:30"}
+          />
+        </div>
+      ) : null}
+      <p className="-mt-2 text-xs text-stone-500">
+        Optional. Most companies leave afternoon drop-offs flexible with no
+        planned window.
       </p>
 
       {!isAsNeeded ? <ScheduleDaysField defaultDays={scheduleDays} /> : null}

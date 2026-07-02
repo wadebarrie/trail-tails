@@ -2,7 +2,7 @@
 
 import { SortableList } from "@/features/admin/components/sortable-list";
 import { reorderDriverPickupsAction } from "@/features/driver-actions/actions";
-import { formatTime } from "@/lib/dates";
+import { formatWindowRange } from "@/lib/dates";
 import type { DriverStopView } from "@/features/driver-actions/queries";
 
 type DriverPickupReorderProps = {
@@ -23,9 +23,9 @@ export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProp
     .map((s) => ({
       id: s.id,
       label: s.dogName,
-      sublabel: s.ownerName
-        ? `${s.ownerName} · ${formatTime(s.windowStart)}–${formatTime(s.windowEnd)}`
-        : `${formatTime(s.windowStart)}–${formatTime(s.windowEnd)}`,
+      sublabel: [s.ownerName, formatWindowRange(s.windowStart, s.windowEnd)]
+        .filter(Boolean)
+        .join(" · "),
     }));
 
   async function onReorder(orderedIds: string[]) {

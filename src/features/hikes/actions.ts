@@ -289,18 +289,18 @@ export async function addAsNeededDogToDayAction(
   return { success: true };
 }
 
-/** Admin: update planned pickup window for a dog on a specific day's route plan. */
+/** Admin: update planned window for a stop on a specific day's route plan. */
 export async function updateStopWindowAction(
   stopId: string,
-  windowStart: string,
-  windowEnd: string
+  windowStart: string | null,
+  windowEnd: string | null
 ): Promise<{ success?: true; error?: string }> {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
   const { data: stop } = await supabase
     .from("stops")
-    .select("id, hike_id, dog_id, hikes!inner ( company_id )")
+    .select("id, stop_type, hikes!inner ( company_id )")
     .eq("id", stopId)
     .maybeSingle();
 
@@ -313,11 +313,24 @@ export async function updateStopWindowAction(
     return { error: "Stop not found." };
   }
 
+  const hasStart = Boolean(windowStart?.trim());
+  const hasEnd = Boolean(windowEnd?.trim());
+
+  if (hasStart !== hasEnd) {
+    return { error: "Window requires both start and end times, or neither." };
+  }
+
+  if (stop.stop_type === "pickup" && (!hasStart || !hasEnd)) {
+    return { error: "Pickup stops require a planned window." };
+  }
+
   const { error } = await supabase
     .from("stops")
-    .update({ window_start: windowStart, window_end: windowEnd })
-    .eq("hike_id", stop.hike_id)
-    .eq("dog_id", stop.dog_id);
+    .update({
+      window_start: hasStart ? windowStart : null,
+      window_end: hasEnd ? windowEnd : null,
+    })
+    .eq("id", stopId);
 
   if (error) return { error: error.message };
 

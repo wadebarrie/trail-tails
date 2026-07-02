@@ -10,8 +10,8 @@ export type DriverStopView = {
   id: string;
   stopType: StopType;
   status: StopStatus;
-  windowStart: string;
-  windowEnd: string;
+  windowStart: string | null;
+  windowEnd: string | null;
   sortOrder: number;
   dogName: string;
   dogBreed: string | null;
@@ -90,8 +90,8 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
     id: raw.id as string,
     stopType: raw.stop_type as StopType,
     status: raw.status as StopStatus,
-    windowStart: raw.window_start as string,
-    windowEnd: raw.window_end as string,
+    windowStart: (raw.window_start as string | null) ?? null,
+    windowEnd: (raw.window_end as string | null) ?? null,
     sortOrder: raw.sort_order as number,
     dogName: dog?.name ?? "Unknown",
     dogBreed: dog?.breed ?? null,

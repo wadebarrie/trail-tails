@@ -2,27 +2,48 @@
 
 import { useState, useTransition } from "react";
 import { updateStopWindowAction } from "@/features/hikes/actions";
-import { formatTime } from "@/lib/dates";
+import { formatWindowRange } from "@/lib/dates";
 
 export function StopWindowEditor({
   stopId,
   windowStart,
   windowEnd,
+  optional = false,
+  label = "Planned window",
 }: {
   stopId: string;
-  windowStart: string;
-  windowEnd: string;
+  windowStart: string | null;
+  windowEnd: string | null;
+  optional?: boolean;
+  label?: string;
 }) {
   const [editing, setEditing] = useState(false);
-  const [start, setStart] = useState(windowStart.slice(0, 5));
-  const [end, setEnd] = useState(windowEnd.slice(0, 5));
+  const [start, setStart] = useState(windowStart?.slice(0, 5) ?? "15:00");
+  const [end, setEnd] = useState(windowEnd?.slice(0, 5) ?? "15:30");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function save() {
     setError(null);
     startTransition(async () => {
-      const result = await updateStopWindowAction(stopId, start, end);
+      const result = await updateStopWindowAction(
+        stopId,
+        optional && !start.trim() && !end.trim() ? null : start,
+        optional && !start.trim() && !end.trim() ? null : end
+      );
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setEditing(false);
+    });
+  }
+
+  function clearWindow() {
+    if (!optional) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await updateStopWindowAction(stopId, null, null);
       if (result.error) {
         setError(result.error);
         return;
@@ -32,14 +53,17 @@ export function StopWindowEditor({
   }
 
   if (!editing) {
+    const range = formatWindowRange(windowStart, windowEnd);
     return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="text-left text-sm text-stone-500 underline decoration-stone-300 underline-offset-2 hover:text-stone-700"
-      >
-        Planned window: {formatTime(windowStart)}–{formatTime(windowEnd)}
-      </button>
+      <div className="space-y-1">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="text-left text-sm text-stone-500 underline decoration-stone-300 underline-offset-2 hover:text-stone-700"
+        >
+          {label}: {range ?? (optional ? "None" : "Not set")}
+        </button>
+      </div>
     );
   }
 
@@ -71,12 +95,22 @@ export function StopWindowEditor({
       >
         Save
       </button>
+      {optional ? (
+        <button
+          type="button"
+          onClick={clearWindow}
+          disabled={pending}
+          className="text-xs text-stone-500 hover:text-stone-700 disabled:opacity-50"
+        >
+          Clear window
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={() => {
           setEditing(false);
-          setStart(windowStart.slice(0, 5));
-          setEnd(windowEnd.slice(0, 5));
+          setStart(windowStart?.slice(0, 5) ?? "15:00");
+          setEnd(windowEnd?.slice(0, 5) ?? "15:30");
           setError(null);
         }}
         className="text-xs text-stone-500 hover:text-stone-700"

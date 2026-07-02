@@ -68,6 +68,7 @@ export interface Company {
   default_pickup_window_start: string | null;
   default_pickup_window_end: string | null;
   default_hike_rate_cents: number | null;
+  night_before_reminder_time: string;
   twilio_phone_number: string | null;
   created_at: string;
   updated_at: string;
@@ -158,6 +159,8 @@ export interface Dog {
   schedule_type: DogScheduleType;
   pickup_window_start: string;
   pickup_window_end: string;
+  dropoff_window_start: string | null;
+  dropoff_window_end: string | null;
   route_sort_order: number;
   hike_rate_cents: number | null;
   created_at: string;
@@ -210,8 +213,8 @@ export interface Stop {
   dog_id: string;
   stop_type: StopType;
   status: StopStatus;
-  window_start: string;
-  window_end: string;
+  window_start: string | null;
+  window_end: string | null;
   en_route_at: string | null;
   arrived_at: string | null;
   completed_at: string | null;

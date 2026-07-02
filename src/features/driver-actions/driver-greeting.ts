@@ -50,8 +50,9 @@ export function estimatePickupCompletionTime(
   const pool = open.length > 0 ? open : pickups;
 
   let latest = pool[0].windowEnd;
+  if (!latest) return null;
   for (const stop of pool) {
-    if (stop.windowEnd > latest) latest = stop.windowEnd;
+    if (stop.windowEnd && stop.windowEnd > latest) latest = stop.windowEnd;
   }
 
   return formatTime(latest);

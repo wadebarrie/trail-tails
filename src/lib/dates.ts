@@ -48,6 +48,39 @@ export function formatTime(time: string): string {
   return `${h12}:${minute} ${ampm}`;
 }
 
+export function formatWindowRange(
+  start: string | null | undefined,
+  end: string | null | undefined
+): string | null {
+  if (!start || !end) return null;
+  return `${formatTime(start)}–${formatTime(end)}`;
+}
+
+/** Minutes since midnight for HH:MM or HH:MM:SS. */
+export function timeToMinutes(time: string): number {
+  const [hour, minute] = time.split(":");
+  return Number(hour) * 60 + Number(minute);
+}
+
+/** Current local hour/minute in an IANA timezone. */
+export function getLocalTimeInTimezone(timeZone: string, at = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  }).formatToParts(at);
+
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+  return { hour, minute, minutesSinceMidnight: hour * 60 + minute };
+}
+
+/** True when local time is at or past the configured HH:MM time. */
+export function isPastLocalTime(timeZone: string, time: string, at = new Date()): boolean {
+  return getLocalTimeInTimezone(timeZone, at).minutesSinceMidnight >= timeToMinutes(time);
+}
+
 export const WEEKDAYS = [
   { value: 0, label: "Sun" },
   { value: 1, label: "Mon" },

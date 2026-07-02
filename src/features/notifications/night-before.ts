@@ -1,35 +1,29 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
-import { getDateInTimezone } from "@/lib/dates";
+import { getDateInTimezone, getLocalTimeInTimezone, isPastLocalTime } from "@/lib/dates";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
 import { one } from "@/lib/supabase/relations";
 
-function localHourInTimezone(timeZone: string): number {
-  const hour = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hour: "numeric",
-    hour12: false,
-  }).format(new Date());
-  return Number(hour);
-}
+const DEFAULT_NIGHT_BEFORE_REMINDER_TIME = "19:30:00";
 
-/** Send night-before pickup reminders when local hour is 18 (6 PM). */
+/** Send night-before pickup reminders after the company's configured local time. */
 export async function sendNightBeforeRemindersForCompany(
   companyId: string,
-  timeZone: string
+  timeZone: string,
+  reminderTime = DEFAULT_NIGHT_BEFORE_REMINDER_TIME
 ) {
-  const localHour = localHourInTimezone(timeZone);
+  const localTime = getLocalTimeInTimezone(timeZone);
   const today = getDateInTimezone(timeZone, 0);
 
   // Morning sync so today's driver routes are ready before first pickup.
-  if (localHour === 5) {
+  if (localTime.hour === 5) {
     await syncStopsForDate(companyId, today);
     return { skipped: true as const, reason: "morning_sync" };
   }
 
-  if (localHour !== 18) {
-    return { skipped: true as const, reason: "not_6pm" };
+  if (!isPastLocalTime(timeZone, reminderTime)) {
+    return { skipped: true as const, reason: "before_reminder_time" };
   }
 
   const supabase = createServiceClient();
@@ -203,16 +197,19 @@ export async function runNightBeforeCron() {
   const supabase = createServiceClient();
   const { data: companies } = await supabase
     .from("companies")
-    .select("id, timezone, name");
+    .select("id, timezone, name, night_before_reminder_time");
 
   const results: { companyId: string; sent?: number; skipped?: string }[] = [];
 
   for (const company of companies ?? []) {
     const timeZone = company.timezone ?? "America/Los_Angeles";
+    const reminderTime =
+      company.night_before_reminder_time ?? DEFAULT_NIGHT_BEFORE_REMINDER_TIME;
     try {
       const result = await sendNightBeforeRemindersForCompany(
         company.id,
-        timeZone
+        timeZone,
+        reminderTime
       );
       if ("sent" in result) {
         const count = result.sent ?? 0;
@@ -220,7 +217,7 @@ export async function runNightBeforeCron() {
         if (count > 0) {
           logInfo("cron", "Night-before reminders sent", {
             companyId: company.id,
-            context: { sent: count, companyName: company.name },
+            context: { sent: count, companyName: company.name, reminderTime },
           });
         }
       } else {

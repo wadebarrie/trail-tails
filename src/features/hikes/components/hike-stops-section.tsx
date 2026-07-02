@@ -1,7 +1,7 @@
 import { HikeStopsReorder } from "@/features/hikes/components/hike-stops-reorder";
 import { RemoveAsNeededDogButton } from "@/features/hikes/components/remove-as-needed-dog-button";
 import { StopWindowEditor } from "@/features/hikes/components/stop-window-editor";
-import { formatTime } from "@/lib/dates";
+import { formatWindowRange } from "@/lib/dates";
 import { Badge } from "@/features/admin/components/ui";
 import type { DogScheduleType, StopType } from "@/types";
 
@@ -10,8 +10,8 @@ type StopRow = {
   dog_id: string;
   stop_type: StopType;
   status: string;
-  window_start: string;
-  window_end: string;
+  window_start: string | null;
+  window_end: string | null;
   sort_order: number;
   dogs: {
     name: string;
@@ -19,6 +19,14 @@ type StopRow = {
     customers: { owner_name: string } | null;
   } | null;
 };
+
+function stopSublabel(stop: StopRow): string {
+  const parts = [stop.dogs?.customers?.owner_name ?? ""];
+  const window = formatWindowRange(stop.window_start, stop.window_end);
+  if (window) parts.push(window);
+  parts.push(stop.status.replaceAll("_", " "));
+  return parts.filter(Boolean).join(" · ");
+}
 
 export function HikeStopsSection({
   hikeId,
@@ -51,7 +59,7 @@ export function HikeStopsSection({
   const sortableItems = filtered.map((s) => ({
     id: s.id,
     label: s.dogs?.name ?? "Unknown",
-    sublabel: `${s.dogs?.customers?.owner_name ?? ""} · ${formatTime(s.window_start)}–${formatTime(s.window_end)} · ${s.status.replaceAll("_", " ")}`,
+    sublabel: stopSublabel(s),
   }));
 
   return (
@@ -65,8 +73,8 @@ export function HikeStopsSection({
           </p>
         ) : (
           <p className="mt-1 text-sm text-stone-500">
-            Reverse of the pickup order — updates automatically when you reorder
-            pickups.
+            Reverse of the pickup order. Drop-off windows are optional — leave
+            blank when afternoon timing is flexible.
           </p>
         )}
       </div>
@@ -91,43 +99,46 @@ export function HikeStopsSection({
         </ol>
       )}
 
-      {stopType === "pickup" ? (
-        <ul className="mt-4 space-y-3">
-          {filtered.map((stop) => (
-            <li
-              key={stop.id}
-              className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-stone-200 bg-white px-3 py-2"
-            >
-              <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-sm font-medium text-stone-900">
-                  {stop.dogs?.name ?? "Unknown"}
-                  {stop.dogs?.schedule_type === "as_needed" ? (
-                    <span className="ml-2 text-xs font-normal text-stone-500">
-                      As-needed
-                    </span>
-                  ) : null}
-                </p>
-                <StopWindowEditor
-                  stopId={stop.id}
-                  windowStart={stop.window_start}
-                  windowEnd={stop.window_end}
-                />
-              </div>
-              {routeId &&
-              date &&
-              stop.dogs?.schedule_type === "as_needed" &&
-              stop.status === "scheduled" ? (
-                <RemoveAsNeededDogButton
-                  routeId={routeId}
-                  date={date}
-                  dogId={stop.dog_id}
-                  dogName={stop.dogs.name}
-                />
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <ul className="mt-4 space-y-3">
+        {filtered.map((stop) => (
+          <li
+            key={stop.id}
+            className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-stone-200 bg-white px-3 py-2"
+          >
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="text-sm font-medium text-stone-900">
+                {stop.dogs?.name ?? "Unknown"}
+                {stop.dogs?.schedule_type === "as_needed" ? (
+                  <span className="ml-2 text-xs font-normal text-stone-500">
+                    As-needed
+                  </span>
+                ) : null}
+              </p>
+              <StopWindowEditor
+                stopId={stop.id}
+                windowStart={stop.window_start}
+                windowEnd={stop.window_end}
+                optional={stopType === "dropoff"}
+                label={
+                  stopType === "dropoff" ? "Planned drop-off window" : "Planned window"
+                }
+              />
+            </div>
+            {stopType === "pickup" &&
+            routeId &&
+            date &&
+            stop.dogs?.schedule_type === "as_needed" &&
+            stop.status === "scheduled" ? (
+              <RemoveAsNeededDogButton
+                routeId={routeId}
+                date={date}
+                dogId={stop.dog_id}
+                dogName={stop.dogs.name}
+              />
+            ) : null}
+          </li>
+        ))}
+      </ul>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {filtered.map((s) => (

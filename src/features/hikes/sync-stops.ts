@@ -27,9 +27,32 @@ type DogSchedule = {
   schedule_type: "recurring" | "as_needed";
   pickup_window_start: string;
   pickup_window_end: string;
+  dropoff_window_start: string | null;
+  dropoff_window_end: string | null;
   route_sort_order: number;
   dog_schedule_days: { day_of_week: number }[];
 };
+
+function stopWindowsForDog(
+  dog: DogSchedule,
+  stopType: StopType
+): { window_start: string | null; window_end: string | null } {
+  if (stopType === "pickup") {
+    return {
+      window_start: dog.pickup_window_start,
+      window_end: dog.pickup_window_end,
+    };
+  }
+
+  if (dog.dropoff_window_start && dog.dropoff_window_end) {
+    return {
+      window_start: dog.dropoff_window_start,
+      window_end: dog.dropoff_window_end,
+    };
+  }
+
+  return { window_start: null, window_end: null };
+}
 
 async function ensureHikeRow(
   companyId: string,
@@ -190,6 +213,8 @@ export async function syncStopsForRouteDate(
       schedule_type,
       pickup_window_start,
       pickup_window_end,
+      dropoff_window_start,
+      dropoff_window_end,
       route_sort_order,
       dog_schedule_days ( day_of_week )
     `
@@ -216,10 +241,12 @@ export async function syncStopsForRouteDate(
             `
             id,
             schedule_type,
-            pickup_window_start,
-            pickup_window_end,
-            route_sort_order,
-            dog_schedule_days ( day_of_week )
+      pickup_window_start,
+      pickup_window_end,
+      dropoff_window_start,
+      dropoff_window_end,
+      route_sort_order,
+      dog_schedule_days ( day_of_week )
           `
           )
           .eq("company_id", companyId)
@@ -313,12 +340,14 @@ export async function syncStopsForRouteDate(
         continue;
       }
 
+      const windows = stopWindowsForDog(dog, stopType);
+
       const { error } = await supabase.from("stops").insert({
         hike_id: hikeId,
         dog_id: dog.id,
         stop_type: stopType,
-        window_start: dog.pickup_window_start,
-        window_end: dog.pickup_window_end,
+        window_start: windows.window_start,
+        window_end: windows.window_end,
         sort_order: sortOrder,
       });
       if (error) throw new Error(error.message);

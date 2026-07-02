@@ -1,4 +1,6 @@
-/** Hourly trigger — calls Next.js cron route with CRON_SECRET (set in Netlify env). */
+/** Hourly trigger — calls Next.js cron route with CRON_SECRET (set in Netlify env).
+ *  Night-before texts send on the first hourly run at or after each company's configured time.
+ */
 export const config = {
   schedule: "0 * * * *",
 };

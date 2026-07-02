@@ -25,6 +25,9 @@ const dogSchema = z.object({
   notes: z.string().optional(),
   pickup_window_start: z.string().min(1),
   pickup_window_end: z.string().min(1),
+  use_dropoff_window: z.string().optional(),
+  dropoff_window_start: z.string().optional(),
+  dropoff_window_end: z.string().optional(),
   is_active: z.coerce.boolean().optional(),
   schedule_days: z.string().optional(),
   hike_rate: z.string().optional(),
@@ -37,6 +40,25 @@ function parseHikeRateCents(raw?: string): number | null {
   return Math.round(n * 100);
 }
 
+function parseDropoffWindow(data: {
+  use_dropoff_window?: string;
+  dropoff_window_start?: string;
+  dropoff_window_end?: string;
+}): { start: string | null; end: string | null } | { error: string } {
+  if (data.use_dropoff_window !== "true") {
+    return { start: null, end: null };
+  }
+
+  const start = data.dropoff_window_start?.trim();
+  const end = data.dropoff_window_end?.trim();
+
+  if (!start || !end) {
+    return { error: "Drop-off window requires both start and end times." };
+  }
+
+  return { start, end };
+}
+
 export async function createDogAction(
   _prev: { error?: string },
   formData: FormData
@@ -46,6 +68,11 @@ export async function createDogAction(
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const dropoffWindow = parseDropoffWindow(parsed.data);
+  if ("error" in dropoffWindow) {
+    return { error: dropoffWindow.error };
   }
 
   const supabase = await createClient();
@@ -74,6 +101,8 @@ export async function createDogAction(
       notes: parsed.data.notes || null,
       pickup_window_start: parsed.data.pickup_window_start,
       pickup_window_end: parsed.data.pickup_window_end,
+      dropoff_window_start: dropoffWindow.start,
+      dropoff_window_end: dropoffWindow.end,
       is_active: parsed.data.is_active ?? true,
       route_sort_order: sortOrder,
       hike_rate_cents: parseHikeRateCents(parsed.data.hike_rate),
@@ -116,6 +145,11 @@ export async function updateDogAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  const dropoffWindow = parseDropoffWindow(parsed.data);
+  if ("error" in dropoffWindow) {
+    return { error: dropoffWindow.error };
+  }
+
   const supabase = await createClient();
   const isAsNeeded = parsed.data.schedule_type === "as_needed";
   const routeId = isAsNeeded ? null : parsed.data.route_id;
@@ -138,6 +172,8 @@ export async function updateDogAction(
       notes: parsed.data.notes || null,
       pickup_window_start: parsed.data.pickup_window_start,
       pickup_window_end: parsed.data.pickup_window_end,
+      dropoff_window_start: dropoffWindow.start,
+      dropoff_window_end: dropoffWindow.end,
       is_active: parsed.data.is_active ?? true,
       hike_rate_cents: parseHikeRateCents(parsed.data.hike_rate),
     })

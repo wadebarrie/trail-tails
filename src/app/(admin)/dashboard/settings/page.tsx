@@ -3,13 +3,15 @@ import { CompanySettingsForm } from "@/features/company/components/company-setti
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
 
+const DEFAULT_NIGHT_BEFORE_REMINDER_TIME = "19:30:00";
+
 export default async function SettingsPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
   const { data: company } = await supabase
     .from("companies")
-    .select("name, default_hike_rate_cents")
+    .select("name, default_hike_rate_cents, night_before_reminder_time")
     .eq("id", profile.company_id)
     .single();
 
@@ -21,15 +23,13 @@ export default async function SettingsPage() {
       />
 
       <section className="rounded-xl border border-stone-200 bg-white p-6">
-        <h2 className="text-sm font-semibold text-stone-900">Billing</h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Set the default price charged per completed hike day.
-        </p>
-        <div className="mt-4">
-          <CompanySettingsForm
-            defaultRateCents={company?.default_hike_rate_cents ?? null}
-          />
-        </div>
+        <CompanySettingsForm
+          defaultRateCents={company?.default_hike_rate_cents ?? null}
+          defaultNightBeforeReminderTime={
+            company?.night_before_reminder_time ??
+            DEFAULT_NIGHT_BEFORE_REMINDER_TIME
+          }
+        />
       </section>
     </div>
   );

@@ -7,6 +7,7 @@ import { requireRole } from "@/features/auth/queries";
 
 const settingsSchema = z.object({
   default_hike_rate: z.string().optional(),
+  night_before_reminder_time: z.string().min(1, "Reminder time is required"),
 });
 
 function parseRateToCents(raw?: string): number | null {
@@ -35,7 +36,10 @@ export async function updateCompanySettingsAction(
   const supabase = await createClient();
   const { error } = await supabase
     .from("companies")
-    .update({ default_hike_rate_cents: rateCents })
+    .update({
+      default_hike_rate_cents: rateCents,
+      night_before_reminder_time: parsed.data.night_before_reminder_time,
+    })
     .eq("id", profile.company_id);
 
   if (error) return { error: error.message };

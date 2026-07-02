@@ -12,7 +12,7 @@ import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/dr
 import { useDriverFeedback } from "@/features/driver-actions/components/driver-feedback";
 import { useDriverDayState } from "@/features/driver-actions/driver-day-state";
 import { useAutoArrival, type GeoWatchStatus } from "@/features/driver-actions/use-auto-arrival";
-import { formatTime } from "@/lib/dates";
+import { formatTime, formatWindowRange } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
 import type { DriverStopView } from "@/features/driver-actions/queries";
 import type { StopStatus, StopType } from "@/types";
@@ -342,9 +342,11 @@ function StopCard({
           {stop.address ? (
             <p className="mt-1 text-sm leading-snug text-white/50">{stop.address}</p>
           ) : null}
-          <p className="mt-1 text-xs text-white/40">
-            {formatTime(stop.windowStart)}–{formatTime(stop.windowEnd)}
-          </p>
+          {formatWindowRange(stop.windowStart, stop.windowEnd) ? (
+            <p className="mt-1 text-xs text-white/40">
+              {formatWindowRange(stop.windowStart, stop.windowEnd)}
+            </p>
+          ) : null}
         </div>
         {isDone ? (
           <span className="rounded-full bg-green-500/20 px-3 py-1 text-xs font-medium text-green-300">
