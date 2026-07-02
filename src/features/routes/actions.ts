@@ -187,13 +187,19 @@ export async function addDogToRouteAction(routeId: string, dogId: string) {
 
   const { data: dog } = await supabase
     .from("dogs")
-    .select("id, route_id")
+    .select("id, route_id, schedule_type")
     .eq("id", dogId)
     .eq("company_id", profile.company_id)
     .eq("is_active", true)
     .maybeSingle();
 
   if (!dog) return { error: "Dog not found" };
+  if (dog.schedule_type === "as_needed") {
+    return {
+      error:
+        "As-needed dogs are added from the Today or Tomorrow pages, not assigned to a route permanently.",
+    };
+  }
   if (dog.route_id === routeId) return { success: true };
 
   const previousRouteId = dog.route_id;

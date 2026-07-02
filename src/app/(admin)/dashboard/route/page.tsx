@@ -21,7 +21,7 @@ export default async function RouteOrderPage() {
     supabase
       .from("dogs")
       .select(
-        "id, name, route_id, route_sort_order, customers(owner_name), routes(name)"
+        "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
       )
       .eq("company_id", profile.company_id)
       .eq("is_active", true)
@@ -65,7 +65,9 @@ export default async function RouteOrderPage() {
               .sort((a, b) => a.route_sort_order - b.route_sort_order);
 
             const addableDogs = allDogs
-              .filter((d) => d.route_id !== route.id)
+              .filter(
+                (d) => d.route_id !== route.id && d.schedule_type !== "as_needed"
+              )
               .map((dog) => ({
                 id: dog.id,
                 name: dog.name,

@@ -115,6 +115,42 @@ export async function syncDropoffOrderFromPickupStops(
   return applyStopReorder(supabase, hikeId, "dropoff", desiredDropoffIds);
 }
 
+/** Append newly added dogs to the end of an existing daily pickup plan. */
+export async function appendNewDogsToDailyPlan(
+  supabase: SupabaseClient,
+  hikeId: string,
+  newDogIds: string[],
+  newDogsInAppendOrder: { id: string }[]
+): Promise<string | null> {
+  if (newDogIds.length === 0) return null;
+
+  const { data: pickupRows } = await supabase
+    .from("stops")
+    .select("id, dog_id, status, sort_order")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "pickup")
+    .order("sort_order");
+
+  const active = (pickupRows ?? []).filter(
+    (p) => p.status !== "cancelled" && p.status !== "skipped"
+  );
+
+  const newDogIdSet = new Set(newDogIds);
+  const existingOrdered = active
+    .filter((p) => !newDogIdSet.has(p.dog_id))
+    .map((p) => p.id);
+
+  const pickupByDogId = new Map(active.map((p) => [p.dog_id, p.id]));
+  const appendedIds = newDogsInAppendOrder
+    .map((dog) => pickupByDogId.get(dog.id))
+    .filter((id): id is string => id != null);
+
+  return applyPickupReorderWithReverseDropoff(supabase, hikeId, [
+    ...existingOrdered,
+    ...appendedIds,
+  ]);
+}
+
 /** Recompute pickup + drop-off sort_order without unique-constraint conflicts. */
 export async function resyncHikeStopSortOrders(
   supabase: SupabaseClient,

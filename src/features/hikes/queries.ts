@@ -32,6 +32,7 @@ const HIKE_SELECT = `
       name,
       breed,
       notes,
+      schedule_type,
       customers ( owner_name, phone, secondary_owner_name, secondary_phone, email, address, address_lat, address_lng, notes )
     )
   )

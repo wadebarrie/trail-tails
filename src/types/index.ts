@@ -13,6 +13,7 @@ export type {
   Company,
   Customer,
   Dog,
+  DogScheduleType,
   Profile,
   Stop,
   UserRole,

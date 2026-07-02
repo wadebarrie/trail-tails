@@ -5,11 +5,12 @@ import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { getCompanyTimezone } from "@/features/company/queries";
 import { getDateInTimezone } from "@/lib/dates";
-import { syncStopsForDate } from "@/features/hikes/sync-stops";
+import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
 import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
 } from "@/features/hikes/stop-order";
+import { one } from "@/lib/supabase/relations";
 
 function revalidateHikePaths() {
   revalidatePath("/dashboard");
@@ -216,4 +217,173 @@ export async function reorderDefaultRouteAction(orderedDogIds: string[]) {
 
   if (!route) return { error: "No routes configured" };
   return reorderRouteDogsAction(route.id, orderedDogIds);
+}
+
+/** Admin: add an as-needed dog to a specific route and date (one-day stops only). */
+export async function addAsNeededDogToDayAction(
+  routeId: string,
+  date: string,
+  dogId: string
+): Promise<{ success?: true; error?: string }> {
+  const profile = await requireRole("admin");
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { error: "Invalid date." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: route } = await supabase
+    .from("routes")
+    .select("id")
+    .eq("id", routeId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!route) return { error: "Route not found." };
+
+  const { data: dog } = await supabase
+    .from("dogs")
+    .select("id, schedule_type, is_active")
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!dog || !dog.is_active) return { error: "Dog not found." };
+  if (dog.schedule_type !== "as_needed") {
+    return { error: "Only as-needed dogs can be added this way. Assign recurring dogs on the Routes page." };
+  }
+
+  const { data: existingAssignment } = await supabase
+    .from("dog_day_assignments")
+    .select("id, route_id")
+    .eq("dog_id", dogId)
+    .eq("date", date)
+    .maybeSingle();
+
+  if (existingAssignment) {
+    if (existingAssignment.route_id === routeId) {
+      return { success: true };
+    }
+    return { error: "This dog is already scheduled on another route for that day." };
+  }
+
+  const { error: insertError } = await supabase.from("dog_day_assignments").insert({
+    company_id: profile.company_id,
+    dog_id: dogId,
+    route_id: routeId,
+    date,
+  });
+
+  if (insertError) return { error: insertError.message };
+
+  try {
+    await syncStopsForRouteDate(profile.company_id, routeId, date);
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Failed to create stops.",
+    };
+  }
+
+  revalidateHikePaths();
+  return { success: true };
+}
+
+/** Admin: update planned pickup window for a dog on a specific day's route plan. */
+export async function updateStopWindowAction(
+  stopId: string,
+  windowStart: string,
+  windowEnd: string
+): Promise<{ success?: true; error?: string }> {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: stop } = await supabase
+    .from("stops")
+    .select("id, hike_id, dog_id, hikes!inner ( company_id )")
+    .eq("id", stopId)
+    .maybeSingle();
+
+  if (!stop) return { error: "Stop not found." };
+
+  const hike = one(
+    stop.hikes as { company_id: string } | { company_id: string }[]
+  );
+  if (!hike || hike.company_id !== profile.company_id) {
+    return { error: "Stop not found." };
+  }
+
+  const { error } = await supabase
+    .from("stops")
+    .update({ window_start: windowStart, window_end: windowEnd })
+    .eq("hike_id", stop.hike_id)
+    .eq("dog_id", stop.dog_id);
+
+  if (error) return { error: error.message };
+
+  revalidateHikePaths();
+  return { success: true };
+}
+
+/** Admin: remove an as-needed dog from a specific day's route plan only. */
+export async function removeAsNeededDogFromDayAction(
+  routeId: string,
+  date: string,
+  dogId: string
+): Promise<{ success?: true; error?: string }> {
+  const profile = await requireRole("admin");
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { error: "Invalid date." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: dog } = await supabase
+    .from("dogs")
+    .select("id, schedule_type")
+    .eq("id", dogId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!dog) return { error: "Dog not found." };
+  if (dog.schedule_type !== "as_needed") {
+    return {
+      error:
+        "Only as-needed dogs can be removed from a daily plan this way. Use schedule exceptions for recurring dogs.",
+    };
+  }
+
+  const { data: assignment } = await supabase
+    .from("dog_day_assignments")
+    .select("id")
+    .eq("company_id", profile.company_id)
+    .eq("dog_id", dogId)
+    .eq("route_id", routeId)
+    .eq("date", date)
+    .maybeSingle();
+
+  if (!assignment) return { error: "Dog is not on this day's route plan." };
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id")
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId)
+    .eq("date", date)
+    .maybeSingle();
+
+  if (hike) {
+    await supabase.from("stops").delete().eq("hike_id", hike.id).eq("dog_id", dogId);
+  }
+
+  const { error } = await supabase
+    .from("dog_day_assignments")
+    .delete()
+    .eq("id", assignment.id);
+
+  if (error) return { error: error.message };
+
+  revalidateHikePaths();
+  return { success: true };
 }

@@ -1,5 +1,9 @@
 import { DriverSelect } from "@/features/hikes/components/driver-select";
 import {
+  HikeAddAsNeededDogSelect,
+  type AddableAsNeededDog,
+} from "@/features/hikes/components/hike-add-as-needed-dog-select";
+import {
   CompleteHikeButton,
   HikeStatusBadge,
 } from "@/features/hikes/components/complete-hike-button";
@@ -12,15 +16,19 @@ export function AdminHikeRouteSection({
   entry,
   drivers,
   dateLabel,
+  date,
+  addableAsNeededDogs = [],
 }: {
   entry: HikeWithRoute;
   drivers: Driver[];
   dateLabel?: string;
+  date?: string;
+  addableAsNeededDogs?: AddableAsNeededDog[];
 }) {
   const { route, hike } = entry;
-  if (!hike) return null;
-
-  const stops = hike.stops as Parameters<typeof HikeStopsSection>[0]["stops"];
+  const stops = (hike?.stops ?? []) as Parameters<
+    typeof HikeStopsSection
+  >[0]["stops"];
 
   return (
     <section className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 sm:p-6">
@@ -30,33 +38,59 @@ export function AdminHikeRouteSection({
           {dateLabel ? (
             <span className="text-sm text-stone-500">{dateLabel}</span>
           ) : null}
-          <HikeStatusBadge status={hike.status} />
+          {hike ? <HikeStatusBadge status={hike.status} /> : null}
         </div>
-        <CompleteHikeButton hikeId={hike.id} status={hike.status} />
+        {hike ? (
+          <CompleteHikeButton hikeId={hike.id} status={hike.status} />
+        ) : null}
       </div>
 
-      <div className="mt-4 mb-6">
-        <DriverSelect
-          hikeId={hike.id}
-          currentDriverId={hike.driver_id}
-          drivers={drivers}
-        />
-      </div>
+      {hike ? (
+        <div className="mt-4 mb-6">
+          <DriverSelect
+            hikeId={hike.id}
+            currentDriverId={hike.driver_id}
+            drivers={drivers}
+          />
+        </div>
+      ) : null}
 
-      <div className="space-y-10">
-        <HikeStopsSection
-          hikeId={hike.id}
-          stopType="pickup"
-          title="Morning pickups"
-          stops={stops}
-        />
-        <HikeStopsSection
-          hikeId={hike.id}
-          stopType="dropoff"
-          title="Afternoon drop-offs"
-          stops={stops}
-        />
-      </div>
+      {date && addableAsNeededDogs.length > 0 ? (
+        <div className={hike ? "mb-6" : "mt-4"}>
+          <p className="mb-2 text-sm text-stone-600">
+            Book an as-needed dog onto this day&apos;s route plan. This does not
+            change their long-term schedule.
+          </p>
+          <HikeAddAsNeededDogSelect
+            routeId={route.id}
+            date={date}
+            dogs={addableAsNeededDogs}
+          />
+        </div>
+      ) : null}
+
+      {hike ? (
+        <div className="space-y-10">
+          <HikeStopsSection
+            hikeId={hike.id}
+            routeId={route.id}
+            date={date}
+            stopType="pickup"
+            title="Morning pickups"
+            stops={stops}
+          />
+          <HikeStopsSection
+            hikeId={hike.id}
+            routeId={route.id}
+            date={date}
+            stopType="dropoff"
+            title="Afternoon drop-offs"
+            stops={stops}
+          />
+        </div>
+      ) : (
+        <p className="mt-4 text-sm text-stone-500">No dogs scheduled yet.</p>
+      )}
     </section>
   );
 }

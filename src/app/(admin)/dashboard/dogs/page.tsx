@@ -23,19 +23,20 @@ export default async function DogsPage({
 
   const base = supabase
     .from("dogs")
-    .select(
-      `
+      .select(
+        `
       id,
       name,
       breed,
       is_active,
+      schedule_type,
       pickup_window_start,
       pickup_window_end,
       route_sort_order,
       customers ( owner_name ),
       dog_schedule_days ( day_of_week )
     `
-    )
+      )
     .eq("company_id", profile.company_id)
     .order("route_sort_order");
 
@@ -80,6 +81,8 @@ export default async function DogsPage({
                   .map((d) => WEEKDAYS.find((w) => w.value === d.day_of_week)?.label)
                   .filter(Boolean)
                   .join(", ");
+                const scheduleLabel =
+                  dog.schedule_type === "as_needed" ? "As-needed" : days || "—";
 
                 return (
                   <tr key={dog.id} className="hover:bg-stone-50">
@@ -101,7 +104,7 @@ export default async function DogsPage({
                       {formatTime(dog.pickup_window_start)}–
                       {formatTime(dog.pickup_window_end)}
                     </td>
-                    <td className="px-4 py-3 text-stone-600">{days || "—"}</td>
+                    <td className="px-4 py-3 text-stone-600">{scheduleLabel}</td>
                     <td className="px-4 py-3">
                       <Badge tone={dog.is_active ? "green" : "neutral"}>
                         {dog.is_active ? "Active" : "Inactive"}

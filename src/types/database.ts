@@ -144,6 +144,8 @@ export interface Customer {
   updated_at: string;
 }
 
+export type DogScheduleType = "recurring" | "as_needed";
+
 export interface Dog {
   id: string;
   company_id: string;
@@ -153,12 +155,22 @@ export interface Dog {
   breed: string | null;
   notes: string | null;
   is_active: boolean;
+  schedule_type: DogScheduleType;
   pickup_window_start: string;
   pickup_window_end: string;
   route_sort_order: number;
   hike_rate_cents: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DogDayAssignment {
+  id: string;
+  company_id: string;
+  dog_id: string;
+  route_id: string;
+  date: string;
+  created_at: string;
 }
 
 export interface DogScheduleDay {
@@ -283,6 +295,7 @@ export interface Database {
       customers: TableDef<Customer>;
       dogs: TableDef<Dog>;
       dog_schedule_days: TableDef<DogScheduleDay>;
+      dog_day_assignments: TableDef<DogDayAssignment>;
       schedule_exceptions: TableDef<ScheduleException>;
       hikes: TableDef<Hike>;
       stops: TableDef<Stop>;
@@ -302,6 +315,7 @@ export interface Database {
       request_status: RequestStatus;
       sms_direction: SmsDirection;
       notification_type: NotificationType;
+      dog_schedule_type: DogScheduleType;
     };
     CompositeTypes: Record<string, never>;
   };

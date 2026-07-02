@@ -14,11 +14,12 @@ import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
 import { optionalUuidLike, uuidLike } from "@/lib/validation";
 import { one } from "@/lib/supabase/relations";
-import type { ExceptionType } from "@/types";
+import type { DogScheduleType, ExceptionType } from "@/types";
 
 const dogSchema = z.object({
   customer_id: uuidLike,
   route_id: optionalUuidLike,
+  schedule_type: z.enum(["recurring", "as_needed"]).default("recurring"),
   name: z.string().min(1, "Dog name is required"),
   breed: z.string().optional(),
   notes: z.string().optional(),
@@ -48,14 +49,16 @@ export async function createDogAction(
   }
 
   const supabase = await createClient();
+  const isAsNeeded = parsed.data.schedule_type === "as_needed";
+  const routeId = isAsNeeded ? null : parsed.data.route_id;
 
   const sortOrder =
-    parsed.data.route_id != null
+    routeId != null
       ? ((
           await supabase
             .from("dogs")
             .select("*", { count: "exact", head: true })
-            .eq("route_id", parsed.data.route_id)
+            .eq("route_id", routeId)
         ).count ?? 0)
       : 0;
 
@@ -64,7 +67,8 @@ export async function createDogAction(
     .insert({
       company_id: profile.company_id,
       customer_id: parsed.data.customer_id,
-      route_id: parsed.data.route_id,
+      route_id: routeId,
+      schedule_type: parsed.data.schedule_type as DogScheduleType,
       name: parsed.data.name,
       breed: parsed.data.breed || null,
       notes: parsed.data.notes || null,
@@ -79,14 +83,16 @@ export async function createDogAction(
 
   if (error || !dog) return { error: error?.message ?? "Failed to create dog" };
 
-  const days = parseScheduleDays(parsed.data.schedule_days);
-  if (days.length > 0) {
-    await supabase.from("dog_schedule_days").insert(
-      days.map((day_of_week) => ({ dog_id: dog.id, day_of_week }))
-    );
+  if (!isAsNeeded) {
+    const days = parseScheduleDays(parsed.data.schedule_days);
+    if (days.length > 0) {
+      await supabase.from("dog_schedule_days").insert(
+        days.map((day_of_week) => ({ dog_id: dog.id, day_of_week }))
+      );
+    }
   }
 
-  if (parsed.data.route_id && parsed.data.is_active !== false) {
+  if (routeId && parsed.data.is_active !== false) {
     await syncStopsForTodayAndTomorrow(profile.company_id);
     revalidatePath("/dashboard/hikes/today");
     revalidatePath("/dashboard/hikes/tomorrow");
@@ -111,12 +117,22 @@ export async function updateDogAction(
   }
 
   const supabase = await createClient();
+  const isAsNeeded = parsed.data.schedule_type === "as_needed";
+  const routeId = isAsNeeded ? null : parsed.data.route_id;
+
+  const { data: existing } = await supabase
+    .from("dogs")
+    .select("route_id")
+    .eq("id", id)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
 
   const { error } = await supabase
     .from("dogs")
     .update({
       customer_id: parsed.data.customer_id,
-      route_id: parsed.data.route_id,
+      route_id: routeId,
+      schedule_type: parsed.data.schedule_type as DogScheduleType,
       name: parsed.data.name,
       breed: parsed.data.breed || null,
       notes: parsed.data.notes || null,
@@ -131,14 +147,20 @@ export async function updateDogAction(
 
   await supabase.from("dog_schedule_days").delete().eq("dog_id", id);
 
-  const days = parseScheduleDays(parsed.data.schedule_days);
-  if (days.length > 0) {
-    await supabase.from("dog_schedule_days").insert(
-      days.map((day_of_week) => ({ dog_id: id, day_of_week }))
-    );
+  if (!isAsNeeded) {
+    const days = parseScheduleDays(parsed.data.schedule_days);
+    if (days.length > 0) {
+      await supabase.from("dog_schedule_days").insert(
+        days.map((day_of_week) => ({ dog_id: id, day_of_week }))
+      );
+    }
   }
 
-  if (parsed.data.route_id) {
+  const routesToSync = new Set<string>();
+  if (existing?.route_id) routesToSync.add(existing.route_id);
+  if (routeId) routesToSync.add(routeId);
+
+  if (routesToSync.size > 0 || isAsNeeded) {
     await syncStopsForTodayAndTomorrow(profile.company_id);
     revalidatePath("/dashboard/hikes/today");
     revalidatePath("/dashboard/hikes/tomorrow");

@@ -14,7 +14,10 @@ export function ScheduleDaysField({ defaultDays = [] }: { defaultDays?: number[]
 
   return (
     <div>
-      <p className="text-sm font-medium text-stone-700">Schedule days</p>
+      <p className="text-sm font-medium text-stone-700">Expected availability</p>
+      <p className="mt-0.5 text-xs text-stone-500">
+        Typical days this dog is available — not the daily route plan.
+      </p>
       <div className="mt-2 flex flex-wrap gap-3">
         {WEEKDAYS.map((day) => (
           <label key={day.value} className="flex items-center gap-1.5 text-sm">

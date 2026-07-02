@@ -7,6 +7,7 @@ import {
   getHikesNeedingCloseOut,
   getHikesWithStopsForDate,
 } from "@/features/hikes/queries";
+import { listAddableAsNeededDogsForRouteDate } from "@/features/dogs/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 
@@ -30,6 +31,19 @@ export default async function TodayHikesPage() {
     .order("full_name");
 
   const withStops = hikes.filter((h) => (h.hike?.stops?.length ?? 0) > 0);
+  const runningRoutes = hikes;
+  const addableByRouteId = new Map(
+    await Promise.all(
+      runningRoutes.map(async (entry) => [
+        entry.route.id,
+        await listAddableAsNeededDogsForRouteDate(
+          profile.company_id,
+          entry.route.id,
+          date
+        ),
+      ] as const)
+    )
+  );
   const openCloseOut = closeOutHikes.filter(
     (h) => h.hike && (h.hike.stops?.length ?? 0) > 0
   );
@@ -38,7 +52,7 @@ export default async function TodayHikesPage() {
     <div>
       <PageHeader
         title="Today"
-        description={formatDateLabel(date, tz)}
+        description={`${formatDateLabel(date, tz)} — build and adjust today's route plan without changing dogs' long-term schedules.`}
         action={<SyncRoutesButton offsetDays={0} />}
       />
 
@@ -64,18 +78,27 @@ export default async function TodayHikesPage() {
         </section>
       ) : null}
 
-      {withStops.length > 0 ? (
+      {runningRoutes.length > 0 ? (
         <div className="space-y-8">
-          {withStops.map((entry) => (
+          {runningRoutes.map((entry) => (
             <AdminHikeRouteSection
               key={entry.route.id}
               entry={entry}
               drivers={drivers ?? []}
+              date={date}
+              addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}
             />
           ))}
         </div>
       ) : openCloseOut.length === 0 ? (
         <EmptyState message="No hikes scheduled for today." />
+      ) : null}
+
+      {withStops.length === 0 && runningRoutes.length > 0 && openCloseOut.length === 0 ? (
+        <p className="mt-4 text-sm text-stone-500">
+          No dogs on today&apos;s routes yet. Add as-needed dogs above, or sync
+          routes after schedule changes.
+        </p>
       ) : null}
     </div>
   );

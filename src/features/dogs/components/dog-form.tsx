@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createDogAction, updateDogAction } from "@/features/dogs/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
-import type { Customer, Dog, Route } from "@/types";
+import { ScheduleTypeField } from "@/features/dogs/components/schedule-type-field";
+import type { Customer, Dog, DogScheduleType, Route } from "@/types";
 
 type DogFormProps = {
   customers: Pick<Customer, "id" | "owner_name">[];
@@ -16,6 +17,10 @@ type DogFormProps = {
 export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormProps) {
   const action = dog ? updateDogAction.bind(null, dog.id) : createDogAction;
   const [state, formAction, pending] = useActionState(action, {} as { error?: string });
+  const [scheduleType, setScheduleType] = useState<DogScheduleType>(
+    dog?.schedule_type ?? "recurring"
+  );
+  const isAsNeeded = scheduleType === "as_needed";
 
   return (
     <form action={formAction} className="max-w-lg space-y-4">
@@ -45,46 +50,61 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
         </select>
       </div>
 
-      <div>
-        <label htmlFor="route_id" className="block text-sm font-medium text-stone-700">
-          Route
-        </label>
-        <select
-          id="route_id"
-          name="route_id"
-          defaultValue={dog?.route_id ?? ""}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
-        >
-          <option value="">Unassigned</option>
-          {routes.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ScheduleTypeField value={scheduleType} onChange={setScheduleType} />
+
+      {!isAsNeeded ? (
+        <div>
+          <label htmlFor="route_id" className="block text-sm font-medium text-stone-700">
+            Route
+          </label>
+          <select
+            id="route_id"
+            name="route_id"
+            defaultValue={dog?.route_id ?? ""}
+            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+          >
+            <option value="">Unassigned</option>
+            {routes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
 
       <Field label="Dog name" name="name" defaultValue={dog?.name} required />
       <Field label="Breed" name="breed" defaultValue={dog?.breed ?? ""} />
 
       <div className="grid grid-cols-2 gap-4">
         <Field
-          label="Pickup window start"
+          label="Default pickup window start"
           name="pickup_window_start"
           type="time"
           defaultValue={dog?.pickup_window_start ?? "08:00"}
           required
         />
         <Field
-          label="Pickup window end"
+          label="Default pickup window end"
           name="pickup_window_end"
           type="time"
           defaultValue={dog?.pickup_window_end ?? "08:30"}
           required
         />
       </div>
+      <p className="-mt-2 text-xs text-stone-500">
+        Starting point when building a daily route plan. Adjust planned ETAs on
+        the Today or Tomorrow pages.
+      </p>
 
-      <ScheduleDaysField defaultDays={scheduleDays} />
+      {!isAsNeeded ? <ScheduleDaysField defaultDays={scheduleDays} /> : null}
+
+      {isAsNeeded ? (
+        <p className="rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-600">
+          As-needed dogs are booked onto specific days from the Today or Tomorrow
+          pages. That daily route plan does not change their profile.
+        </p>
+      ) : null}
 
       <Field
         label="Hike rate ($)"

@@ -1,7 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
 import { perfAsync } from "@/lib/perf";
-import { resyncHikeStopSortOrders } from "@/features/hikes/stop-order";
+import { resyncHikeStopSortOrders, appendNewDogsToDailyPlan } from "@/features/hikes/stop-order";
 import type { StopType } from "@/types";
 
 type ExceptionRow = {
@@ -24,6 +24,7 @@ function isBlockedByException(
 
 type DogSchedule = {
   id: string;
+  schedule_type: "recurring" | "as_needed";
   pickup_window_start: string;
   pickup_window_end: string;
   route_sort_order: number;
@@ -127,7 +128,14 @@ export async function syncStopsForTodayAndTomorrow(companyId: string) {
   ]);
 }
 
-/** Add/cancel stops for one route on one date. */
+/** Add/cancel stops for one route on one date.
+ *
+ * Daily route model:
+ * - Recurring dogs on a route are the default pool when a route runs.
+ * - As-needed dogs appear only via dog_day_assignments for that date.
+ * - Stops (order + pickup windows) are the daily route plan / manifest.
+ * - Sync adds missing stops but preserves an existing daily plan's order and ETAs.
+ */
 export async function syncStopsForRouteDate(
   companyId: string,
   routeId: string,
@@ -174,11 +182,12 @@ export async function syncStopsForRouteDate(
 
   const hikeId = await ensureHikeRow(companyId, routeId, date);
 
-  const { data: dogs } = await supabase
+  const { data: recurringDogs } = await supabase
     .from("dogs")
     .select(
       `
       id,
+      schedule_type,
       pickup_window_start,
       pickup_window_end,
       route_sort_order,
@@ -187,10 +196,44 @@ export async function syncStopsForRouteDate(
     )
     .eq("company_id", companyId)
     .eq("route_id", routeId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("schedule_type", "recurring");
 
-  const scheduledDogs = (dogs ?? []) as DogSchedule[];
-  // Dogs on a route run when the route runs — route schedule is the source of truth.
+  const { data: assignmentRows } = await supabase
+    .from("dog_day_assignments")
+    .select("dog_id")
+    .eq("company_id", companyId)
+    .eq("route_id", routeId)
+    .eq("date", date);
+
+  const assignedDogIds = (assignmentRows ?? []).map((row) => row.dog_id);
+
+  const { data: asNeededDogs } =
+    assignedDogIds.length > 0
+      ? await supabase
+          .from("dogs")
+          .select(
+            `
+            id,
+            schedule_type,
+            pickup_window_start,
+            pickup_window_end,
+            route_sort_order,
+            dog_schedule_days ( day_of_week )
+          `
+          )
+          .eq("company_id", companyId)
+          .eq("is_active", true)
+          .eq("schedule_type", "as_needed")
+          .in("id", assignedDogIds)
+      : { data: [] };
+
+  const scheduledDogs = [
+    ...((recurringDogs ?? []) as DogSchedule[]),
+    ...((asNeededDogs ?? []) as DogSchedule[]),
+  ];
+  // Recurring dogs on a route run when the route runs. As-needed dogs run only
+  // when manually assigned for a specific date (dog_day_assignments).
 
   const dogIds = scheduledDogs.map((d) => d.id);
 
@@ -213,6 +256,20 @@ export async function syncStopsForRouteDate(
     .select("id, dog_id, stop_type, status")
     .eq("hike_id", hikeId);
 
+  const existingDogIdsBefore = new Set(
+    (existingStops ?? []).map((stop) => stop.dog_id)
+  );
+
+  const { data: existingPickupStops } = await supabase
+    .from("stops")
+    .select("id, status")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "pickup");
+
+  const hadDailyPlan = (existingPickupStops ?? []).some(
+    (stop) => stop.status !== "cancelled" && stop.status !== "skipped"
+  );
+
   for (const stop of existingStops ?? []) {
     if (!eligibleIds.has(stop.dog_id)) {
       await supabase.from("stops").delete().eq("id", stop.id);
@@ -220,9 +277,12 @@ export async function syncStopsForRouteDate(
   }
 
   const eligibleDogs = scheduledDogs.filter((d) => eligibleIds.has(d.id));
-  const sortedEligible = [...eligibleDogs].sort(
-    (a, b) => a.route_sort_order - b.route_sort_order
-  );
+  const sortedEligible = [...eligibleDogs].sort((a, b) => {
+    const aRecurring = a.schedule_type === "recurring" ? 0 : 1;
+    const bRecurring = b.schedule_type === "recurring" ? 0 : 1;
+    if (aRecurring !== bRecurring) return aRecurring - bRecurring;
+    return a.route_sort_order - b.route_sort_order;
+  });
   const pickupIndexByDogId = new Map(
     sortedEligible.map((dog, index) => [dog.id, index])
   );
@@ -265,12 +325,24 @@ export async function syncStopsForRouteDate(
     }
   }
 
-  const sortError = await resyncHikeStopSortOrders(
-    supabase,
-    hikeId,
-    sortedEligible
-  );
-  if (sortError) throw new Error(sortError);
+  const newDogs = sortedEligible.filter((dog) => !existingDogIdsBefore.has(dog.id));
+
+  if (hadDailyPlan) {
+    const appendError = await appendNewDogsToDailyPlan(
+      supabase,
+      hikeId,
+      newDogs.map((dog) => dog.id),
+      newDogs
+    );
+    if (appendError) throw new Error(appendError);
+  } else {
+    const sortError = await resyncHikeStopSortOrders(
+      supabase,
+      hikeId,
+      sortedEligible
+    );
+    if (sortError) throw new Error(sortError);
+  }
 
   return hikeId;
 }
