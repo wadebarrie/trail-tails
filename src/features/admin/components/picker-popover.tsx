@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { pickerPopoverClassName } from "@/features/admin/components/picker-styles";
 
 type PickerPopoverProps = {
   trigger: (props: {
@@ -74,7 +75,7 @@ export function PickerPopover({
           role="dialog"
           aria-modal="false"
           aria-labelledby={buttonId}
-          className={`absolute z-50 mt-1 rounded-xl border border-stone-200 bg-white p-3 shadow-lg ${
+          className={`absolute z-50 mt-1 ${pickerPopoverClassName} ${
             align === "end" ? "right-0" : "left-0"
           }`}
         >

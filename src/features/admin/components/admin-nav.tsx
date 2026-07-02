@@ -54,8 +54,8 @@ function NavLabel({
 
 function desktopLinkClass(active: boolean) {
   return active
-    ? "rounded-lg bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-sm"
-    : "rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-[var(--color-trail-800)]";
+    ? "rounded-[var(--radius-surface)] bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-[var(--elevation-1)]"
+    : "rounded-[var(--radius-surface)] px-3 py-2 text-stone-600 motion-interactive hover:bg-white/50 hover:text-[var(--color-trail-800)]";
 }
 
 function mobileTabClass(active: boolean) {
@@ -66,8 +66,8 @@ function mobileTabClass(active: boolean) {
 
 function sheetLinkClass(active: boolean) {
   return active
-    ? "rounded-lg bg-[var(--color-trail-50)] px-3 py-3 font-medium text-[var(--color-trail-800)] ring-1 ring-[var(--color-trail-600)]"
-    : "rounded-lg px-3 py-3 text-stone-700 hover:bg-stone-50";
+    ? "rounded-[var(--radius-surface)] bg-[var(--color-trail-50)] px-3 py-3 font-medium text-[var(--color-trail-800)] ring-1 ring-[var(--color-trail-600)]"
+    : "rounded-[var(--radius-surface)] px-3 py-3 text-stone-700 motion-interactive hover:bg-white/60";
 }
 
 function NavDropdown({
@@ -118,8 +118,8 @@ function NavDropdown({
         onClick={() => setOpen((value) => !value)}
         className={`inline-flex items-center gap-1.5 ${
           active
-            ? "rounded-lg bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-sm"
-            : "rounded-lg px-3 py-2 text-stone-600 hover:bg-stone-100 hover:text-[var(--color-trail-800)]"
+            ? "rounded-[var(--radius-surface)] bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-[var(--elevation-1)]"
+            : "rounded-[var(--radius-surface)] px-3 py-2 text-stone-600 motion-interactive hover:bg-white/50 hover:text-[var(--color-trail-800)]"
         }`}
       >
         <span>{group.label}</span>
@@ -142,7 +142,7 @@ function NavDropdown({
         <div
           id={menuId}
           role="menu"
-          className="absolute left-0 top-full z-50 mt-1 min-w-[12rem] rounded-xl border border-stone-200 bg-white py-1 shadow-lg"
+          className="motion-popover absolute left-0 top-full z-50 mt-1 min-w-[12rem] surface-glass-strong py-1"
         >
           {group.items.map((item) => {
             const itemActive = isNavActive(pathname, item.href);
@@ -155,7 +155,7 @@ function NavDropdown({
                 className={`flex items-center justify-between gap-2 px-3 py-2.5 text-sm ${
                   itemActive
                     ? "bg-[var(--color-trail-50)] font-medium text-[var(--color-trail-800)]"
-                    : "text-stone-700 hover:bg-stone-50"
+                    : "text-stone-700 motion-interactive hover:bg-white/60"
                 }`}
                 onClick={() => setOpen(false)}
               >
@@ -212,7 +212,7 @@ function MobileSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-2xl bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl"
+        className="motion-sheet absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-[var(--radius-card)] surface-glass-strong px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[var(--elevation-3)]"
       >
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-stone-200" />
         <h2 id={titleId} className="mb-4 text-sm font-semibold text-stone-900">
@@ -321,7 +321,7 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
 
       {/* Mobile bottom bar */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 surface-glass border-t border-[var(--glass-border-subtle)] pb-[env(safe-area-inset-bottom)] md:hidden"
         aria-label="Admin mobile navigation"
       >
         <div className="flex items-stretch">

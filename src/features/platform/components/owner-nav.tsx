@@ -15,7 +15,7 @@ export function OwnerNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-stone-200 pb-px">
+    <nav className="flex gap-1 overflow-x-auto border-b border-[var(--glass-border-subtle)] pb-px">
       {NAV_ITEMS.map((item) => {
         const active =
           "exact" in item && item.exact
@@ -26,10 +26,10 @@ export function OwnerNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`whitespace-nowrap rounded-t-lg px-3 py-2 text-sm font-medium transition-colors ${
+            className={`whitespace-nowrap rounded-t-[var(--radius-surface)] px-3 py-2 text-sm font-medium motion-interactive ${
               active
-                ? "border border-b-0 border-stone-200 bg-white text-[var(--color-trail-800)]"
-                : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                ? "surface-glass-strong border border-b-0 border-[var(--glass-border-subtle)] text-[var(--color-trail-800)]"
+                : "text-stone-600 hover:bg-white/50 hover:text-stone-900"
             }`}
           >
             {item.label}

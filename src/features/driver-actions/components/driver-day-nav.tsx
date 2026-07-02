@@ -9,7 +9,7 @@ export function DriverDayNav({ active }: { active: "today" | "tomorrow" }) {
   return (
     <nav
       aria-label="Schedule day"
-      className="mb-6 flex gap-2 rounded-xl bg-white/5 p-1"
+      className="mb-6 flex gap-2 rounded-[var(--radius-card)] surface-glass-dark p-1"
     >
       {tabs.map((tab) => {
         const isActive =
@@ -20,9 +20,9 @@ export function DriverDayNav({ active }: { active: "today" | "tomorrow" }) {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`flex-1 rounded-lg py-2.5 text-center text-sm font-medium transition ${
+            className={`flex-1 rounded-[var(--radius-surface)] py-2.5 text-center text-sm font-medium motion-interactive ${
               isActive
-                ? "bg-white text-[var(--color-trail-800)] shadow-sm"
+                ? "bg-white text-[var(--color-trail-800)] shadow-[var(--elevation-1)]"
                 : "text-white/70 hover:text-white"
             }`}
             aria-current={isActive ? "page" : undefined}

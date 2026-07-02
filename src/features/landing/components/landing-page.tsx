@@ -58,7 +58,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function LandingPage() {
   return (
-    <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
+    <div className="min-h-dvh bg-atmosphere-hero text-stone-900">
       <LandingHeader />
 
       <main id="main-content">
@@ -66,7 +66,7 @@ export function LandingPage() {
       <section className="relative overflow-hidden">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-trail-100)_0%,_transparent_55%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_color-mix(in_srgb,var(--color-sky-200)_40%,transparent)_0%,_transparent_55%)]"
         />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
@@ -100,7 +100,7 @@ export function LandingPage() {
       </section>
 
       {/* Problem */}
-      <section className="border-y border-stone-200/80 bg-white py-16 sm:py-20">
+      <section className="border-y border-[var(--glass-border-subtle)] surface-glass py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-semibold text-[var(--color-trail-800)] sm:text-4xl">
             Your business is not a regular dog walking business.
@@ -155,7 +155,7 @@ export function LandingPage() {
             ].map((item) => (
               <li
                 key={item.title}
-                className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+                className="surface-elevated rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-3)]"
               >
                 <h3 className="font-semibold text-[var(--color-trail-800)]">
                   {item.title}
@@ -195,7 +195,7 @@ export function LandingPage() {
             ].map((item) => (
               <div
                 key={item.role}
-                className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm"
+                className="surface-elevated rounded-[var(--radius-card)] p-6 motion-interactive hover:shadow-[var(--elevation-3)]"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-trail-100)] text-sm font-semibold text-[var(--color-trail-700)]">
                   {item.role.charAt(0)}
@@ -213,7 +213,7 @@ export function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="scroll-mt-20 bg-white py-16 sm:py-20">
+      <section id="features" className="scroll-mt-20 surface-glass py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
             <SectionLabel>Features</SectionLabel>
@@ -229,7 +229,7 @@ export function LandingPage() {
             {FEATURES.map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-2xl border border-stone-200 bg-[var(--color-trail-50)] p-5"
+                className="surface-card rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-2)]"
               >
                 <h3 className="font-semibold text-[var(--color-trail-800)]">
                   {feature.title}
@@ -265,7 +265,7 @@ export function LandingPage() {
       </section>
 
       {/* Driver teaser */}
-      <section className="bg-[var(--color-trail-800)] py-16 text-white sm:py-20">
+      <section className="bg-atmosphere-driver py-16 text-white sm:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
           <DriverMobileMock />
           <div className="lg:order-first">
@@ -298,7 +298,7 @@ export function LandingPage() {
       </section>
 
       {/* Admin teaser */}
-      <section className="bg-white py-16 sm:py-20">
+      <section className="surface-glass py-16 sm:py-20">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
           <div>
             <SectionLabel>Office dashboard</SectionLabel>
@@ -322,7 +322,7 @@ export function LandingPage() {
       </section>
 
       {/* Billing */}
-      <section className="border-y border-stone-200/80 bg-[var(--color-trail-50)] py-16 sm:py-20">
+      <section className="border-y border-[var(--glass-border-subtle)] bg-atmosphere py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <SectionLabel>Billing</SectionLabel>
           <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
@@ -346,7 +346,7 @@ export function LandingPage() {
           <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
             Common questions
           </h2>
-          <dl className="mt-8 divide-y divide-stone-200 rounded-2xl border border-stone-200 bg-white">
+          <dl className="mt-8 divide-y divide-stone-200 surface-elevated overflow-hidden rounded-[var(--radius-card)]">
             {FAQ.map((item) => (
               <details key={item.q} className="group px-5 py-4">
                 <summary className="cursor-pointer list-none font-medium text-stone-900 marker:content-none [&::-webkit-details-marker]:hidden">
@@ -385,7 +385,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-8 rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm sm:p-8">
+          <div className="mt-8 rounded-[var(--radius-card)] border border-white/15 surface-glass-dark p-6 sm:p-8">
             <ContactForm variant="dark" />
           </div>
 

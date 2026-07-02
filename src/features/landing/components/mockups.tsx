@@ -1,7 +1,7 @@
 function MockWindow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-2xl shadow-stone-900/10">
-      <div className="flex items-center gap-2 border-b border-stone-100 bg-stone-50 px-4 py-3">
+    <div className="surface-elevated overflow-hidden rounded-[var(--radius-card)] shadow-[var(--elevation-3)]">
+      <div className="flex items-center gap-2 border-b border-[var(--glass-border-subtle)] bg-[var(--color-surface-subtle)]/80 px-4 py-3 backdrop-blur-sm">
         <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
         <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
         <span className="h-2.5 w-2.5 rounded-full bg-green-300" />
@@ -62,7 +62,7 @@ export function HeroDashboardMock() {
           {routes.map((route) => (
             <div
               key={route.name}
-              className="rounded-xl border border-stone-200 bg-white p-3 shadow-sm"
+              className="surface-card rounded-[var(--radius-surface)] p-3 motion-interactive hover:shadow-[var(--elevation-2)]"
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-stone-900">{route.name}</p>
@@ -84,7 +84,7 @@ export function HeroDashboardMock() {
           ))}
         </div>
 
-        <div className="mt-4 rounded-xl border border-stone-200 bg-white p-3">
+        <div className="mt-4 surface-card rounded-[var(--radius-surface)] p-3">
           <p className="text-xs font-medium text-stone-500">Recent activity</p>
           <ul className="mt-2 space-y-1.5 text-xs text-stone-600">
             <li>Cooper picked up · Burnaby route</li>
@@ -384,7 +384,7 @@ export function AdminDashboardMock() {
         role="img"
         aria-label="Preview of the PackRoute admin dashboard with route status, billing summary, and notification activity"
       >
-        <div className="rounded-xl border border-stone-200 bg-white p-4 sm:col-span-2">
+        <div className="surface-card rounded-[var(--radius-surface)] p-4 sm:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-semibold text-stone-900">Today&apos;s operations</p>
             <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
@@ -403,14 +403,12 @@ export function AdminDashboardMock() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-sm font-semibold text-stone-900">Billing period</p>
+        <div className="surface-card rounded-[var(--radius-surface)] p-4">          <p className="text-sm font-semibold text-stone-900">Billing period</p>
           <p className="mt-2 text-2xl font-semibold text-[var(--color-trail-700)]">142</p>
           <p className="text-xs text-stone-500">Completed hikes · export CSV</p>
         </div>
 
-        <div className="rounded-xl border border-stone-200 bg-white p-4">
-          <p className="text-sm font-semibold text-stone-900">Notifications</p>
+        <div className="surface-card rounded-[var(--radius-surface)] p-4">          <p className="text-sm font-semibold text-stone-900">Notifications</p>
           <ul className="mt-2 space-y-1 text-xs text-stone-600">
             <li>Night-before reminders sent</li>
             <li>12 ETA texts today</li>

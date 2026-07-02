@@ -73,7 +73,7 @@ export function DriverCustomerInfoSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="driver-customer-info-title"
-        className="relative z-10 max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-[var(--color-trail-800)] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl"
+        className="motion-sheet relative z-10 max-h-[85dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-card)] surface-glass-dark border border-white/10 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 shadow-[var(--elevation-3)]"
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/20" aria-hidden />
 
@@ -170,7 +170,7 @@ export function DriverCustomerInfoSheet({
             href={directionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 flex min-h-12 w-full items-center justify-center rounded-2xl bg-white/10 text-sm font-semibold text-white transition hover:bg-white/15 active:scale-[0.98]"
+            className="mt-6 flex min-h-12 w-full items-center justify-center rounded-[var(--radius-card)] bg-white/10 text-sm font-semibold text-white motion-interactive hover:bg-white/15 active:scale-[0.98]"
           >
             Open in Maps
           </a>

@@ -3,9 +3,9 @@ import {
   primaryButtonClassName,
   secondaryButtonClassName,
 } from "@/features/admin/components/button-styles";
+import { inputClassName } from "@/features/admin/components/form-styles";
 
-const inputClassName =
-  "w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-[var(--color-trail-600)] focus:outline-none focus:ring-2 focus:ring-[var(--color-trail-600)]/20";
+export { inputClassName };
 
 export function TableShell({
   children,
@@ -17,7 +17,7 @@ export function TableShell({
   return (
     <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
       <div
-        className="overflow-hidden rounded-xl border border-stone-200 bg-white"
+        className="surface-glass-strong overflow-hidden rounded-[var(--radius-card)]"
         style={{ minWidth }}
       >
         {children}
@@ -57,7 +57,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-xl border border-stone-200 bg-white p-5 shadow-sm ${className}`}
+      className={`surface-elevated rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-3)] ${className}`}
     >
       {children}
     </div>
@@ -72,14 +72,14 @@ export function Badge({
   tone?: "neutral" | "green" | "amber" | "red";
 }) {
   const tones = {
-    neutral: "bg-stone-100 text-stone-700",
-    green: "bg-green-100 text-green-800",
-    amber: "bg-amber-100 text-amber-800",
-    red: "bg-red-100 text-red-800",
+    neutral: "bg-stone-100/90 text-stone-700 ring-1 ring-[var(--glass-border-subtle)]",
+    green: "bg-green-100/90 text-green-800 ring-1 ring-green-200/60",
+    amber: "bg-amber-100/90 text-amber-900 ring-1 ring-amber-200/60",
+    red: "bg-red-100/90 text-red-800 ring-1 ring-red-200/60",
   };
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${tones[tone]}`}
+      className={`inline-flex rounded-[var(--radius-pill)] px-2.5 py-0.5 text-xs font-medium backdrop-blur-sm ${tones[tone]}`}
     >
       {children}
     </span>
@@ -88,7 +88,7 @@ export function Badge({
 
 export function EmptyState({ message }: { message: string }) {
   return (
-    <p className="rounded-xl border border-dashed border-stone-300 bg-white px-6 py-12 text-center text-stone-500">
+    <p className="surface-card rounded-[var(--radius-card)] border-dashed px-6 py-12 text-center text-stone-500">
       {message}
     </p>
   );
