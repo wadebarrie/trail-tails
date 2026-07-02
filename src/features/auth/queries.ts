@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { perfAsync } from "@/lib/perf";
@@ -5,7 +6,7 @@ import type { Profile, UserRole } from "@/types";
 import { AUTH_ROUTES, getHomeRouteForRole } from "./constants";
 import { canAccessAdmin, canAccessDriver } from "./access";
 
-export async function getCurrentUser() {
+const getCurrentUserCached = cache(async () => {
   return perfAsync("auth session lookup", async () => {
     const supabase = await createClient();
     const {
@@ -16,9 +17,13 @@ export async function getCurrentUser() {
     if (error || !user) return null;
     return user;
   });
+});
+
+export async function getCurrentUser() {
+  return getCurrentUserCached();
 }
 
-export async function getCurrentProfile(): Promise<Profile | null> {
+const getCurrentProfileCached = cache(async (): Promise<Profile | null> => {
   return perfAsync("auth profile lookup", async () => {
     const user = await getCurrentUser();
     if (!user) return null;
@@ -37,6 +42,10 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       is_platform_owner: (profile as Profile).is_platform_owner ?? false,
     };
   });
+});
+
+export async function getCurrentProfile(): Promise<Profile | null> {
+  return getCurrentProfileCached();
 }
 
 export async function requireProfile(): Promise<Profile> {

@@ -28,13 +28,11 @@ export default async function DashboardPage() {
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
-  const todayEntries = await getHikesWithStopsForDate(profile.company_id, today);
-  timer.mark("hikes-today");
-  const tomorrowEntries = await getHikesWithStopsForDate(
-    profile.company_id,
-    tomorrow
-  );
-  timer.mark("hikes-tomorrow");
+  const [todayEntries, tomorrowEntries] = await Promise.all([
+    getHikesWithStopsForDate(profile.company_id, today),
+    getHikesWithStopsForDate(profile.company_id, tomorrow),
+  ]);
+  timer.mark("hikes");
 
   const [
     { count: pendingCount },

@@ -25,17 +25,18 @@ export default async function AdminLayout({
   const timer = new PerfTimer("page admin-layout");
   const profile = await requireRole("admin");
   timer.mark("auth");
-  const mfaStatus = await getAdminMfaStatus();
-  timer.mark("mfa");
-  const supabase = await createClient();
-  const companyName = await getCompanyName(profile.company_id);
-  timer.mark("company");
 
-  const { count: pendingRequestCount } = await supabase
-    .from("pending_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("company_id", profile.company_id)
-    .eq("status", "pending");
+  const supabase = await createClient();
+  const [mfaStatus, companyName, { count: pendingRequestCount }] =
+    await Promise.all([
+      getAdminMfaStatus(),
+      getCompanyName(profile.company_id),
+      supabase
+        .from("pending_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("company_id", profile.company_id)
+        .eq("status", "pending"),
+    ]);
   timer.end();
 
   return (
