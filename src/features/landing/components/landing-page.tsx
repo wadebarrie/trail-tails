@@ -8,6 +8,7 @@ import {
   AdminDashboardMock,
   DriverMobileMock,
   HeroDashboardMock,
+  SmsPhoneMock,
 } from "@/features/landing/components/mockups";
 import { LANDING_FAQ_VISIBLE } from "@/features/landing/constants";
 import { HOME_H1 } from "@/lib/seo/metadata";
@@ -172,6 +173,24 @@ export function LandingPage() {
           </div>
         </section>
 
+        {/* Customer SMS */}
+        <section id="sms" className="scroll-mt-20 py-14 sm:py-16">
+          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
+            <div>
+              <SectionLabel>Customer experience</SectionLabel>
+              <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+                What dog owners see — by text
+              </h2>
+              <p className="mt-4 text-stone-600">
+                No app or login. Reminders, ETAs, and pickup confirmations when
+                drivers update stops — plus simple replies like &ldquo;Skip
+                Friday&rdquo; that wait for office approval.
+              </p>
+            </div>
+            <SmsPhoneMock />
+          </div>
+        </section>
+
         {/* Product previews */}
         <section id="product" className="scroll-mt-20 py-14 sm:py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -290,6 +309,7 @@ export function LandingPage() {
         extraLinks={[
           { href: "/#how-it-works", label: "How it works" },
           { href: "/#features", label: "Features" },
+          { href: "/#sms", label: "Customer SMS" },
           { href: "/contact", label: "Contact" },
           { href: "/dog-walking-software", label: "Dog walking software" },
           { href: "/login", label: "Login" },

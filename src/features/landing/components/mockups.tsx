@@ -98,6 +98,10 @@ export function SmsPhoneMock() {
       outbound: true,
       text: "Hi Sam! We’re on the way to pick up Cooper. ETA is approximately 12 minutes.",
     },
+    {
+      outbound: true,
+      text: "Cooper was picked up and is on the trail with the group. We'll text when he's home.",
+    },
     { outbound: false, text: "Skip Friday" },
     {
       outbound: true,
