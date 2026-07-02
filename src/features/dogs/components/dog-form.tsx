@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { createDogAction, updateDogAction } from "@/features/dogs/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
+import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { ScheduleTypeField } from "@/features/dogs/components/schedule-type-field";
 import type { Customer, Dog, DogScheduleType, Route } from "@/types";
@@ -80,17 +81,15 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
       <Field label="Breed" name="breed" defaultValue={dog?.breed ?? ""} />
 
       <div className="grid grid-cols-2 gap-4">
-        <Field
+        <TimeField
           label="Default pickup window start"
           name="pickup_window_start"
-          type="time"
           defaultValue={dog?.pickup_window_start ?? "08:00"}
           required
         />
-        <Field
+        <TimeField
           label="Default pickup window end"
           name="pickup_window_end"
-          type="time"
           defaultValue={dog?.pickup_window_end ?? "08:30"}
           required
         />
@@ -112,16 +111,14 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
       </label>
       {hasDropoffWindow ? (
         <div className="grid grid-cols-2 gap-4">
-          <Field
+          <TimeField
             label="Drop-off window start"
             name="dropoff_window_start"
-            type="time"
             defaultValue={dog?.dropoff_window_start?.slice(0, 5) ?? "15:00"}
           />
-          <Field
+          <TimeField
             label="Drop-off window end"
             name="dropoff_window_end"
-            type="time"
             defaultValue={dog?.dropoff_window_end?.slice(0, 5) ?? "15:30"}
           />
         </div>
@@ -183,6 +180,33 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
         {dog ? "Update dog" : "Create dog"}
       </SubmitButton>
     </form>
+  );
+}
+
+function TimeField({
+  label,
+  name,
+  defaultValue,
+  required,
+}: {
+  label: string;
+  name: string;
+  defaultValue?: string;
+  required?: boolean;
+}) {
+  return (
+    <div>
+      <label htmlFor={name} className="block text-sm font-medium text-stone-700">
+        {label}
+      </label>
+      <TimePickerField
+        id={name}
+        name={name}
+        defaultValue={defaultValue}
+        required={required}
+        className="mt-1"
+      />
+    </div>
   );
 }
 

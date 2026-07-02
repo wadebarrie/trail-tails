@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateCompanySettingsAction } from "@/features/company/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
+import { TimePickerField } from "@/features/admin/components/time-picker-field";
 
 export function CompanySettingsForm({
   defaultRateCents,
@@ -68,13 +69,12 @@ export function CompanySettingsForm({
           Local time to text customers about tomorrow&apos;s pickup. Runs on the
           next hourly check at or after this time.
         </p>
-        <input
+        <TimePickerField
           id="night_before_reminder_time"
           name="night_before_reminder_time"
-          type="time"
           required
           defaultValue={defaultNightBeforeReminderTime.slice(0, 5)}
-          className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
+          className="mt-2"
         />
       </div>
 

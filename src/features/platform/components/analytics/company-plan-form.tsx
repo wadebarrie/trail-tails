@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateCompanyPlanAction } from "@/features/platform/analytics/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
+import { DatePickerField } from "@/features/admin/components/date-picker-field";
 import type { CompanyDetailMetrics } from "@/features/platform/analytics/types";
 import {
   BILLING_CURRENCIES,
@@ -155,12 +156,11 @@ export function CompanyPlanForm({ company }: { company: CompanyDetailMetrics }) 
         >
           Trial ends (optional)
         </label>
-        <input
+        <DatePickerField
           id="trial_ends_at"
           name="trial_ends_at"
-          type="date"
           defaultValue={trialEndsDefault}
-          className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm"
+          className="mt-1"
         />
       </div>
 

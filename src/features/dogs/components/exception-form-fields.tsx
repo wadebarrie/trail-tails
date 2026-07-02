@@ -1,3 +1,5 @@
+import { DatePickerField } from "@/features/admin/components/date-picker-field";
+
 export const exceptionInputClassName =
   "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-[var(--color-trail-600)] focus:outline-none focus:ring-2 focus:ring-[var(--color-trail-600)]/20";
 
@@ -67,10 +69,9 @@ export function ExceptionFormFields({
         <label htmlFor={fieldId("start_date")} className="block text-sm text-stone-600">
           Start date
         </label>
-        <input
+        <DatePickerField
           id={fieldId("start_date")}
           name="start_date"
-          type="date"
           required
           defaultValue={startDate}
           className={exceptionInputClassName}
@@ -80,10 +81,9 @@ export function ExceptionFormFields({
         <label htmlFor={fieldId("end_date")} className="block text-sm text-stone-600">
           End date (optional for pause)
         </label>
-        <input
+        <DatePickerField
           id={fieldId("end_date")}
           name="end_date"
-          type="date"
           defaultValue={endDate ?? ""}
           className={exceptionInputClassName}
         />

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateFounderProfileAction } from "@/features/platform/analytics/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
+import { DatePickerField } from "@/features/admin/components/date-picker-field";
 import type { CompanyDetailMetrics } from "@/features/platform/analytics/types";
 
 export function FounderProfileForm({ company }: { company: CompanyDetailMetrics }) {
@@ -51,12 +52,11 @@ export function FounderProfileForm({ company }: { company: CompanyDetailMetrics 
         <label htmlFor="follow_up_date" className="block text-sm font-medium text-stone-700">
           Follow-up date
         </label>
-        <input
+        <DatePickerField
           id="follow_up_date"
           name="follow_up_date"
-          type="date"
           defaultValue={company.followUpDate ?? ""}
-          className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm"
+          className="mt-1"
         />
       </div>
 

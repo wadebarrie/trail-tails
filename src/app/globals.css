@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-day-picker/style.css";
 
 :root {
   /* Brand core */
@@ -337,5 +338,43 @@ body {
   input[type="month"]::-webkit-datetime-edit-fields-wrapper,
   input[type="week"]::-webkit-datetime-edit-fields-wrapper {
     color: var(--color-ink);
+  }
+
+  .packroute-day-picker.rdp-root {
+    --rdp-accent-color: var(--color-forest);
+    --rdp-accent-background-color: var(--color-trail-100);
+    --rdp-today-color: var(--color-forest);
+    --rdp-day-height: 2.5rem;
+    --rdp-day-width: 2.5rem;
+    --rdp-day_button-height: 2.375rem;
+    --rdp-day_button-width: 2.375rem;
+    --rdp-day_button-border-radius: 0.5rem;
+    font-size: var(--type-ui-size);
+    color: var(--color-ink);
+  }
+
+  .packroute-day-picker .rdp-month_caption {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .packroute-day-picker .rdp-weekday {
+    font-size: var(--type-caption-size);
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  .packroute-day-picker .rdp-day_button:hover {
+    background-color: var(--color-trail-100);
+    color: var(--color-forest);
+  }
+
+  .packroute-day-picker .rdp-nav_button {
+    border-radius: 0.5rem;
+    color: var(--color-forest);
+  }
+
+  .packroute-day-picker .rdp-nav_button:hover {
+    background-color: var(--color-trail-100);
   }
 }

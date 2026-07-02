@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { MonthPickerField } from "@/features/admin/components/month-picker-field";
 import type { CompanyUsageRow } from "@/features/platform/analytics/types";
 
 export function GenerateReviewForm({
@@ -46,13 +47,12 @@ export function GenerateReviewForm({
         <label htmlFor="month" className="block text-sm font-medium text-stone-700">
           Month
         </label>
-        <input
+        <MonthPickerField
           id="month"
           name="month"
-          type="month"
           required
           defaultValue={defaultMonth}
-          className="mt-1 rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm"
+          className="mt-1"
         />
       </div>
       <button

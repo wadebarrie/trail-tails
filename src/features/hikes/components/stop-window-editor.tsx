@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import { updateStopWindowAction } from "@/features/hikes/actions";
 import { formatWindowRange } from "@/lib/dates";
 
@@ -71,20 +72,18 @@ export function StopWindowEditor({
     <div className="flex flex-wrap items-end gap-2">
       <label className="text-xs text-stone-500">
         From
-        <input
-          type="time"
+        <TimePickerField
           value={start}
-          onChange={(e) => setStart(e.target.value)}
-          className="mt-1 block rounded border border-stone-300 px-2 py-1 text-sm"
+          onChange={setStart}
+          className="mt-1 min-w-[8.5rem]"
         />
       </label>
       <label className="text-xs text-stone-500">
         To
-        <input
-          type="time"
+        <TimePickerField
           value={end}
-          onChange={(e) => setEnd(e.target.value)}
-          className="mt-1 block rounded border border-stone-300 px-2 py-1 text-sm"
+          onChange={setEnd}
+          className="mt-1 min-w-[8.5rem]"
         />
       </label>
       <button

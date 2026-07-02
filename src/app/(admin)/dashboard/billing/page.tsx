@@ -8,6 +8,7 @@ import {
 } from "@/features/admin/components/ui";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { requireRole } from "@/features/auth/queries";
+import { BillingDateRangeFilter } from "@/features/billing/components/billing-date-range-filter";
 import { billingStatusLabel } from "@/features/billing/status";
 import {
   defaultBillingDateRange,
@@ -83,44 +84,7 @@ export default async function BillingPage({
         }
       />
 
-      <form method="get" className="mb-6 flex flex-wrap items-end gap-4">
-        <div>
-          <label
-            htmlFor="start"
-            className="block text-sm font-medium text-stone-700"
-          >
-            From
-          </label>
-          <input
-            id="start"
-            name="start"
-            type="date"
-            defaultValue={start}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="end"
-            className="block text-sm font-medium text-stone-700"
-          >
-            To
-          </label>
-          <input
-            id="end"
-            name="end"
-            type="date"
-            defaultValue={end}
-            className="mt-1 rounded-lg border border-stone-300 px-3 py-2 text-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-        >
-          Apply
-        </button>
-      </form>
+      <BillingDateRangeFilter start={start} end={end} />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
