@@ -28,7 +28,7 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/settings" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Settings
             </Link>{" "}
-            — company name, timezone, and pickup windows.
+            — default hike price and night-before reminder time (default 7:30 PM local).
           </li>
           <li>
             Add{" "}
@@ -46,7 +46,8 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/dogs" className="font-medium text-[var(--color-trail-700)] hover:underline">
               dogs
             </Link>
-            , assign each to a route, and set their weekly schedule days.
+            . Choose <strong>Recurring</strong> (regular route + expected days) or{" "}
+            <strong>As-needed</strong> (booked onto specific days from Today/Tomorrow).
           </li>
           <li>
             Configure{" "}
@@ -75,8 +76,9 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
           </li>
         </ol>
         <p className="text-xs text-stone-500">
-          Stops for today and tomorrow sync automatically from your routes and
-          schedules. You do not need to build each hike manually.
+          Recurring dogs sync automatically from routes. As-needed dogs are added to
+          specific days from Today or Tomorrow. Stops for today and tomorrow refresh
+          when routes or schedules change.
         </p>
       </Section>
 
@@ -155,9 +157,13 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             texts and can send schedule requests.
           </li>
           <li>
-            <strong>Night-before reminder texts</strong> (~6 PM the day before a pickup)
-            are on by default. Customers can text STOP REMINDERS / START REMINDERS, or
-            you can toggle this on their profile when editing a customer.
+            <strong>Night-before reminder texts</strong> are on by default. Send time
+            is set in{" "}
+            <Link href="/dashboard/settings" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              Settings
+            </Link>{" "}
+            (default 7:30 PM local). Customers can text STOP REMINDERS / START
+            REMINDERS, or you can toggle this on their profile when editing a customer.
           </li>
         </ul>
 
@@ -183,12 +189,28 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
         <h3 className="pt-3 font-semibold text-stone-900">Dogs</h3>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            Each dog belongs to one customer. Set pickup window times and which{" "}
-            <strong>days of the week</strong> they hike.
+            Each dog belongs to one customer. Set a default pickup window — this is a
+            starting point when building a daily route plan, not a fixed ETA.
           </li>
           <li>
-            Assign a <strong>route</strong> for the dog. Unassigned dogs will not appear
-            on daily stop lists.
+            <strong>Recurring</strong> dogs are assigned to a route with expected
+            availability days. They appear automatically when that route runs.
+          </li>
+          <li>
+            <strong>As-needed</strong> dogs are known customers booked manually onto a
+            specific day from{" "}
+            <Link href="/dashboard/hikes/today" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              Today
+            </Link>{" "}
+            or{" "}
+            <Link href="/dashboard/hikes/tomorrow" className="font-medium text-[var(--color-trail-700)] hover:underline">
+              Tomorrow
+            </Link>
+            . They do not auto-generate on recurring schedules.
+          </li>
+          <li>
+            Optional <strong>drop-off window</strong> on the dog profile. Most
+            companies leave afternoon drop-offs flexible with no planned window.
           </li>
           <li>
             Per-dog hike rate overrides the company default for billing export.
@@ -205,8 +227,8 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             .
           </li>
           <li>
-            Drag to set pickup order. Drop-offs always run in the reverse of pickup
-            order.
+            Assign <strong>recurring</strong> dogs to each route. Drag to set default
+            pickup order. Drop-offs always run in the reverse of pickup order.
           </li>
           <li>
             Use{" "}
@@ -218,19 +240,38 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
           </li>
         </ul>
 
-        <h3 className="pt-3 font-semibold text-stone-900">Daily operations</h3>
+        <h3 className="pt-3 font-semibold text-stone-900">Daily route plan (Today / Tomorrow)</h3>
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <Link href="/dashboard/hikes/today" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Today
             </Link>{" "}
-            /{" "}
+            and{" "}
             <Link href="/dashboard/hikes/tomorrow" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Tomorrow
             </Link>{" "}
-            — assign drivers, reorder pickup stops for one day (drop-offs follow
-            pickup in reverse), mark hikes complete if a driver forgot to close out.
+            are where you build each day&apos;s manifest — who is actually hiking,
+            planned pickup order, and planned windows for that day only.
           </li>
+          <li>
+            Add <strong>as-needed</strong> dogs to a route for that specific day.
+            Removing them from the day does not change their long-term profile.
+          </li>
+          <li>
+            Reorder pickups or edit planned windows per stop. Changes stay on that
+            day&apos;s plan and are not overwritten when routes sync.
+          </li>
+          <li>
+            Assign or override the driver for each route. Mark a hike complete from
+            Today if the driver finished but did not close out.
+          </li>
+          <li>
+            Today shows only the current day — past hikes are not listed here.
+          </li>
+        </ul>
+
+        <h3 className="pt-3 font-semibold text-stone-900">Other daily tools</h3>
+        <ul className="list-disc space-y-2 pl-5">
           <li>
             <Link href="/dashboard/billing" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Billing

@@ -124,28 +124,31 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
         {isAdmin ? <AdminSetupSections Section={Section} /> : null}
         <Section id="overview" title="How PackRoute works" variant={variant}>
           <p>
-            <strong>Admin (office)</strong> sets up customers, dogs, routes, and drivers.
-            Routes define which days a hike runs and which dogs are on each route. Each
-            morning, stops sync automatically for today and tomorrow.
+            <strong>Admin (office)</strong> sets up customers, dogs, and routes.
+            Recurring dogs auto-sync to routes on scheduled days. As-needed dogs are
+            booked onto specific days from Today or Tomorrow. Each morning, stops
+            refresh for today and tomorrow.
           </p>
           <p>
             <strong>Drivers</strong> use the mobile Today view to run pickups and
-            drop-offs. Tapping <strong>En Route</strong> texts the customer an ETA.
-            Arrival can be detected automatically when location is enabled.
+            drop-offs. Planned order is a guide — they can work stops in whatever
+            order makes sense. Tapping <strong>En Route</strong> texts the customer
+            an ETA. Arrival can be detected automatically when location is enabled.
           </p>
           <p>
             <strong>Customers</strong> receive automated texts (optional night-before
             reminder, on the way, picked up / dropped off). They can reply to request
             schedule changes — those land in Admin → Pending requests for approval.
             They can also text STOP REMINDERS / START REMINDERS to control the
-            ~6 PM reminder without office review.
+            night-before reminder without office review.
           </p>
           {isAdmin ? (
             <p>
-              Use <strong>Today / Tomorrow</strong> to assign drivers and reorder pickup
-              stops. Drop-offs follow pickup in reverse. Use <strong>Routes</strong> for
-              weekday schedules and default dog order. Mark hikes complete from Today when
-              a driver forgets to close out.
+              Use <strong>Today / Tomorrow</strong> to build each day&apos;s route plan —
+              add as-needed dogs, assign drivers, reorder pickups, and adjust planned
+              windows. Drop-offs follow pickup in reverse. Use <strong>Routes</strong> for
+              recurring dogs, weekday schedules, and default pickup order. Mark hikes
+              complete from Today when a driver forgets to close out.
             </p>
           ) : null}
         </Section>
@@ -175,6 +178,8 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
           <p className="text-xs opacity-80">
             Pickup order can be adjusted by dragging on Today if the office enabled
             reordering for your route. Drop-offs always follow pickup in reverse order.
+            You are not required to follow the listed order — work the route in whatever
+            order is safest and fastest on the road.
           </p>
         </Section>
 
@@ -241,6 +246,11 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
               </h3>
               <ul className="list-disc space-y-2 pl-5">
                 <li>
+                  Send time is configured in{" "}
+                  <strong>Settings → Night-before reminder time</strong> (default
+                  7:30 PM in your company timezone).
+                </li>
+                <li>
                   Enabled by default for new customers. Edit a customer in{" "}
                   <strong>Customers</strong> and toggle{" "}
                   <strong>Night-before reminder texts</strong>.
@@ -276,7 +286,7 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
               <h3 className="pt-2 font-semibold text-white">What to tell customers</h3>
               <ul className="list-disc space-y-2 pl-5">
                 <li>
-                  Night-before texts (~6 PM) are optional — they can reply{" "}
+                  Night-before texts are optional — they can reply{" "}
                   <strong>STOP REMINDERS</strong> or <strong>START REMINDERS</strong>{" "}
                   any time.
                 </li>

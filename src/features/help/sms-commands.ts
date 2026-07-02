@@ -9,7 +9,7 @@ export const SMS_OVERVIEW = {
   phone:
     "Customers text your PackRoute business number (the same number that sends hike updates).",
   outbound:
-    "Automated outbound texts: night-before pickup reminder (~6 PM local), ETA when the driver taps En Route, and pickup/drop-off confirmations. Schedule-change replies are separate — see below.",
+    "Automated outbound texts: night-before pickup reminder (evening before the hike, time set in Settings — default 7:30 PM local), ETA when the driver taps En Route, and pickup/drop-off confirmations. Schedule-change replies are separate — see below.",
   reminders:
     "Night-before reminders are optional per customer. They can text STOP REMINDERS to opt out or START REMINDERS to opt back in — takes effect immediately with a confirmation text. ETA and pickup/drop-off texts still send when they are on the schedule.",
   review:
@@ -56,7 +56,7 @@ export const SMS_COMMANDS: SmsCommandDoc[] = [
   {
     examples: ["STOP REMINDERS", "NO REMINDERS", "REMINDERS OFF"],
     meaning:
-      "Turn off night-before reminder texts (~6 PM). ETA and pickup/drop-off texts still send.",
+      "Turn off night-before reminder texts. ETA and pickup/drop-off texts still send.",
     note: "Takes effect immediately — no office review.",
   },
   {
@@ -70,4 +70,4 @@ export const SMS_COMMANDS: SmsCommandDoc[] = [
   },
 ];
 
-export const CUSTOMER_EXPLAINER = `PackRoute can text you the night before a hike (around 6 PM) with your pickup window and who will be driving — reply STOP REMINDERS to opt out, or START REMINDERS to turn them back on. When the driver is on the way, you'll get an ETA text. You can reply to change your schedule — text HELP for options. The office reviews every change before it takes effect, so you're never accidentally skipped.`;
+export const CUSTOMER_EXPLAINER = `PackRoute can text you the night before a hike with your pickup window and who will be driving — reply STOP REMINDERS to opt out, or START REMINDERS to turn them back on. When the driver is on the way, you'll get an ETA text. You can reply to change your schedule — text HELP for options. The office reviews every change before it takes effect, so you're never accidentally skipped.`;
