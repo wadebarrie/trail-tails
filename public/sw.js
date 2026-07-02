@@ -6,7 +6,11 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-/** Network-only fetch handler — satisfies install criteria without stale page caches. */
+/** Network-only — satisfies install criteria without stale page caches. */
 self.addEventListener("fetch", (event) => {
-  event.respondWith(fetch(event.request));
+  event.respondWith(
+    fetch(event.request).catch(() =>
+      Response.error()
+    )
+  );
 });
