@@ -116,6 +116,8 @@ export interface Route {
   name: string;
   sort_order: number;
   default_driver_id: string | null;
+  runs_afternoon: boolean;
+  default_afternoon_driver_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -146,6 +148,8 @@ export interface Customer {
 }
 
 export type DogScheduleType = "recurring" | "as_needed";
+export type HikePeriod = "morning" | "afternoon";
+export type DogWalkPeriod = "morning" | "afternoon" | "both";
 
 export interface Dog {
   id: string;
@@ -157,6 +161,7 @@ export interface Dog {
   notes: string | null;
   is_active: boolean;
   schedule_type: DogScheduleType;
+  walk_period: DogWalkPeriod;
   pickup_window_start: string;
   pickup_window_end: string;
   dropoff_window_start: string | null;
@@ -173,6 +178,7 @@ export interface DogDayAssignment {
   dog_id: string;
   route_id: string;
   date: string;
+  period: HikePeriod;
   created_at: string;
 }
 
@@ -200,6 +206,7 @@ export interface Hike {
   company_id: string;
   route_id: string;
   date: string;
+  period: HikePeriod;
   driver_id: string | null;
   status: HikeStatus;
   notes: string | null;
@@ -319,6 +326,8 @@ export interface Database {
       sms_direction: SmsDirection;
       notification_type: NotificationType;
       dog_schedule_type: DogScheduleType;
+      hike_period: HikePeriod;
+      dog_walk_period: DogWalkPeriod;
     };
     CompositeTypes: Record<string, never>;
   };

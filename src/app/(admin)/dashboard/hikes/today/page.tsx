@@ -28,14 +28,15 @@ export default async function TodayHikesPage() {
 
   const withStops = hikes.filter((h) => (h.hike?.stops?.length ?? 0) > 0);
   const runningRoutes = hikes;
-  const addableByRouteId = new Map(
+  const addableByRoutePeriod = new Map(
     await Promise.all(
       runningRoutes.map(async (entry) => [
-        entry.route.id,
+        `${entry.route.id}:${entry.period}`,
         await listAddableAsNeededDogsForRouteDate(
           profile.company_id,
           entry.route.id,
-          date
+          date,
+          entry.period
         ),
       ] as const)
     )
@@ -53,11 +54,14 @@ export default async function TodayHikesPage() {
         <div className="space-y-8">
           {runningRoutes.map((entry) => (
             <AdminHikeRouteSection
-              key={entry.route.id}
+              key={`${entry.route.id}:${entry.period}`}
               entry={entry}
               drivers={drivers ?? []}
               date={date}
-              addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}
+              addableAsNeededDogs={
+                addableByRoutePeriod.get(`${entry.route.id}:${entry.period}`) ??
+                []
+              }
             />
           ))}
         </div>

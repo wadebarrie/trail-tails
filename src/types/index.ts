@@ -14,6 +14,8 @@ export type {
   Customer,
   Dog,
   DogScheduleType,
+  DogWalkPeriod,
+  HikePeriod,
   Profile,
   Stop,
   UserRole,

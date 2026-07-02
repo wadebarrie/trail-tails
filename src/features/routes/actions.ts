@@ -10,6 +10,7 @@ import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-s
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
   schedule_days: z.string().min(1, "Select at least one day"),
+  runs_afternoon: z.coerce.boolean().optional(),
 });
 
 async function saveRouteScheduleDays(
@@ -124,7 +125,10 @@ export async function updateRouteAction(
 
   const { error } = await supabase
     .from("routes")
-    .update({ name: parsed.data.name.trim() })
+    .update({
+      name: parsed.data.name.trim(),
+      runs_afternoon: parsed.data.runs_afternoon ?? false,
+    })
     .eq("id", routeId)
     .eq("company_id", profile.company_id);
 
@@ -256,14 +260,18 @@ export async function removeDogFromRouteAction(routeId: string, dogId: string) {
 
 export async function assignRouteDriverAction(
   routeId: string,
-  driverId: string | null
+  driverId: string | null,
+  period: "morning" | "afternoon" = "morning"
 ) {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
+  const driverColumn =
+    period === "morning" ? "default_driver_id" : "default_afternoon_driver_id";
+
   const { error } = await supabase
     .from("routes")
-    .update({ default_driver_id: driverId })
+    .update({ [driverColumn]: driverId })
     .eq("id", routeId)
     .eq("company_id", profile.company_id);
 
@@ -284,6 +292,7 @@ export async function assignRouteDriverAction(
     .update({ driver_id: driverId })
     .eq("company_id", profile.company_id)
     .eq("route_id", routeId)
+    .eq("period", period)
     .in("date", [today, tomorrow]);
 
   revalidatePath("/dashboard/route");

@@ -14,12 +14,13 @@ import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
 import { optionalUuidLike, uuidLike } from "@/lib/validation";
 import { one } from "@/lib/supabase/relations";
-import type { DogScheduleType, ExceptionType } from "@/types";
+import type { DogScheduleType, DogWalkPeriod, ExceptionType } from "@/types";
 
 const dogSchema = z.object({
   customer_id: uuidLike,
   route_id: optionalUuidLike,
   schedule_type: z.enum(["recurring", "as_needed"]).default("recurring"),
+  walk_period: z.enum(["morning", "afternoon", "both"]).default("morning"),
   name: z.string().min(1, "Dog name is required"),
   breed: z.string().optional(),
   notes: z.string().optional(),
@@ -96,6 +97,9 @@ export async function createDogAction(
       customer_id: parsed.data.customer_id,
       route_id: routeId,
       schedule_type: parsed.data.schedule_type as DogScheduleType,
+      walk_period: isAsNeeded
+        ? ("morning" as DogWalkPeriod)
+        : (parsed.data.walk_period as DogWalkPeriod),
       name: parsed.data.name,
       breed: parsed.data.breed || null,
       notes: parsed.data.notes || null,
@@ -167,6 +171,9 @@ export async function updateDogAction(
       customer_id: parsed.data.customer_id,
       route_id: routeId,
       schedule_type: parsed.data.schedule_type as DogScheduleType,
+      walk_period: isAsNeeded
+        ? ("morning" as DogWalkPeriod)
+        : (parsed.data.walk_period as DogWalkPeriod),
       name: parsed.data.name,
       breed: parsed.data.breed || null,
       notes: parsed.data.notes || null,

@@ -57,6 +57,27 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
 
       {!isAsNeeded ? (
         <div>
+          <label htmlFor="walk_period" className="block text-sm font-medium text-stone-700">
+            Walks per day
+          </label>
+          <select
+            id="walk_period"
+            name="walk_period"
+            defaultValue={dog?.walk_period ?? "morning"}
+            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+          >
+            <option value="morning">Morning only</option>
+            <option value="afternoon">Afternoon only</option>
+            <option value="both">Morning and afternoon</option>
+          </select>
+          <p className="mt-1 text-xs text-stone-500">
+            For routes that run twice daily, choose which walk(s) this dog is on.
+          </p>
+        </div>
+      ) : null}
+
+      {!isAsNeeded ? (
+        <div>
           <label htmlFor="route_id" className="block text-sm font-medium text-stone-700">
             Route
           </label>

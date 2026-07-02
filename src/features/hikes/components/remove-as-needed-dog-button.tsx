@@ -1,15 +1,18 @@
 "use client";
 
 import { removeAsNeededDogFromDayAction } from "@/features/hikes/actions";
+import type { HikePeriod } from "@/features/hikes/hike-period";
 
 export function RemoveAsNeededDogButton({
   routeId,
   date,
+  period,
   dogId,
   dogName,
 }: {
   routeId: string;
   date: string;
+  period: HikePeriod;
   dogId: string;
   dogName: string;
 }) {
@@ -21,7 +24,7 @@ export function RemoveAsNeededDogButton({
     ) {
       return;
     }
-    await removeAsNeededDogFromDayAction(routeId, date, dogId);
+    await removeAsNeededDogFromDayAction(routeId, date, dogId, period);
   }
 
   return (

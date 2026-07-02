@@ -1,12 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
+import type { HikePeriod } from "@/features/hikes/hike-period";
 import { one } from "@/lib/supabase/relations";
 import type { AddableAsNeededDog } from "@/features/hikes/components/hike-add-as-needed-dog-select";
 
-/** As-needed dogs not yet assigned on this date (or already on this route). */
+/** As-needed dogs not yet assigned on this date and walk period. */
 export async function listAddableAsNeededDogsForRouteDate(
   companyId: string,
   routeId: string,
-  date: string
+  date: string,
+  period: HikePeriod
 ): Promise<AddableAsNeededDog[]> {
   const supabase = await createClient();
 
@@ -20,20 +22,20 @@ export async function listAddableAsNeededDogsForRouteDate(
       .order("name"),
     supabase
       .from("dog_day_assignments")
-      .select("dog_id, route_id")
+      .select("dog_id, route_id, period")
       .eq("company_id", companyId)
       .eq("date", date),
   ]);
 
   const assignedElsewhere = new Set(
     (assignments ?? [])
-      .filter((row) => row.route_id !== routeId)
+      .filter((row) => row.period === period && row.route_id !== routeId)
       .map((row) => row.dog_id)
   );
 
   const onThisRoute = new Set(
     (assignments ?? [])
-      .filter((row) => row.route_id === routeId)
+      .filter((row) => row.route_id === routeId && row.period === period)
       .map((row) => row.dog_id)
   );
 

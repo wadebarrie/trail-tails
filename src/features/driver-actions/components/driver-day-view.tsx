@@ -52,7 +52,7 @@ export function DriverDayView({
       {day.routes.length > 0 ? (
         <div className="mt-8 space-y-12">
           {day.routes.map((route) => (
-            <section key={route.routeId}>
+            <section key={route.hikeId}>
               <h2 className="mb-4 text-lg font-semibold text-white/90">
                 {route.routeName}
               </h2>
@@ -62,7 +62,7 @@ export function DriverDayView({
                   pickups={route.pickups}
                 />
                 <DriverStopList
-                  title="Morning pickups"
+                  title="Pickups"
                   stops={route.pickups}
                   emptyMessage={
                     preview
@@ -72,7 +72,7 @@ export function DriverDayView({
                   readOnly={preview}
                 />
                 <DriverStopList
-                  title="Afternoon drop-offs"
+                  title="Drop-offs"
                   stops={route.dropoffs}
                   emptyMessage={
                     preview

@@ -4,6 +4,7 @@ import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import { perfAsync } from "@/lib/perf";
+import { hikePeriodWalkLabel } from "@/features/hikes/hike-period";
 import type { StopStatus, StopType } from "@/types";
 
 export type DriverStopView = {
@@ -136,7 +137,11 @@ function driverSeesRoute(
   if (profile.role === "admin" && profile.can_drive) return true;
   if (!entry.hike) return false;
   if (entry.hike.driver_id === profile.id) return true;
-  return entry.route.default_driver_id === profile.id;
+  const defaultDriver =
+    entry.period === "morning"
+      ? entry.route.default_driver_id
+      : entry.route.default_afternoon_driver_id;
+  return defaultDriver === profile.id;
 }
 
 export async function getDriverDayView(
@@ -159,7 +164,7 @@ export async function getDriverDayView(
         const mapped = rawStops.map(mapStop).filter((s) => isActiveStop(s.status));
         return {
           routeId: entry.route.id,
-          routeName: entry.route.name,
+          routeName: `${entry.route.name} — ${hikePeriodWalkLabel(entry.period)}`,
           hikeId: entry.hike!.id,
           pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
           dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),

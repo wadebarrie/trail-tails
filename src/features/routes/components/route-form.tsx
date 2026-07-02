@@ -8,11 +8,15 @@ import { SubmitButton } from "@/features/admin/components/ui";
 function RouteFormFields({
   defaultName = "",
   defaultDays = [] as number[],
+  defaultRunsAfternoon = false,
+  showAfternoonToggle = false,
   submitLabel,
   pending,
 }: {
   defaultName?: string;
   defaultDays?: number[];
+  defaultRunsAfternoon?: boolean;
+  showAfternoonToggle?: boolean;
   submitLabel: string;
   pending: boolean;
 }) {
@@ -37,6 +41,18 @@ function RouteFormFields({
       </div>
 
       <ScheduleDaysField defaultDays={defaultDays} />
+
+      {showAfternoonToggle ? (
+        <label className="flex items-center gap-2 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            name="runs_afternoon"
+            value="true"
+            defaultChecked={defaultRunsAfternoon}
+          />
+          Also runs an afternoon walk
+        </label>
+      ) : null}
 
       <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
     </>
@@ -78,10 +94,12 @@ export function EditRouteForm({
   routeId,
   defaultName,
   defaultDays,
+  defaultRunsAfternoon,
 }: {
   routeId: string;
   defaultName: string;
   defaultDays: number[];
+  defaultRunsAfternoon: boolean;
 }) {
   const boundUpdate = updateRouteAction.bind(null, routeId);
   const [state, formAction, pending] = useActionState(
@@ -95,6 +113,8 @@ export function EditRouteForm({
       <RouteFormFields
         defaultName={defaultName}
         defaultDays={defaultDays}
+        defaultRunsAfternoon={defaultRunsAfternoon}
+        showAfternoonToggle
         submitLabel="Save route"
         pending={pending}
       />

@@ -10,7 +10,7 @@ export async function listRoutes(companyId: string): Promise<RouteWithSchedule[]
   const { data, error } = await supabase
     .from("routes")
     .select(
-      "id, company_id, name, sort_order, default_driver_id, created_at, updated_at, route_schedule_days ( day_of_week )"
+      "id, company_id, name, sort_order, default_driver_id, runs_afternoon, default_afternoon_driver_id, created_at, updated_at, route_schedule_days ( day_of_week )"
     )
     .eq("company_id", companyId)
     .order("sort_order")

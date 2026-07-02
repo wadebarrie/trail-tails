@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDateInTimezone } from "@/lib/dates";
+import {
+  dogMatchesPeriod,
+  type HikePeriod,
+} from "@/features/hikes/hike-period";
 import { applyStopReorder } from "@/features/hikes/reorder-stops";
 
 export function dropoffSortOrderFromPickupIndex(
@@ -207,16 +211,24 @@ async function fetchPickupStopIdsForDogsInOrder(
 export async function resyncHikeStopSortFromRouteDogs(
   supabase: SupabaseClient,
   hikeId: string,
-  routeId: string
+  routeId: string,
+  period?: HikePeriod
 ): Promise<string | null> {
   const { data: dogs } = await supabase
     .from("dogs")
-    .select("id, route_sort_order")
+    .select("id, route_sort_order, walk_period")
     .eq("route_id", routeId)
     .eq("is_active", true)
     .order("route_sort_order");
 
-  return resyncHikeStopSortOrders(supabase, hikeId, dogs ?? []);
+  const filtered =
+    period != null
+      ? (dogs ?? []).filter((dog) =>
+          dogMatchesPeriod(dog.walk_period as string, period)
+        )
+      : (dogs ?? []);
+
+  return resyncHikeStopSortOrders(supabase, hikeId, filtered);
 }
 
 export async function resyncHikeStopSortForRoute(
@@ -229,16 +241,20 @@ export async function resyncHikeStopSortForRoute(
   const tomorrow = getDateInTimezone(timeZone, 1);
 
   for (const date of [today, tomorrow]) {
-    const { data: hike } = await supabase
+    const { data: hikes } = await supabase
       .from("hikes")
-      .select("id")
+      .select("id, period")
       .eq("company_id", companyId)
       .eq("route_id", routeId)
-      .eq("date", date)
-      .maybeSingle();
+      .eq("date", date);
 
-    if (!hike) continue;
-
-    await resyncHikeStopSortFromRouteDogs(supabase, hike.id, routeId);
+    for (const hike of hikes ?? []) {
+      await resyncHikeStopSortFromRouteDogs(
+        supabase,
+        hike.id,
+        routeId,
+        hike.period as HikePeriod
+      );
+    }
   }
 }
