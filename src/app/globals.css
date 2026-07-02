@@ -237,4 +237,105 @@ body {
   input[type="radio"]:checked:disabled {
     opacity: 0.65;
   }
+
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: var(--type-ui-size);
+    line-height: var(--type-ui-line);
+    font-weight: var(--type-ui-weight);
+    letter-spacing: var(--type-ui-tracking);
+    color-scheme: light;
+    accent-color: var(--color-forest);
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  input[type="date"]:hover:not(:disabled),
+  input[type="time"]:hover:not(:disabled),
+  input[type="datetime-local"]:hover:not(:disabled),
+  input[type="month"]:hover:not(:disabled),
+  input[type="week"]:hover:not(:disabled) {
+    border-color: var(--color-sage);
+  }
+
+  input[type="date"]:focus,
+  input[type="time"]:focus,
+  input[type="datetime-local"]:focus,
+  input[type="month"]:focus,
+  input[type="week"]:focus {
+    border-color: var(--color-forest);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-forest) 20%, transparent);
+  }
+
+  input[type="date"]:focus-visible,
+  input[type="time"]:focus-visible,
+  input[type="datetime-local"]:focus-visible,
+  input[type="month"]:focus-visible,
+  input[type="week"]:focus-visible {
+    border-color: var(--color-forest);
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-forest) 20%, transparent);
+  }
+
+  input[type="date"]:disabled,
+  input[type="time"]:disabled,
+  input[type="datetime-local"]:disabled,
+  input[type="month"]:disabled,
+  input[type="week"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background-color: var(--color-surface-subtle);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator,
+  input[type="week"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.9;
+    width: 1rem;
+    height: 1rem;
+    margin-inline-start: 0.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%231f5a4a'%3E%3Cpath d='M6 2a1 1 0 0 0-1 1v1H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1V3a1 1 0 1 0-2 0v1H7V3a1 1 0 0 0-1-1ZM4 8h12v8H4V8Z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1rem 1rem;
+  }
+
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.9;
+    width: 1rem;
+    height: 1rem;
+    margin-inline-start: 0.25rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%231f5a4a'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm-.75-11.5a.75.75 0 0 0-1.5 0v4c0 .414.336.75.75.75h3a.75.75 0 0 0 0-1.5h-2.25V6.5Z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 1rem 1rem;
+  }
+
+  input[type="date"]::-webkit-datetime-edit,
+  input[type="time"]::-webkit-datetime-edit,
+  input[type="datetime-local"]::-webkit-datetime-edit,
+  input[type="month"]::-webkit-datetime-edit,
+  input[type="week"]::-webkit-datetime-edit,
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="month"]::-webkit-datetime-edit-fields-wrapper,
+  input[type="week"]::-webkit-datetime-edit-fields-wrapper {
+    color: var(--color-ink);
+  }
 }
