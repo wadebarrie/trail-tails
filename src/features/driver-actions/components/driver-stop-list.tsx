@@ -2,6 +2,10 @@
 
 import { useCallback, useState } from "react";
 import {
+  driverActionButtonClassName,
+  motionInteractiveClassName,
+} from "@/features/admin/components/motion-styles";
+import {
   arrivedAction,
   completeDropoffAction,
   completePickupAction,
@@ -77,7 +81,7 @@ function TravelConnector({
           return (
             <div
               key={i}
-              className={`absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-300 ${
+              className={`absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full ${motionInteractiveClassName} ${
                 lit ? "bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]" : "bg-white/25"
               }`}
               style={{ left: `${tickAt * 100}%` }}
@@ -138,7 +142,7 @@ function StopProgressSteps({
             >
               <div className="flex min-w-0 flex-col items-center">
                 <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition ${
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${motionInteractiveClassName} ${
                     isComplete
                       ? "bg-green-500/30 text-green-200"
                       : isCurrent
@@ -209,7 +213,7 @@ function InfoIconButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="inline-flex size-7 !min-h-7 !min-w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 leading-none text-white/80 motion-interactive hover:border-white/40 hover:bg-white/20 hover:text-white active:scale-[0.98]"
+      className={`inline-flex size-7 !min-h-7 !min-w-7 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/10 p-0 leading-none text-white/80 ${motionInteractiveClassName} motion-press hover:border-white/40 hover:bg-white/20 hover:text-white`}
     >
       <svg
         viewBox="0 0 24 24"
@@ -321,7 +325,7 @@ function StopCard({
 
   return (
     <div
-      className={`rounded-[var(--radius-card)] border p-5 motion-interactive ${
+      className={`rounded-[var(--radius-card)] border p-5 ${motionInteractiveClassName} ${
         isDone
           ? "border-green-500/30 bg-green-500/10"
           : "surface-glass-dark border-white/10"
@@ -371,7 +375,7 @@ function StopCard({
               type="button"
               disabled={submitting}
               onClick={handleEnRoute}
-              className="w-full rounded-[var(--radius-card)] bg-amber-400 py-5 text-lg font-semibold text-stone-900 motion-interactive active:scale-[0.98] disabled:opacity-50"
+              className={`w-full rounded-[var(--radius-card)] bg-amber-400 py-5 text-lg font-semibold text-stone-900 ${driverActionButtonClassName}`}
             >
               En Route
             </button>
@@ -419,7 +423,7 @@ function StopCard({
                 className={
                   canAutoDetect
                     ? "w-full rounded-xl py-3 text-sm font-medium text-white/70 underline-offset-2 hover:text-white hover:underline disabled:opacity-50"
-                    : "w-full rounded-[var(--radius-card)] bg-sky-400 py-5 text-lg font-semibold text-stone-900 motion-interactive active:scale-[0.98] disabled:opacity-50"
+                    : `w-full rounded-[var(--radius-card)] bg-sky-400 py-5 text-lg font-semibold text-stone-900 ${driverActionButtonClassName}`
                 }
               >
                 {canAutoDetect ? "Mark arrived manually" : "Arrived"}
@@ -430,7 +434,7 @@ function StopCard({
               type="button"
               disabled={submitting}
               onClick={handleComplete}
-              className="w-full rounded-[var(--radius-card)] bg-white py-5 text-lg font-semibold text-[var(--color-trail-800)] motion-interactive active:scale-[0.98] disabled:opacity-50"
+              className={`w-full rounded-[var(--radius-card)] bg-white py-5 text-lg font-semibold text-[var(--color-trail-800)] ${driverActionButtonClassName}`}
             >
               {isPickup ? "Picked Up" : "Dropped Off"}
             </button>

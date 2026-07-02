@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { motionFadeInClassName } from "@/features/admin/components/motion-styles";
 
 export function ExceptionAddedBanner({ message }: { message: string }) {
   useEffect(() => {
@@ -14,7 +15,7 @@ export function ExceptionAddedBanner({ message }: { message: string }) {
 
   return (
     <div
-      className="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900"
+      className={`mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-900 ${motionFadeInClassName}`}
       role="status"
     >
       <p className="font-medium">Exception added</p>

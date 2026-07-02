@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { motionFadeInClassName } from "@/features/admin/components/motion-styles";
 import { PrimaryButton, SecondaryButton } from "@/features/admin/components/ui";
 import {
   approvePendingRequestAction,
@@ -36,7 +37,7 @@ export function PendingRequestActions({ requestId }: { requestId: string }) {
 
   if (declineOpen) {
     return (
-      <div className="mt-3 space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3">
+      <div className={`mt-3 space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3 ${motionFadeInClassName}`}>
         <label className="block text-sm font-medium text-stone-700">
           Optional note for the customer
           <textarea
@@ -69,7 +70,7 @@ export function PendingRequestActions({ requestId }: { requestId: string }) {
             Cancel
           </SecondaryButton>
         </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className={`text-sm text-red-600 ${motionFadeInClassName}`}>{error}</p> : null}
       </div>
     );
   }
@@ -93,7 +94,7 @@ export function PendingRequestActions({ requestId }: { requestId: string }) {
         Decline
       </SecondaryButton>
       {error ? (
-        <p className="w-full text-sm text-red-600">{error}</p>
+        <p className={`w-full text-sm text-red-600 ${motionFadeInClassName}`}>{error}</p>
       ) : null}
     </div>
   );

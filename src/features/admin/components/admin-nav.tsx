@@ -16,6 +16,7 @@ import {
   type NavGroup,
   type NavItem,
 } from "@/features/admin/components/nav-config";
+import { motionInteractiveClassName } from "@/features/admin/components/motion-styles";
 
 function RequestBadge({ count }: { count: number }) {
   if (count <= 0) return null;
@@ -128,7 +129,7 @@ function NavDropdown({
           viewBox="0 0 20 20"
           fill="currentColor"
           aria-hidden
-          className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 ${motionInteractiveClassName} ${open ? "rotate-180" : ""}`}
         >
           <path
             fillRule="evenodd"
