@@ -16,12 +16,11 @@
   --color-text-muted: #6b746f;
 
   /* Legacy trail scale — mapped to PackRoute palette */
-  --color-trail-50: #f0f7f4;
+  --color-trail-50: var(--color-surface-subtle);
   --color-trail-100: #e4ede7;
   --color-trail-600: var(--color-forest);
   --color-trail-700: #1a4d3f;
   --color-trail-800: var(--color-ink);
-  --color-driver-shell: #081c15;
 
   --color-cta: var(--color-forest);
   --color-cta-hover: #1a4d3f;
@@ -92,6 +91,18 @@
   --text-4xl--line-height: var(--type-h1-line);
   --text-5xl: 2.75rem;
   --text-5xl--line-height: 1.05;
+
+  /* Brand neutrals (stone scale remap) */
+  --color-stone-50: var(--color-bg);
+  --color-stone-100: var(--color-surface-subtle);
+  --color-stone-200: var(--color-border);
+  --color-stone-300: #d4cfc4;
+  --color-stone-400: #9ba39e;
+  --color-stone-500: var(--color-text-muted);
+  --color-stone-600: #5a635e;
+  --color-stone-700: #434b47;
+  --color-stone-800: #343c38;
+  --color-stone-900: var(--color-ink);
 
   /* Clear Sky Blue — informational / route clarity */
   --color-sky-50: #eff4f7;
@@ -171,7 +182,7 @@ body {
     width: 1.125rem;
     height: 1.125rem;
     flex-shrink: 0;
-    border: 1.5px solid #d6d3d1;
+    border: 1.5px solid var(--color-border);
     background-color: #ffffff;
     cursor: pointer;
     transition:
@@ -219,7 +230,7 @@ body {
   input[type="radio"]:disabled {
     cursor: not-allowed;
     opacity: 0.55;
-    background-color: #f5f5f4;
+    background-color: var(--color-surface-subtle);
   }
 
   input[type="checkbox"]:checked:disabled,
