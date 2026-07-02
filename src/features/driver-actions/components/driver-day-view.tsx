@@ -3,6 +3,7 @@ import { LocationServicesIndicator } from "@/features/driver-actions/components/
 import { DriverPickupReorder } from "@/features/driver-actions/components/driver-pickup-reorder";
 import { DriverStopList } from "@/features/driver-actions/components/driver-stop-list";
 import { DriverInstallHint } from "@/features/pwa/driver-install-hint";
+import { dayProgressMessage } from "@/features/driver-actions/driver-greeting";
 import type { DriverDayView } from "@/features/driver-actions/queries";
 
 export function DriverDayView({
@@ -14,28 +15,13 @@ export function DriverDayView({
   day: DriverDayView;
   preview?: boolean;
 }) {
-  const totalPickups = day.routes.reduce(
-    (n, r) =>
-      n +
-      r.pickups.filter((s) =>
-        preview ? true : s.status !== "picked_up"
-      ).length,
-    0
-  );
-  const totalDropoffs = day.routes.reduce(
-    (n, r) =>
-      n +
-      r.dropoffs.filter((s) =>
-        preview ? true : s.status !== "dropped_off"
-      ).length,
-    0
-  );
-
   const title = active === "today" ? "Today" : "Tomorrow";
   const emptyMessage =
     active === "today"
       ? "No hikes scheduled today."
       : "No hikes scheduled tomorrow.";
+
+  const progressMessage = dayProgressMessage(day);
 
   return (
     <div>
@@ -54,14 +40,11 @@ export function DriverDayView({
 
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
         <LocationServicesIndicator />
-        <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">
-          {totalPickups} pickup{totalPickups === 1 ? "" : "s"}
-          {preview ? "" : " left"}
-        </span>
-        <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">
-          {totalDropoffs} drop-off{totalDropoffs === 1 ? "" : "s"}
-          {preview ? "" : " left"}
-        </span>
+        {progressMessage ? (
+          <span className="rounded-full bg-white/10 px-3 py-1 font-medium text-white/90">
+            {progressMessage}
+          </span>
+        ) : null}
       </div>
 
       {day.routes.length > 0 ? (
