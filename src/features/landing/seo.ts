@@ -1,4 +1,6 @@
 import {
+  DOG_WALKING_SOFTWARE_DESCRIPTION,
+  DOG_WALKING_SOFTWARE_TITLE,
   HOME_H1,
   LANDING_FAQ,
   SITE_CONTACT_EMAIL,
@@ -14,6 +16,54 @@ function graph(items: JsonLd[]): string {
     "@context": "https://schema.org",
     "@graph": items,
   });
+}
+
+function buildSoftwareApplication(siteUrl: string): JsonLd {
+  return {
+    "@type": "SoftwareApplication",
+    "@id": `${siteUrl}/#software`,
+    name: SITE_NAME,
+    alternateName: [
+      "Dog walking software",
+      "Dog walking route planner",
+      "Adventure dog hiking software",
+    ],
+    applicationCategory: "BusinessApplication",
+    applicationSubCategory: "Dog walking management software",
+    operatingSystem: "Web",
+    description: SITE_DESCRIPTION,
+    url: siteUrl,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+      description: "Contact for pricing",
+    },
+    featureList: [
+      "Dog walking route planning and pickup order",
+      "Group hike and pack walk scheduling",
+      "Multi-driver route assignment",
+      "Driver mobile Today view",
+      "Customer SMS from driver status updates",
+      "Schedule change requests by text",
+      "Billing period CSV export",
+    ],
+  };
+}
+
+function buildFaqPage(siteUrl: string, idSuffix = ""): JsonLd {
+  return {
+    "@type": "FAQPage",
+    "@id": `${siteUrl}/#faq${idSuffix}`,
+    mainEntity: LANDING_FAQ.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
 }
 
 export function buildHomePageJsonLd(): string {
@@ -57,48 +107,53 @@ export function buildHomePageJsonLd(): string {
     inLanguage: "en-US",
   };
 
-  const software: JsonLd = {
-    "@type": "SoftwareApplication",
-    "@id": `${siteUrl}/#software`,
-    name: SITE_NAME,
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    description: SITE_DESCRIPTION,
-    url: siteUrl,
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      description: "Contact for pricing",
+  return graph([
+    organization,
+    website,
+    webPage,
+    buildSoftwareApplication(siteUrl),
+    buildFaqPage(siteUrl),
+  ]);
+}
+
+export function buildDogWalkingSoftwarePageJsonLd(): string {
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/dog-walking-software`;
+
+  const webPage: JsonLd = {
+    "@type": "WebPage",
+    "@id": `${pageUrl}/#webpage`,
+    url: pageUrl,
+    name: DOG_WALKING_SOFTWARE_TITLE,
+    description: DOG_WALKING_SOFTWARE_DESCRIPTION,
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    about: { "@id": `${siteUrl}/#software` },
+    inLanguage: "en-US",
+  };
+
+  return graph([
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: SITE_NAME,
+      url: siteUrl,
     },
-    featureList: [
-      "Customer SMS from driver status updates",
-      "Driver mobile Today view",
-      "Multi-route and multi-driver scheduling",
-      "Schedule change requests by text",
-      "Billing period CSV export",
-    ],
-  };
-
-  const faqPage: JsonLd = {
-    "@type": "FAQPage",
-    "@id": `${siteUrl}/#faq`,
-    mainEntity: LANDING_FAQ.map((item) => ({
-      "@type": "Question",
-      name: item.q,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.a,
-      },
-    })),
-  };
-
-  return graph([organization, website, webPage, software, faqPage]);
+    buildSoftwareApplication(siteUrl),
+    webPage,
+    buildFaqPage(pageUrl, "-software"),
+  ]);
 }
 
 export function buildHomePageJsonLdScriptProps() {
   return {
     type: "application/ld+json" as const,
     dangerouslySetInnerHTML: { __html: buildHomePageJsonLd() },
+  };
+}
+
+export function buildDogWalkingSoftwareJsonLdScriptProps() {
+  return {
+    type: "application/ld+json" as const,
+    dangerouslySetInnerHTML: { __html: buildDogWalkingSoftwarePageJsonLd() },
   };
 }

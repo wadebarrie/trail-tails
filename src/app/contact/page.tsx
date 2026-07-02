@@ -5,7 +5,7 @@ import { getSiteUrl } from "@/lib/site-url";
 
 const title = `Contact — ${SITE_NAME}`;
 const description =
-  "Book a demo, request early access, or ask a question about PackRoute for your dog hiking team.";
+  "Book a demo or ask about PackRoute — dog walking route planning software for adventure dog hiking and group walk businesses.";
 
 export const metadata: Metadata = {
   title,

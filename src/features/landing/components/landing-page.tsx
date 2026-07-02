@@ -11,6 +11,7 @@ import {
   SmsPhoneMock,
 } from "@/features/landing/components/mockups";
 import { LANDING_FAQ } from "@/features/landing/constants";
+import { HOME_H1 } from "@/lib/seo/metadata";
 
 const FAQ = LANDING_FAQ;
 
@@ -69,14 +70,15 @@ export function LandingPage() {
         />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
           <div>
-            <SectionLabel>Built for adventure dog hiking teams</SectionLabel>
+            <SectionLabel>Route planning &amp; customer updates</SectionLabel>
             <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
-              Software for adventure dog hiking companies
+              {HOME_H1}
             </h1>
             <p className="mt-5 max-w-xl text-lg text-stone-600">
-              Your office plans the schedule and routes. Drivers run the day
-              from their phone. Customers get clear texts — without the group
-              chat chaos.
+              PackRoute helps small dog hiking teams manage pickup routes,
+              group hikes, driver workflows, and customer communication. Your
+              office plans the schedule; drivers run the route from their phone;
+              customers get clear texts — without the group chat chaos.
             </p>
             <div className="mt-8">
               <CtaButtons />
@@ -105,15 +107,65 @@ export function LandingPage() {
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
             Adventure dog hiking companies manage recurring dogs, multiple
-            drivers, pickup routes, drop-off routes, schedule changes, customer
+            drivers, pickup routes, group hikes, schedule changes, customer
             texts, and billing periods — often across spreadsheets, group chats,
             and memory.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
-            PackRoute brings routes, drivers, customer SMS, skip requests, and
-            billing prep into one place — so your team spends less time
-            coordinating and more time on the trail.
+            PackRoute is dog walking business software that brings routes,
+            drivers, customer SMS, skip requests, and billing prep into one
+            place — so your team spends less time coordinating and more time on
+            the trail.
           </p>
+        </div>
+      </section>
+
+      {/* Operations */}
+      <section className="py-16 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="max-w-2xl">
+            <SectionLabel>Built for operators</SectionLabel>
+            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+              Dog walking software built around routes, schedules, and field
+              operations
+            </h2>
+            <p className="mt-3 text-stone-600">
+              For adventure dog hiking companies with multiple drivers and
+              active dogs — not generic task lists or pet sitting apps.
+            </p>
+          </div>
+          <ul className="mt-10 grid gap-5 sm:grid-cols-2">
+            {[
+              {
+                title: "Built for dog walking routes, not generic task lists",
+                body: "Plan pickup routes, set stop order, and run morning or afternoon routes separately — the way group walk businesses actually operate.",
+              },
+              {
+                title: "Scheduling for group hikes and pack walks",
+                body: "Recurring dogs, as-needed bookings, route assignment, and daily overrides without rebuilding your whole schedule.",
+              },
+              {
+                title: "Customer updates without extra admin work",
+                body: "Night-before reminders, ETAs, and pickup or drop-off texts when drivers tap — not manual copy-paste from a group chat.",
+              },
+              {
+                title: "A calmer alternative to spreadsheets and manual texts",
+                body: "Fewer office interruptions, less driver confusion, and fewer “where is my dog?” messages from customers.",
+              },
+            ].map((item) => (
+              <li
+                key={item.title}
+                className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm"
+              >
+                <h3 className="font-semibold text-[var(--color-trail-800)]">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-stone-600">
+                  {item.body}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -169,8 +221,8 @@ export function LandingPage() {
               Built for how you actually operate
             </h2>
             <p className="mt-3 text-stone-600">
-              Clear roles, fewer text threads, and tools that match a real
-              multi-driver hiking day.
+              Dog walking management software with clear roles — office plans,
+              drivers execute, customers stay informed.
             </p>
           </div>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -224,10 +276,10 @@ export function LandingPage() {
               The driver runs the route.
             </h2>
             <p className="mt-4 text-white/75">
-              Drivers open Today, see their stops, and tap through the day.
-              When location is enabled, arrival near a stop can update
-              automatically — otherwise they tap Arrived. Families get the
-              message either way.
+              Drivers open Today and see what to do next — their stops, in
+              order. Tap En Route, Arrived, Picked Up, or Dropped Off. When
+              location is enabled, arrival near a stop can update automatically;
+              otherwise they tap Arrived. Families get the message either way.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-white/70">
               <li>· Today view with pickups and drop-offs</li>
@@ -373,7 +425,7 @@ export function LandingPage() {
           <div>
             <p className="font-semibold text-[var(--color-trail-800)]">PackRoute</p>
             <p className="mt-1 text-sm text-stone-500">
-              Software for adventure dog hiking teams.
+              Dog walking route planning for adventure hike teams.
             </p>
             <FooterContactEmail />
           </div>
@@ -386,6 +438,12 @@ export function LandingPage() {
             </a>
             <Link href="/contact" className="hover:text-[var(--color-trail-700)]">
               Contact
+            </Link>
+            <Link
+              href="/dog-walking-software"
+              className="hover:text-[var(--color-trail-700)]"
+            >
+              Dog walking software
             </Link>
             <Link href="/login" className="hover:text-[var(--color-trail-700)]">
               Login

@@ -39,7 +39,11 @@ export function HeroDashboardMock() {
 
   return (
     <MockWindow>
-      <div className="bg-[var(--color-trail-50)] p-4 sm:p-5">
+      <div
+        className="bg-[var(--color-trail-50)] p-4 sm:p-5"
+        role="img"
+        aria-label="Preview of the PackRoute office dashboard showing today's dog walking routes, drivers, and pending customer requests"
+      >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-[var(--color-trail-600)]">
@@ -111,7 +115,11 @@ export function SmsPhoneMock() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-xs">
+    <div
+      className="mx-auto w-full max-w-xs"
+      role="img"
+      aria-label="Preview of customer SMS updates for dog pickup ETAs, night-before reminders, and schedule change requests"
+    >
       <div className="overflow-hidden rounded-[2rem] border-4 border-stone-800 bg-stone-900 p-2 shadow-2xl">
         <div className="rounded-[1.5rem] bg-stone-100 px-3 pb-4 pt-8">
           <div className="mb-4 text-center">
@@ -292,7 +300,11 @@ function MockDriverStopCard({
 
 export function DriverMobileMock() {
   return (
-    <div className="mx-auto w-full max-w-[280px]">
+    <div
+      className="mx-auto w-full max-w-[280px]"
+      role="img"
+      aria-label="Preview of the PackRoute driver mobile view with today's pickup stops and en route status"
+    >
       <div className="overflow-hidden rounded-[2rem] border-4 border-stone-800 bg-[var(--color-trail-800)] shadow-2xl">
         {/* App header */}
         <div className="flex items-start justify-between border-b border-white/10 px-3.5 pb-3 pt-4">
@@ -367,7 +379,11 @@ export function DriverMobileMock() {
 export function AdminDashboardMock() {
   return (
     <MockWindow>
-      <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5">
+      <div
+        className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5"
+        role="img"
+        aria-label="Preview of the PackRoute admin dashboard with route status, billing summary, and notification activity"
+      >
         <div className="rounded-xl border border-stone-200 bg-white p-4 sm:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-semibold text-stone-900">Today&apos;s operations</p>
