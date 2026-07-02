@@ -87,6 +87,8 @@
   --glass-bg: rgba(255, 255, 255, 0.72);
   --glass-bg-strong: rgba(255, 255, 255, 0.9);
   --glass-bg-dark: rgba(37, 50, 56, 0.55);
+  --header-bg: var(--color-surface);
+  --header-bg-dark: #1f343c;
   --glass-border: rgba(255, 255, 255, 0.65);
   --glass-border-subtle: color-mix(in srgb, var(--color-border) 75%, transparent);
   --glass-blur: 16px;
@@ -449,6 +451,19 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
+  }
+
+  /* Opaque sticky headers — solid bar when content scrolls underneath */
+  .surface-header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--glass-border-subtle);
+    box-shadow: var(--elevation-1);
+  }
+
+  .surface-header-dark {
+    background: var(--header-bg-dark);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
 
   .surface-card {

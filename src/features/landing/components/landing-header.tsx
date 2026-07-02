@@ -14,7 +14,7 @@ export function LandingHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 surface-glass border-b border-[var(--glass-border-subtle)]">
+    <header className="surface-header sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"

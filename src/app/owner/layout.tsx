@@ -20,7 +20,7 @@ export default async function OwnerLayout({
 
   return (
     <div className="min-h-dvh bg-atmosphere">
-      <header className="sticky top-0 z-40 surface-glass border-b border-[var(--glass-border-subtle)] pt-[env(safe-area-inset-top)]">
+      <header className="surface-header sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
