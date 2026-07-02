@@ -4,6 +4,7 @@ import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { requireDriverAccess } from "@/features/auth/queries";
 import { RegisterServiceWorker } from "@/features/pwa/register-service-worker";
+import { PackRouteMark } from "@/features/brand/components/packroute-mark";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -31,11 +32,16 @@ export default async function DriverLayout({
     <div className="min-h-dvh bg-atmosphere-driver text-white">
       <RegisterServiceWorker />
       <header className="surface-header-dark sticky top-0 z-40 flex items-center justify-between px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-white/60">
-            PackRoute · Driver
-          </p>
-          <p className="mt-0.5 text-sm text-white/80">{profile.full_name}</p>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <PackRouteMark size="sm" />
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-widest text-white/60">
+              PackRoute · Driver
+            </p>
+            <p className="mt-0.5 truncate text-sm text-white/80">
+              {profile.full_name}
+            </p>
+          </div>
         </div>
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-3">

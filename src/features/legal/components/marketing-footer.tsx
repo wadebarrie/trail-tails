@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { FooterContactEmail } from "@/features/landing/components/footer-contact-email";
 
 const LEGAL_LINKS = [
@@ -18,7 +19,7 @@ export function MarketingFooter({ extraLinks = [] }: MarketingFooterProps) {
     <footer className="border-t border-stone-200 bg-white py-10">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 text-center sm:px-6 sm:text-left">
         <div>
-          <p className="font-semibold text-[var(--color-trail-800)]">PackRoute</p>
+          <PackRouteLogo href="/" markSize="sm" />
           <p className="mt-1 text-sm text-stone-500">
             Dog walking route planning for adventure hike teams.
           </p>

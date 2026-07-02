@@ -9,6 +9,7 @@ import { requireRole } from "@/features/auth/queries";
 import { getAdminMfaStatus } from "@/features/auth/mfa";
 import { createClient } from "@/lib/supabase/server";
 import { PerfTimer } from "@/lib/perf";
+import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -46,12 +47,7 @@ export default async function AdminLayout({
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <Link
-                  href="/dashboard"
-                  className="shrink-0 font-semibold text-[var(--color-trail-800)]"
-                >
-                  PackRoute
-                </Link>
+                <PackRouteLogo href="/dashboard" className="shrink-0" />
                 {companyName ? (
                   <>
                     <span

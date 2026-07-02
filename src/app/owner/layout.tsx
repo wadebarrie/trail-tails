@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { OwnerNav } from "@/features/platform/components/owner-nav";
 import { requirePlatformOwner } from "@/features/platform/queries";
+import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -24,12 +25,10 @@ export default async function OwnerLayout({
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Link
+              <PackRouteLogo
                 href="/owner"
-                className="font-semibold text-[var(--color-trail-800)]"
-              >
-                PackRoute Superadmin
-              </Link>
+                suffix="Superadmin"
+              />
               <span className="hidden text-sm text-stone-500 sm:inline">
                 Platform analytics
               </span>

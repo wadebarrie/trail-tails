@@ -8,6 +8,7 @@ import {
 } from "@/features/admin/components/button-styles";
 import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
 import { DEMO_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
+import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { NAV_LINKS } from "@/features/landing/constants";
 
 export function LandingHeader() {
@@ -16,12 +17,12 @@ export function LandingHeader() {
   return (
     <header className="surface-header sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link
+        <PackRouteLogo
           href="/"
-          className="text-lg font-semibold tracking-tight text-[var(--color-trail-800)]"
-        >
-          PackRoute
-        </Link>
+          markSize="lg"
+          wordmarkClassName="text-lg"
+          priority
+        />
 
         <nav
           aria-label="Main"
