@@ -12,6 +12,7 @@ type LogNotificationInput = {
   companyId: string;
   customerId?: string;
   dogId?: string;
+  dogName?: string;
   stopId?: string;
   notificationType: NotificationType;
   body: NotificationBody;
@@ -106,7 +107,8 @@ export async function logNotification(input: LogNotificationInput) {
         return;
       }
 
-      const dogName = await resolveDogName(input.dogId);
+      const dogName =
+      input.dogName ?? (await resolveDogName(input.dogId));
 
       for (const contact of contacts) {
         await sendNotificationToContact(input, contact, twilio, dogName);

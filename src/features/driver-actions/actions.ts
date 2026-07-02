@@ -4,17 +4,19 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireDriverAccess } from "@/features/auth/queries";
 import {
-  buildArrivedMessage,
-  buildDroppedOffMessage,
-  buildEnRouteMessage,
-  buildPickedUpMessage,
-  logNotification,
-} from "@/features/notifications/log";
+  scheduleArrivedNotification,
+  scheduleDropoffSideEffects,
+  scheduleEnRouteSideEffects,
+  schedulePickupNotification,
+} from "@/features/driver-actions/driver-action-side-effects";
 import { applyPickupReorderWithReverseDropoff } from "@/features/hikes/stop-order";
-import { resolveDrivingEtaMinutes } from "@/lib/google-maps/eta";
 import { PerfTimer } from "@/lib/perf";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
+
+export type DriverStopActionResult =
+  | { success: true; status: StopStatus; alreadyDone?: boolean }
+  | { error: string };
 
 type StopContext = {
   id: string;
@@ -39,8 +41,10 @@ type StopContext = {
   }[];
 };
 
-async function loadStop(stopId: string): Promise<StopContext | null> {
-  const supabase = await createClient();
+async function loadStop(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  stopId: string
+): Promise<StopContext | null> {
   const { data } = await supabase
     .from("stops")
     .select(
@@ -68,11 +72,13 @@ export async function enRouteAction(
   stopId: string,
   lat: number | null,
   lng: number | null
-) {
+): Promise<DriverStopActionResult> {
   const timer = new PerfTimer("driver-action en-route");
   await requireDriverAccess();
   timer.mark("auth");
-  const stop = await loadStop(stopId);
+
+  const supabase = await createClient();
+  const stop = await loadStop(supabase, stopId);
   timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
 
@@ -83,21 +89,16 @@ export async function enRouteAction(
     stop.status === "dropped_off"
   ) {
     timer.end("already done");
-    return { success: true, alreadyDone: true };
+    return { success: true, status: stop.status, alreadyDone: true };
   }
-
-  const supabase = await createClient();
 
   const dog = one(stop.dogs);
   const customer = one(dog?.customers);
-  const origin =
-    lat != null && lng != null ? { lat, lng } : null;
+  const origin = lat != null && lng != null ? { lat, lng } : null;
   const destination =
     customer?.address_lat != null && customer?.address_lng != null
       ? { lat: customer.address_lat, lng: customer.address_lng }
       : null;
-  const etaMinutes = await resolveDrivingEtaMinutes(origin, destination);
-  timer.mark("eta");
 
   const { error } = await supabase
     .from("stops")
@@ -106,7 +107,7 @@ export async function enRouteAction(
       en_route_at: new Date().toISOString(),
       driver_lat: lat,
       driver_lng: lng,
-      eta_minutes: etaMinutes,
+      eta_minutes: null,
     })
     .eq("id", stopId)
     .eq("status", "scheduled");
@@ -114,44 +115,41 @@ export async function enRouteAction(
   if (error) return { error: error.message };
   timer.mark("db-update");
 
-  await supabase
+  void supabase
     .from("hikes")
     .update({ status: "in_progress" })
     .eq("id", stop.hike_id)
     .eq("status", "planned");
 
   if (dog) {
-    await logNotification({
+    scheduleEnRouteSideEffects({
+      stopId,
+      hikeId: stop.hike_id,
+      dogId: stop.dog_id,
       companyId: dog.company_id,
       customerId: dog.customer_id,
-      dogId: stop.dog_id,
-      stopId,
-      notificationType: "en_route",
-      body: (ownerName) =>
-        buildEnRouteMessage(
-          ownerName,
-          dog.name,
-          stop.stop_type as "pickup" | "dropoff",
-          etaMinutes
-        ),
+      dogName: dog.name,
+      stopType: stop.stop_type as "pickup" | "dropoff",
+      origin,
+      destination,
     });
   }
-  timer.mark("sms");
-
-  revalidateDriverPaths();
   timer.end();
-  return { success: true };
+
+  return { success: true, status: "en_route" };
 }
 
 export async function arrivedAction(
   stopId: string,
   lat: number | null = null,
   lng: number | null = null
-) {
+): Promise<DriverStopActionResult> {
   const timer = new PerfTimer("driver-action arrived");
   await requireDriverAccess();
   timer.mark("auth");
-  const stop = await loadStop(stopId);
+
+  const supabase = await createClient();
+  const stop = await loadStop(supabase, stopId);
   timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
 
@@ -161,14 +159,13 @@ export async function arrivedAction(
     stop.status === "arrived"
   ) {
     timer.end("already done");
-    return { success: true, alreadyDone: true };
+    return { success: true, status: stop.status, alreadyDone: true };
   }
 
   if (stop.status !== "en_route") {
     return { error: "Mark en route before arriving." };
   }
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("stops")
     .update({
@@ -185,49 +182,43 @@ export async function arrivedAction(
   timer.mark("db-update");
 
   const dog = one(stop.dogs);
-  const customer = one(dog?.customers);
-
   if (dog) {
-    await logNotification({
+    scheduleArrivedNotification({
+      stopId,
+      dogId: stop.dog_id,
       companyId: dog.company_id,
       customerId: dog.customer_id,
-      dogId: stop.dog_id,
-      stopId,
-      notificationType: "arrived",
-      body: (ownerName) =>
-        buildArrivedMessage(
-          ownerName,
-          dog.name,
-          stop.stop_type as "pickup" | "dropoff"
-        ),
+      dogName: dog.name,
+      stopType: stop.stop_type as "pickup" | "dropoff",
     });
   }
-  timer.mark("sms");
-
-  revalidateDriverPaths();
   timer.end();
-  return { success: true };
+
+  return { success: true, status: "arrived" };
 }
 
-export async function completePickupAction(stopId: string) {
+export async function completePickupAction(
+  stopId: string
+): Promise<DriverStopActionResult> {
   const timer = new PerfTimer("driver-action picked-up");
   await requireDriverAccess();
   timer.mark("auth");
-  const stop = await loadStop(stopId);
+
+  const supabase = await createClient();
+  const stop = await loadStop(supabase, stopId);
   timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
   if (stop.stop_type !== "pickup") return { error: "Not a pickup stop." };
 
   if (stop.status === "picked_up") {
     timer.end("already done");
-    return { success: true, alreadyDone: true };
+    return { success: true, status: "picked_up", alreadyDone: true };
   }
 
   if (stop.status !== "arrived") {
     return { error: "Mark arrived before picking up." };
   }
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("stops")
     .update({
@@ -242,41 +233,41 @@ export async function completePickupAction(stopId: string) {
 
   const dog = one(stop.dogs);
   if (dog) {
-    await logNotification({
+    schedulePickupNotification({
+      stopId,
+      dogId: stop.dog_id,
       companyId: dog.company_id,
       customerId: dog.customer_id,
-      dogId: stop.dog_id,
-      stopId,
-      notificationType: "picked_up",
-      body: buildPickedUpMessage(dog.name),
+      dogName: dog.name,
     });
   }
-  timer.mark("sms");
-
-  revalidateDriverPaths();
   timer.end();
-  return { success: true };
+
+  return { success: true, status: "picked_up" };
 }
 
-export async function completeDropoffAction(stopId: string) {
+export async function completeDropoffAction(
+  stopId: string
+): Promise<DriverStopActionResult> {
   const timer = new PerfTimer("driver-action dropped-off");
   await requireDriverAccess();
   timer.mark("auth");
-  const stop = await loadStop(stopId);
+
+  const supabase = await createClient();
+  const stop = await loadStop(supabase, stopId);
   timer.mark("loadStop");
   if (!stop) return { error: "Stop not found." };
   if (stop.stop_type !== "dropoff") return { error: "Not a drop-off stop." };
 
   if (stop.status === "dropped_off") {
     timer.end("already done");
-    return { success: true, alreadyDone: true };
+    return { success: true, status: "dropped_off", alreadyDone: true };
   }
 
   if (stop.status !== "arrived") {
     return { error: "Mark arrived before dropping off." };
   }
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("stops")
     .update({
@@ -291,44 +282,18 @@ export async function completeDropoffAction(stopId: string) {
 
   const dog = one(stop.dogs);
   if (dog) {
-    await logNotification({
+    scheduleDropoffSideEffects({
+      stopId,
+      hikeId: stop.hike_id,
+      dogId: stop.dog_id,
       companyId: dog.company_id,
       customerId: dog.customer_id,
-      dogId: stop.dog_id,
-      stopId,
-      notificationType: "dropped_off",
-      body: buildDroppedOffMessage(dog.name),
+      dogName: dog.name,
     });
   }
-  timer.mark("sms");
-
-  await markHikeCompletedIfDone(stop.hike_id);
-  timer.mark("hike-check");
-
-  revalidateDriverPaths();
   timer.end();
-  return { success: true };
-}
 
-async function markHikeCompletedIfDone(hikeId: string) {
-  const supabase = await createClient();
-  const { data: stops } = await supabase
-    .from("stops")
-    .select("status")
-    .eq("hike_id", hikeId);
-
-  const allDone = (stops ?? []).every(
-    (s) => s.status === "picked_up" || s.status === "dropped_off" || s.status === "skipped"
-  );
-
-  if (allDone && (stops ?? []).length > 0) {
-    await supabase.from("hikes").update({ status: "completed" }).eq("id", hikeId);
-  }
-}
-
-function revalidateDriverPaths() {
-  revalidatePath("/today");
-  revalidatePath("/dashboard/hikes/today");
+  return { success: true, status: "dropped_off" };
 }
 
 /** Reorder today's pickup route before any stops begin. Syncs drop-off order to match. */
@@ -374,6 +339,7 @@ export async function reorderDriverPickupsAction(
   );
   if (error) return { error };
 
-  revalidateDriverPaths();
+  revalidatePath("/today");
+  revalidatePath("/dashboard/hikes/today");
   return { success: true };
 }

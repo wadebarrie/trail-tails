@@ -1,3 +1,5 @@
+"use client";
+
 import { DriverDayNav } from "@/features/driver-actions/components/driver-day-nav";
 import { LocationServicesIndicator } from "@/features/driver-actions/components/location-services-indicator";
 import { DriverPickupReorder } from "@/features/driver-actions/components/driver-pickup-reorder";

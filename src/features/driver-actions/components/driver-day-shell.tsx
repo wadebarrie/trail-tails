@@ -9,6 +9,10 @@ import {
   useDriverFeedback,
 } from "@/features/driver-actions/components/driver-feedback";
 import {
+  DriverDayStateProvider,
+  useDriverDayState,
+} from "@/features/driver-actions/driver-day-state";
+import {
   allStopsComplete,
   countCompletedDropoffs,
   countCompletedPickups,
@@ -45,39 +49,28 @@ function markMilestone(date: string, kind: string) {
   sessionStorage.setItem(milestoneKey(date, kind), "1");
 }
 
-function DriverDayShellInner({
+function DriverDayContent({
   active,
   day,
   preview = false,
-  driverName,
-  timeZone,
-  briefingNotes,
-}: DriverDayShellProps) {
+}: {
+  active: "today" | "tomorrow";
+  day: DriverDayViewData;
+  preview?: boolean;
+}) {
   const { showFeedback } = useDriverFeedback();
-  const [briefingOpen, setBriefingOpen] = useState(false);
+  const { mergeDay } = useDriverDayState();
+  const mergedDay = mergeDay(day);
 
-  const totalPickups = countPickupStops(day);
-  const totalDropoffs = countDropoffStops(day);
-  const donePickups = countCompletedPickups(day);
-  const doneDropoffs = countCompletedDropoffs(day);
-  const allPickups = day.routes.flatMap((r) => r.pickups);
-  const estimatedCompletion = estimatePickupCompletionTime(allPickups);
-
-  useEffect(() => {
-    if (preview || active !== "today" || totalPickups === 0) {
-      setBriefingOpen(false);
-      return;
-    }
-    setBriefingOpen(!isBriefingDismissed(day.date));
-  }, [active, day.date, preview, totalPickups]);
+  const totalPickups = countPickupStops(mergedDay);
+  const totalDropoffs = countDropoffStops(mergedDay);
+  const donePickups = countCompletedPickups(mergedDay);
+  const doneDropoffs = countCompletedDropoffs(mergedDay);
 
   useEffect(() => {
     if (preview || active !== "today") return;
 
-    if (
-      allStopsComplete(day) &&
-      !milestoneSeen(day.date, "done")
-    ) {
+    if (allStopsComplete(mergedDay) && !milestoneSeen(day.date, "done")) {
       markMilestone(day.date, "done");
       showFeedback("Great work today.");
       return;
@@ -105,12 +98,38 @@ function DriverDayShellInner({
     active,
     preview,
     day.date,
+    mergedDay,
     totalPickups,
     totalDropoffs,
     donePickups,
     doneDropoffs,
     showFeedback,
   ]);
+
+  return <DriverDayView active={active} day={mergedDay} preview={preview} />;
+}
+
+function DriverDayShellInner({
+  active,
+  day,
+  preview = false,
+  driverName,
+  timeZone,
+  briefingNotes,
+}: DriverDayShellProps) {
+  const [briefingOpen, setBriefingOpen] = useState(false);
+
+  const totalPickups = countPickupStops(day);
+  const allPickups = day.routes.flatMap((r) => r.pickups);
+  const estimatedCompletion = estimatePickupCompletionTime(allPickups);
+
+  useEffect(() => {
+    if (preview || active !== "today" || totalPickups === 0) {
+      setBriefingOpen(false);
+      return;
+    }
+    setBriefingOpen(!isBriefingDismissed(day.date));
+  }, [active, day.date, preview, totalPickups]);
 
   function handleStartRoute() {
     dismissBriefingForDate(day.date);
@@ -130,7 +149,11 @@ function DriverDayShellInner({
     );
   }
 
-  return <DriverDayView active={active} day={day} preview={preview} />;
+  return (
+    <DriverDayStateProvider>
+      <DriverDayContent active={active} day={day} preview={preview} />
+    </DriverDayStateProvider>
+  );
 }
 
 export function DriverDayShell(props: DriverDayShellProps) {

@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import {
   arrivedAction,
   completeDropoffAction,
   completePickupAction,
   enRouteAction,
+  type DriverStopActionResult,
 } from "@/features/driver-actions/actions";
 import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/driver-customer-info-sheet";
 import { useDriverFeedback } from "@/features/driver-actions/components/driver-feedback";
+import { useDriverDayState } from "@/features/driver-actions/driver-day-state";
 import { useAutoArrival, type GeoWatchStatus } from "@/features/driver-actions/use-auto-arrival";
 import { formatTime } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
@@ -182,7 +183,8 @@ function StopProgressSteps({
   );
 }
 
-function getLocation(): Promise<{ lat: number; lng: number } | null> {
+/** Best-effort GPS — prefers cached position, does not block the UI long. */
+function getLocationFast(): Promise<{ lat: number; lng: number } | null> {
   if (!navigator.geolocation) return Promise.resolve(null);
 
   return new Promise((resolve) => {
@@ -190,7 +192,7 @@ function getLocation(): Promise<{ lat: number; lng: number } | null> {
       (pos) =>
         resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => resolve(null),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 3000, maximumAge: 120_000 }
     );
   });
 }
@@ -232,14 +234,15 @@ function StopCard({
   stop: DriverStopView;
   readOnly?: boolean;
 }) {
-  const router = useRouter();
   const { showFeedback } = useDriverFeedback();
-  const [pending, startTransition] = useTransition();
+  const { mergeStop, setStopStatus, clearStopStatus } = useDriverDayState();
+  const [submitting, setSubmitting] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
 
+  const merged = mergeStop(stop);
+  const status = merged.status;
   const isPickup = stop.stopType === "pickup";
-  const isDone =
-    stop.status === "picked_up" || stop.status === "dropped_off";
+  const isDone = status === "picked_up" || status === "dropped_off";
 
   const destination =
     stop.destinationLat != null && stop.destinationLng != null
@@ -251,59 +254,68 @@ function StopCard({
       ? { lat: stop.originLat, lng: stop.originLng }
       : null;
 
-  function refresh() {
-    router.refresh();
-  }
+  const runOptimistic = useCallback(
+    async (
+      nextStatus: StopStatus,
+      action: () => Promise<DriverStopActionResult>,
+      feedback?: string
+    ) => {
+      if (submitting) return;
+      setSubmitting(true);
+      setStopStatus(stop.id, nextStatus);
+      if (feedback) showFeedback(feedback);
 
-  function run(
-    action: () => Promise<{ error?: string }>,
-    onSuccess?: () => void
-  ) {
-    startTransition(async () => {
-      const result = await action();
-      if (result.error) {
-        alert(result.error);
-      } else if (onSuccess) {
-        onSuccess();
+      try {
+        const result = await action();
+        if ("error" in result) {
+          clearStopStatus(stop.id);
+          showFeedback(result.error);
+          return;
+        }
+        setStopStatus(stop.id, result.status);
+      } finally {
+        setSubmitting(false);
       }
-      refresh();
-    });
-  }
+    },
+    [clearStopStatus, setStopStatus, showFeedback, stop.id, submitting]
+  );
 
   const handleArrived = useCallback(() => {
-    run(async () => {
-      const coords = await getLocation();
+    void runOptimistic("arrived", async () => {
+      const coords = await getLocationFast();
       return arrivedAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
     });
-  }, [stop.id]);
+  }, [runOptimistic, stop.id]);
 
   const { canAutoDetect, distanceMetersAway, travelProgress, locationStatus } =
     useAutoArrival({
       stopId: stop.id,
-      enabled: stop.status === "en_route" && !pending,
+      enabled: status === "en_route" && !submitting,
       destination,
       origin,
       onArrive: handleArrived,
     });
 
   function handleEnRoute() {
-    run(
+    void runOptimistic(
+      "en_route",
       async () => {
-        const coords = await getLocation();
+        const coords = await getLocationFast();
         return enRouteAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
       },
-      () => showFeedback(`${stop.dogName}'s family has been notified.`)
+      `${stop.dogName}'s family has been notified.`
     );
   }
 
   function handleComplete() {
-    run(
+    const nextStatus = isPickup ? "picked_up" : "dropped_off";
+    void runOptimistic(
+      nextStatus,
       async () =>
         isPickup
           ? completePickupAction(stop.id)
           : completeDropoffAction(stop.id),
-      () =>
-        showFeedback(isPickup ? "Pickup recorded." : "Drop-off recorded.")
+      isPickup ? "Pickup recorded." : "Drop-off recorded."
     );
   }
 
@@ -343,36 +355,36 @@ function StopCard({
 
       <StopProgressSteps
         stopType={stop.stopType}
-        status={stop.status}
+        status={status}
         readOnly={readOnly}
         travelProgress={
-          stop.status === "en_route" ? (travelProgress ?? 0) : null
+          status === "en_route" ? (travelProgress ?? 0) : null
         }
       />
 
       {!isDone && !readOnly ? (
         <div className="mt-5 flex flex-col gap-3">
-          {stop.status === "scheduled" ? (
+          {status === "scheduled" ? (
             <button
               type="button"
-              disabled={pending}
+              disabled={submitting}
               onClick={handleEnRoute}
               className="w-full rounded-2xl bg-amber-400 py-5 text-lg font-semibold text-stone-900 transition active:scale-[0.98] disabled:opacity-50"
             >
-              {pending ? "…" : "En Route"}
+              En Route
             </button>
-          ) : stop.status === "en_route" ? (
+          ) : status === "en_route" ? (
             <div className="flex flex-col gap-3">
               {canAutoDetect ? (
                 <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-4 py-4 text-center">
                   <p className="text-sm font-medium text-sky-100">
-                    {pending
+                    {submitting
                       ? "Marking arrived…"
                       : locationStatus === "watching"
                         ? "Auto-detecting arrival via GPS"
                         : "Waiting for GPS…"}
                   </p>
-                  {distanceMetersAway != null && !pending ? (
+                  {distanceMetersAway != null && !submitting ? (
                     <p className="mt-1 text-xs text-sky-200/70">
                       {formatDistanceMeters(distanceMetersAway)} away
                       {travelProgress != null
@@ -380,14 +392,14 @@ function StopCard({
                         : null}
                     </p>
                   ) : null}
-                  {!pending && locationStatus === "watching" ? (
+                  {!submitting && locationStatus === "watching" ? (
                     <p className="mt-2 text-xs text-sky-200/80">
                       Screen stays awake while driving. If you lock your phone, open
                       PackRoute when you pull up — we&apos;ll grab a fresh GPS fix and
                       mark arrived automatically.
                     </p>
                   ) : null}
-                  {locationStatusMessage(locationStatus) && !pending ? (
+                  {locationStatusMessage(locationStatus) && !submitting ? (
                     <p className="mt-2 text-xs text-amber-200/90">
                       {locationStatusMessage(locationStatus)}
                     </p>
@@ -400,7 +412,7 @@ function StopCard({
               )}
               <button
                 type="button"
-                disabled={pending}
+                disabled={submitting}
                 onClick={handleArrived}
                 className={
                   canAutoDetect
@@ -408,21 +420,17 @@ function StopCard({
                     : "w-full rounded-2xl bg-sky-400 py-5 text-lg font-semibold text-stone-900 transition active:scale-[0.98] disabled:opacity-50"
                 }
               >
-                {pending ? "…" : canAutoDetect ? "Mark arrived manually" : "Arrived"}
+                {canAutoDetect ? "Mark arrived manually" : "Arrived"}
               </button>
             </div>
           ) : (
             <button
               type="button"
-              disabled={pending}
+              disabled={submitting}
               onClick={handleComplete}
               className="w-full rounded-2xl bg-white py-5 text-lg font-semibold text-[var(--color-trail-800)] transition active:scale-[0.98] disabled:opacity-50"
             >
-              {pending
-                ? "…"
-                : isPickup
-                  ? "Picked Up"
-                  : "Dropped Off"}
+              {isPickup ? "Picked Up" : "Dropped Off"}
             </button>
           )}
         </div>
