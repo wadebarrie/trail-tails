@@ -9,31 +9,31 @@ import {
   DriverMobileMock,
   HeroDashboardMock,
 } from "@/features/landing/components/mockups";
-import { LANDING_FAQ } from "@/features/landing/constants";
+import { LANDING_FAQ_VISIBLE } from "@/features/landing/constants";
 import { HOME_H1 } from "@/lib/seo/metadata";
 
-const FAQ = LANDING_FAQ;
+const FAQ = LANDING_FAQ_VISIBLE;
 
 const FEATURES = [
   {
     title: "Routes and schedules",
     description:
-      "Pickup order, driver assignment, recurring dogs, and today or tomorrow overrides — without rebuilding from a spreadsheet each morning.",
+      "Build daily routes, assign drivers, manage recurring dogs, and adjust today or tomorrow without rebuilding a spreadsheet.",
   },
   {
     title: "Driver workflow on mobile",
     description:
-      "Today view, stop list, and status taps. Add to home screen — no app store required.",
+      "Drivers open Today, follow stops in order, and tap simple status updates from their phone.",
   },
   {
     title: "Customer SMS, office-approved",
     description:
-      "Reminders, ETAs, and pickup confirmations when drivers update stops. Texted schedule requests wait for your team first.",
+      "Send reminders, ETAs, and pickup confirmations. Customer requests wait for office approval before anything changes.",
   },
   {
     title: "Billing export",
     description:
-      "Completed hikes by date range, exported as CSV for QuickBooks or your own invoicing.",
+      "Track completed hikes by date range and export CSVs for QuickBooks or your own invoicing process.",
   },
 ] as const;
 
@@ -64,9 +64,9 @@ export function LandingPage() {
                 {HOME_H1}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-stone-600">
-                Your office plans routes and schedules. Drivers run the day from
-                their phone. Customers get clear texts — without the group chat
-                chaos.
+                Plan recurring dogs and pickup routes, give drivers a simple
+                mobile workflow, and keep customers updated by text — without
+                spreadsheet or group chat chaos.
               </p>
               <div className="mt-8">
                 <CtaButtons />
@@ -94,10 +94,10 @@ export function LandingPage() {
               Built for adventure dog hiking teams
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
-              Multiple drivers, pickup routes, group hikes, and schedule changes
-              — usually held together with spreadsheets and group texts.
-              PackRoute is dog walking business software that puts routes,
-              drivers, customer SMS, and billing prep in one place.
+              Recurring dogs, multiple drivers, pickup routes, and schedule
+              changes — usually spread across spreadsheets and group texts.
+              PackRoute brings routes, drivers, customer SMS, and billing prep
+              together.
             </p>
           </div>
         </section>
@@ -115,15 +115,15 @@ export function LandingPage() {
               {[
                 {
                   role: "Office",
-                  body: "Build routes, assign dogs and drivers, approve schedule requests, and export billing.",
+                  body: "Build routes, assign drivers, approve schedule requests, and export billing.",
                 },
                 {
                   role: "Driver",
-                  body: "Open Today on their phone, follow stops in order, and tap En Route through Dropped Off.",
+                  body: "Open Today on their phone — stops in order, status taps.",
                 },
                 {
                   role: "Customer",
-                  body: "Gets plain-English texts — no app. Can reply with SKIP TOMORROW or LATE PICKUP; your team approves first.",
+                  body: "SMS updates by text. Schedule requests wait for office approval.",
                 },
               ].map((item) => (
                 <div
@@ -188,9 +188,8 @@ export function LandingPage() {
                   <h3 className="text-lg font-semibold text-[var(--color-trail-800)]">
                     Office dashboard
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                    Routes, drivers, pending requests, and billing summaries —
-                    one view for the team that owns the schedule.
+                  <p className="mt-2 text-sm text-stone-600">
+                    Today&apos;s routes and pending requests.
                   </p>
                   <Link
                     href="/login?role=admin"
@@ -207,9 +206,8 @@ export function LandingPage() {
                   <h3 className="text-lg font-semibold text-[var(--color-trail-800)]">
                     Driver mobile view
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                    Today&apos;s stops in order, status taps, optional
-                    GPS-assisted arrival — works in the mobile browser.
+                  <p className="mt-2 text-sm text-stone-600">
+                    Stop list and status taps in the mobile browser.
                   </p>
                   <Link
                     href="/login?role=driver"
@@ -265,8 +263,7 @@ export function LandingPage() {
                 Less coordinating. More hiking.
               </h2>
               <p className="mt-4 text-lg text-white/80">
-                Book a demo or ask a question — we&apos;ll reply within a
-                business day.
+                Book a demo — we&apos;ll reply within a business day.
               </p>
             </div>
 

@@ -42,7 +42,7 @@ export function HeroDashboardMock() {
       <div
         className="bg-[var(--color-trail-50)] p-4 sm:p-5"
         role="img"
-        aria-label="Preview of the PackRoute office dashboard showing today's dog walking routes, drivers, and pending customer requests"
+        aria-label="Preview of the PackRoute office dashboard showing today's routes and drivers"
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -73,7 +73,7 @@ export function HeroDashboardMock() {
                 ) : null}
               </div>
               <p className="mt-1 text-xs text-stone-500">{route.driver}</p>
-              <p className="mt-2 text-xs text-stone-600">{route.dogs} dogs · pickups</p>
+              <p className="mt-2 text-xs text-stone-600">{route.dogs} dogs</p>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-stone-100">
                 <div
                   className="h-full rounded-full bg-[var(--color-trail-600)]"
@@ -82,15 +82,6 @@ export function HeroDashboardMock() {
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="mt-4 surface-card rounded-[var(--radius-surface)] p-3">
-          <p className="text-xs font-medium text-stone-500">Recent activity</p>
-          <ul className="mt-2 space-y-1.5 text-xs text-stone-600">
-            <li>Cooper picked up · Burnaby route</li>
-            <li>ETA sent to Sam Patel · Vancouver route</li>
-            <li>Skip request received · “Skip Friday”</li>
-          </ul>
         </div>
       </div>
     </MockWindow>
@@ -331,17 +322,10 @@ export function DriverMobileMock() {
           <h2 className="text-xl font-bold text-white">Today</h2>
           <p className="mt-0.5 text-xs text-white/70">Thursday, June 27</p>
 
-          {/* Status pills */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <div className="inline-flex h-7 items-center gap-1.5 rounded-full border border-green-400/30 bg-green-400/10 px-2.5 text-[10px] font-medium text-green-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.8)]" />
-              Location active
-            </div>
+          {/* Status */}
+          <div className="mt-3">
             <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] text-white/80">
               2 pickups left
-            </span>
-            <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] text-white/80">
-              3 drop-offs left
             </span>
           </div>
 
@@ -382,7 +366,7 @@ export function AdminDashboardMock() {
       <div
         className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5"
         role="img"
-        aria-label="Preview of the PackRoute admin dashboard with route status, billing summary, and notification activity"
+        aria-label="Preview of the PackRoute admin dashboard with today's routes and billing summary"
       >
         <div className="surface-card rounded-[var(--radius-surface)] p-4 sm:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -403,17 +387,10 @@ export function AdminDashboardMock() {
           </div>
         </div>
 
-        <div className="surface-card rounded-[var(--radius-surface)] p-4">          <p className="text-sm font-semibold text-stone-900">Billing period</p>
+        <div className="surface-card rounded-[var(--radius-surface)] p-4 sm:col-span-2">
+          <p className="text-sm font-semibold text-stone-900">Billing period</p>
           <p className="mt-2 text-2xl font-semibold text-[var(--color-trail-700)]">142</p>
           <p className="text-xs text-stone-500">Completed hikes · export CSV</p>
-        </div>
-
-        <div className="surface-card rounded-[var(--radius-surface)] p-4">          <p className="text-sm font-semibold text-stone-900">Notifications</p>
-          <ul className="mt-2 space-y-1 text-xs text-stone-600">
-            <li>Night-before reminders sent</li>
-            <li>12 ETA texts today</li>
-            <li>3 pickup confirmations</li>
-          </ul>
         </div>
       </div>
     </MockWindow>

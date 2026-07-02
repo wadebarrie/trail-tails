@@ -6,7 +6,7 @@ export const DEMO_MAILTO = `mailto:${SITE_CONTACT_EMAIL}?subject=PackRoute%20dem
 
 export const WAITLIST_MAILTO = `mailto:${SITE_CONTACT_EMAIL}?subject=PackRoute%20early%20access`;
 
-export { LANDING_FAQ } from "@/lib/seo/metadata";
+export { LANDING_FAQ, LANDING_FAQ_VISIBLE } from "@/lib/seo/metadata";
 
 export const NAV_LINKS = [
   { href: "/#how-it-works", label: "How it works" },

@@ -44,11 +44,13 @@ export const DOG_WALKING_SOFTWARE_TITLE =
 export const DOG_WALKING_SOFTWARE_DESCRIPTION =
   "Plan pickup routes, guide drivers, and send customer updates with PackRoute — dog walking route planning software built for adventure dog hiking and group dog walking businesses.";
 
-/** Used for FAQ structured data — must match landing page FAQ copy. */
-export const LANDING_FAQ = [
+type FaqItem = { readonly q: string; readonly a: string };
+
+/** Full FAQ for structured data and SEO pages. */
+export const LANDING_FAQ: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "PackRoute is operations software for adventure dog hiking and group dog walking businesses. Your office plans routes and schedules; drivers run the day from their phone; customers get intentional SMS updates — without spreadsheet chaos or endless group chats.",
+    a: "PackRoute is operations software for adventure dog hiking teams. Your office plans routes and schedules; drivers run the day from their phone; customers get SMS updates — without spreadsheet chaos or endless group chats.",
   },
   {
     q: "Is PackRoute dog walking software?",
@@ -64,11 +66,11 @@ export const LANDING_FAQ = [
   },
   {
     q: "Can drivers use PackRoute on the road?",
-    a: "Yes. Drivers use a mobile Today view in the browser — see their next stop, tap En Route, Arrived, Picked Up, or Dropped Off, and optionally reorder pickups before the route starts. No app store download required.",
+    a: "Yes. Drivers use a mobile Today view in the browser — stops in order, status taps, optional pickup reorder. No app store download required.",
   },
   {
     q: "Does PackRoute send customer updates?",
-    a: "Yes. Customers get SMS for night-before reminders, en-route ETAs, and pickup or drop-off confirmations when drivers update stops. Schedule change requests by text go to your office for approval first.",
+    a: "Yes. Night-before reminders, en-route ETAs, and pickup or drop-off confirmations when drivers update stops. Schedule change requests by text go to your office for approval first.",
   },
   {
     q: "Is PackRoute built for pet sitting businesses too?",
@@ -80,13 +82,41 @@ export const LANDING_FAQ = [
   },
   {
     q: "What happens when a customer texts a schedule change?",
-    a: "Their message becomes a pending request in your office dashboard. Nothing changes on the route until your team approves it.",
+    a: "Their message becomes a pending request in your office dashboard. Nothing changes until your team approves it.",
   },
   {
     q: "Does PackRoute handle payments or invoicing?",
     a: "No. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks or your own process.",
   },
-] as const;
+];
+
+/** Conversion-focused FAQ shown on the homepage. */
+export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
+  {
+    q: "What is PackRoute?",
+    a: "Operations software for adventure dog hiking teams — routes, drivers, customer SMS, and billing prep in one place.",
+  },
+  {
+    q: "Can drivers use PackRoute on the road?",
+    a: "Yes. A mobile Today view in the browser — stops in order and simple status taps. No app store required.",
+  },
+  {
+    q: "Does PackRoute send customer updates?",
+    a: "Yes. Reminders, ETAs, and pickup confirmations by SMS when drivers update stops.",
+  },
+  {
+    q: "What happens when a customer texts a schedule change?",
+    a: "It becomes a pending request in your dashboard. Nothing changes until your team approves it.",
+  },
+  {
+    q: "Does PackRoute handle payments or invoicing?",
+    a: "No. It tracks completed hikes and exports CSV for QuickBooks or your own billing process.",
+  },
+  {
+    q: "Do customers need to download an app?",
+    a: "No. SMS only — no account or login.",
+  },
+];
 
 /** Prevent indexing of authenticated / internal app surfaces. */
 export const NOINDEX_ROBOTS = {

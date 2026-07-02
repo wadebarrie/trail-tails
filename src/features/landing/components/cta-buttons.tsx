@@ -25,6 +25,7 @@ function secondaryButtonClasses(variant: "light" | "dark") {
 export function CtaButtons({
   primary = "Book a demo",
   showEarlyAccess = false,
+  showHowItWorks = false,
   variant = "light",
   align = "start",
   primaryClassName,
@@ -32,6 +33,7 @@ export function CtaButtons({
 }: {
   primary?: string;
   showEarlyAccess?: boolean;
+  showHowItWorks?: boolean;
   variant?: "light" | "dark";
   align?: "start" | "center";
   primaryClassName?: string;
@@ -63,11 +65,11 @@ export function CtaButtons({
             label="Get early access"
             className={resolvedSecondaryClassName}
           />
-        ) : (
+        ) : showHowItWorks ? (
           <a href="/#how-it-works" className={resolvedSecondaryClassName}>
             See how it works
           </a>
-        )}
+        ) : null}
       </div>
       <ContactEmailFallback variant={variant} className={fallbackClassName} />
     </div>
