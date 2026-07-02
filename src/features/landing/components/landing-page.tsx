@@ -29,7 +29,7 @@ const FEATURES = [
   {
     title: "Customer SMS, office-approved",
     description:
-      "Send reminders, ETAs, and pickup confirmations. Customer requests wait for office approval before anything changes.",
+      "Reminders, ETAs, and pickup confirmations — no app or account. Customers text to skip a day, set vacation dates, or pause service; your office approves before anything changes.",
   },
   {
     title: "Billing export",
@@ -120,7 +120,7 @@ export function LandingPage() {
                 },
                 {
                   role: "Driver",
-                  body: "Open Today on their phone — stops in order, status taps.",
+                  body: "Opens Today on their phone, reviews the route, and adjusts pickup order when needed. At each stop, status taps send SMS updates to customers.",
                 },
                 {
                   role: "Customer",
