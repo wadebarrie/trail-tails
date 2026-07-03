@@ -38,13 +38,20 @@ export function getSafeRedirect(role: UserRole, next?: string): string {
 export const PUBLIC_PATHS = new Set([
   "/",
   "/contact",
+  "/dog-walking-software",
   AUTH_ROUTES.login,
   AUTH_ROUTES.signup,
   AUTH_ROUTES.forgotPassword,
+  AUTH_ROUTES.resetPassword,
 ]);
 
-/** Path prefixes accessible without auth (webhooks, health) */
-export const PUBLIC_PREFIXES = ["/api/health", "/api/webhooks", "/auth/callback"];
+/** Path prefixes accessible without auth (webhooks, health, legal) */
+export const PUBLIC_PREFIXES = [
+  "/api/health",
+  "/api/webhooks",
+  "/auth/callback",
+  "/legal",
+];
 
 export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
