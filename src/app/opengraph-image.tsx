@@ -1,9 +1,22 @@
 import { ImageResponse } from "next/og";
+import {
+  PACKROUTE_MARK_PATH,
+  PACKROUTE_MARK_TRANSFORM,
+  PACKROUTE_MARK_VIEWBOX,
+} from "@/features/brand/packroute-mark-path";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo/metadata";
 
 export const alt = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const FOREST = "#1F5A4A";
+const INK = "#253238";
+const MARK_HEIGHT = 120;
+const MARK_WIDTH = Math.round(
+  MARK_HEIGHT * (PACKROUTE_MARK_VIEWBOX.width / PACKROUTE_MARK_VIEWBOX.height),
+);
+const MARK_VIEWBOX = `${PACKROUTE_MARK_VIEWBOX.x} ${PACKROUTE_MARK_VIEWBOX.y} ${PACKROUTE_MARK_VIEWBOX.width} ${PACKROUTE_MARK_VIEWBOX.height}`;
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -13,10 +26,9 @@ export default function OpenGraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "72px 80px",
-          background: "linear-gradient(145deg, #f4f8f6 0%, #e4ede7 55%, #d4e4da 100%)",
+          alignItems: "center",
+          padding: "64px 80px",
+          background: "linear-gradient(135deg, #f4f8f6 0%, #e8f0eb 50%, #dce8e0 100%)",
           fontFamily: "system-ui, sans-serif",
         }}
       >
@@ -24,74 +36,74 @@ export default function OpenGraphImage() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 20,
-            marginBottom: 36,
+            gap: 48,
+            width: "100%",
           }}
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox={MARK_VIEWBOX}
+            width={MARK_WIDTH}
+            height={MARK_HEIGHT}
+          >
+            <g transform={PACKROUTE_MARK_TRANSFORM}>
+              <path fill={FOREST} d={PACKROUTE_MARK_PATH} />
+            </g>
+          </svg>
+
           <div
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 14,
-              background: "#1F5A4A",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              flexDirection: "column",
+              flex: 1,
             }}
           >
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 32 32"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 20,
+              }}
             >
-              <path
-                d="M8 22c2-6 6-10 8-14 2 4 6 8 8 14"
-                stroke="white"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="16" cy="10" r="2.5" fill="white" />
-            </svg>
+              <span
+                style={{
+                  fontSize: 52,
+                  fontWeight: 700,
+                  color: INK,
+                  letterSpacing: "-0.03em",
+                }}
+              >
+                {SITE_NAME}
+              </span>
+            </div>
+            <p
+              style={{
+                fontSize: 36,
+                fontWeight: 600,
+                color: INK,
+                lineHeight: 1.25,
+                margin: 0,
+                letterSpacing: "-0.02em",
+                maxWidth: 780,
+              }}
+            >
+              {SITE_TAGLINE}
+            </p>
+            <p
+              style={{
+                fontSize: 22,
+                color: FOREST,
+                marginTop: 20,
+                marginBottom: 0,
+                lineHeight: 1.45,
+                maxWidth: 720,
+              }}
+            >
+              Pickup routes, driver workflows, and customer SMS for adventure dog
+              hiking teams
+            </p>
           </div>
-          <span
-            style={{
-              fontSize: 44,
-              fontWeight: 700,
-              color: "#253238",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {SITE_NAME}
-          </span>
         </div>
-        <p
-          style={{
-            fontSize: 40,
-            fontWeight: 600,
-            color: "#253238",
-            lineHeight: 1.25,
-            maxWidth: 900,
-            margin: 0,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {SITE_TAGLINE}
-        </p>
-        <p
-          style={{
-            fontSize: 24,
-            color: "#1F5A4A",
-            marginTop: 28,
-            maxWidth: 820,
-            lineHeight: 1.45,
-          }}
-        >
-          Pickup routes, driver workflows, and customer SMS for adventure dog
-          hiking teams
-        </p>
       </div>
     ),
     { ...size },

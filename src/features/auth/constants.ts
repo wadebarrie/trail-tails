@@ -54,8 +54,16 @@ export const PUBLIC_PREFIXES = [
   "/legal",
 ];
 
+/** Metadata and crawler routes (OG image, llms.txt, etc.) */
+export const PUBLIC_METADATA_PATHS = new Set([
+  "/opengraph-image",
+  "/twitter-image",
+  "/llms.txt",
+]);
+
 export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
+  if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
