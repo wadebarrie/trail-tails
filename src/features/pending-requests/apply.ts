@@ -133,22 +133,22 @@ export function buildApprovedSmsMessage(
 ): string {
   switch (commandType) {
     case "skip_tomorrow":
-      return "Your skip for tomorrow has been approved. See you next time!";
+      return "Your skip for tomorrow is confirmed. See you next time!";
     case "skip_weekday":
     case "skip_date":
       return payload.target_date
-        ? `Your skip for ${payload.target_date} has been approved.`
-        : "Your skip request has been approved.";
+        ? `Your skip for ${payload.target_date} is confirmed.`
+        : "Your skip request is confirmed.";
     case "vacation":
       return payload.start_date && payload.end_date
-        ? `Your vacation ${payload.start_date} through ${payload.end_date} has been approved.`
-        : "Your vacation request has been approved.";
+        ? `Your vacation ${payload.start_date} through ${payload.end_date} is confirmed.`
+        : "Your vacation request is confirmed.";
     case "pause":
-      return "Your service pause has been approved. Text RESUME when you're ready to come back.";
+      return "Your service pause is confirmed. Text RESUME when you're ready to come back.";
     case "resume":
       return "Welcome back! Your service has been resumed.";
     default:
-      return "Your schedule change has been approved.";
+      return "Your schedule change is confirmed.";
   }
 }
 
