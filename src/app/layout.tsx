@@ -6,7 +6,6 @@ import {
   SITE_DESCRIPTION_SHORT,
   SITE_KEYWORDS,
   SITE_NAME,
-  SITE_TAGLINE,
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
@@ -48,20 +47,11 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: HOME_TITLE,
     description: SITE_DESCRIPTION_SHORT,
-    images: [
-      {
-        url: "/icon.png",
-        width: 512,
-        height: 512,
-        alt: `${SITE_NAME} — ${SITE_TAGLINE}`,
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: HOME_TITLE,
     description: SITE_DESCRIPTION_SHORT,
-    images: ["/icon.png"],
   },
   robots: {
     index: true,

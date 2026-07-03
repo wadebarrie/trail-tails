@@ -1,4 +1,6 @@
 import {
+  ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
+  ADVENTURE_DOG_HIKING_SOFTWARE_TITLE,
   DOG_WALKING_SOFTWARE_DESCRIPTION,
   DOG_WALKING_SOFTWARE_TITLE,
   HOME_H1,
@@ -35,9 +37,9 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
     url: siteUrl,
     offers: {
       "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      description: "Contact for pricing",
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/contact`,
+      description: "Contact for pricing and demo",
     },
     featureList: [
       "Dog walking route planning and pickup order",
@@ -118,30 +120,12 @@ export function buildHomePageJsonLd(): string {
 
 export function buildDogWalkingSoftwarePageJsonLd(): string {
   const siteUrl = getSiteUrl();
-  const pageUrl = `${siteUrl}/dog-walking-software`;
-
-  const webPage: JsonLd = {
-    "@type": "WebPage",
-    "@id": `${pageUrl}/#webpage`,
-    url: pageUrl,
-    name: DOG_WALKING_SOFTWARE_TITLE,
-    description: DOG_WALKING_SOFTWARE_DESCRIPTION,
-    isPartOf: { "@id": `${siteUrl}/#website` },
-    about: { "@id": `${siteUrl}/#software` },
-    inLanguage: "en-US",
-  };
-
-  return graph([
-    {
-      "@type": "Organization",
-      "@id": `${siteUrl}/#organization`,
-      name: SITE_NAME,
-      url: siteUrl,
-    },
-    buildSoftwareApplication(siteUrl),
-    webPage,
-    buildFaqPage(pageUrl, "-software"),
-  ]);
+  return buildSeoLandingPageJsonLd(
+    `${siteUrl}/dog-walking-software`,
+    DOG_WALKING_SOFTWARE_TITLE,
+    DOG_WALKING_SOFTWARE_DESCRIPTION,
+    "-software",
+  );
 }
 
 export function buildHomePageJsonLdScriptProps() {
@@ -155,5 +139,95 @@ export function buildDogWalkingSoftwareJsonLdScriptProps() {
   return {
     type: "application/ld+json" as const,
     dangerouslySetInnerHTML: { __html: buildDogWalkingSoftwarePageJsonLd() },
+  };
+}
+
+function buildOrganization(siteUrl: string): JsonLd {
+  return {
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    name: SITE_NAME,
+    url: siteUrl,
+    logo: {
+      "@type": "ImageObject",
+      url: `${siteUrl}/icon.png`,
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: SITE_CONTACT_EMAIL,
+      contactType: "sales",
+      availableLanguage: "English",
+    },
+  };
+}
+
+function buildSeoLandingPageJsonLd(
+  pageUrl: string,
+  title: string,
+  description: string,
+  faqIdSuffix: string,
+): string {
+  const siteUrl = getSiteUrl();
+
+  const webPage: JsonLd = {
+    "@type": "WebPage",
+    "@id": `${pageUrl}/#webpage`,
+    url: pageUrl,
+    name: title,
+    description,
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    about: { "@id": `${siteUrl}/#software` },
+    inLanguage: "en-US",
+  };
+
+  return graph([
+    buildOrganization(siteUrl),
+    buildSoftwareApplication(siteUrl),
+    webPage,
+    buildFaqPage(pageUrl, faqIdSuffix),
+  ]);
+}
+
+export function buildAdventureDogHikingSoftwarePageJsonLd(): string {
+  const siteUrl = getSiteUrl();
+  return buildSeoLandingPageJsonLd(
+    `${siteUrl}/adventure-dog-hiking-software`,
+    ADVENTURE_DOG_HIKING_SOFTWARE_TITLE,
+    ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
+    "-adventure",
+  );
+}
+
+export function buildAdventureDogHikingSoftwareJsonLdScriptProps() {
+  return {
+    type: "application/ld+json" as const,
+    dangerouslySetInnerHTML: {
+      __html: buildAdventureDogHikingSoftwarePageJsonLd(),
+    },
+  };
+}
+
+export function buildContactPageJsonLd(): string {
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/contact`;
+
+  const webPage: JsonLd = {
+    "@type": "ContactPage",
+    "@id": `${pageUrl}/#webpage`,
+    url: pageUrl,
+    name: `Contact — ${SITE_NAME}`,
+    description:
+      "Book a demo or ask about PackRoute — dog walking route planning software for adventure dog hiking teams.",
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    inLanguage: "en-US",
+  };
+
+  return graph([buildOrganization(siteUrl), webPage]);
+}
+
+export function buildContactPageJsonLdScriptProps() {
+  return {
+    type: "application/ld+json" as const,
+    dangerouslySetInnerHTML: { __html: buildContactPageJsonLd() },
   };
 }

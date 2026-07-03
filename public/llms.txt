@@ -1,0 +1,34 @@
+# PackRoute
+
+> Dog walking route planning and operations software for adventure dog hiking teams.
+
+PackRoute helps small adventure dog hiking and group dog walking businesses run pickup routes, assign drivers, and keep customers updated with automated SMS — without spreadsheet chaos or constant "where is my dog?" texts.
+
+Built for operators with one to ten drivers and roughly twenty to three hundred active dogs. Not a consumer marketplace or generic pet-sitting app.
+
+## Product summary
+
+- **Route planning:** Build pickup routes, set stop order, adjust today or tomorrow without losing long-term schedules.
+- **Scheduling:** Morning and afternoon routes, recurring dogs, as-needed bookings, multi-driver days.
+- **Driver workflow:** Mobile browser Today view — no app store required.
+- **Customer SMS:** Night-before reminders, en-route ETAs, pickup and drop-off confirmations, schedule-change requests reviewed by the office first.
+- **Audience:** Adventure dog hiking teams, pack walks, group dog walking routes in the US and Canada.
+
+## Key pages
+
+- [Home — product overview](https://packroute.app/)
+- [Dog walking software — route planning & customer updates](https://packroute.app/dog-walking-software)
+- [Adventure dog hiking software — group hikes & pickup operations](https://packroute.app/adventure-dog-hiking-software)
+- [Contact — book a demo or ask a question](https://packroute.app/contact)
+
+## FAQ highlights
+
+- PackRoute is operations software for adventure dog hiking and group dog walking businesses.
+- Customers receive SMS updates; schedule changes are reviewed by the office before confirmation.
+- Drivers use a mobile web app — no separate driver app install.
+- Pricing is available on request via the contact page.
+
+## Contact
+
+- Email: hello@packroute.app
+- Demo: https://packroute.app/contact

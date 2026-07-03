@@ -44,6 +44,12 @@ export const DOG_WALKING_SOFTWARE_TITLE =
 export const DOG_WALKING_SOFTWARE_DESCRIPTION =
   "Plan pickup routes, guide drivers, and send customer updates with PackRoute — dog walking route planning software built for adventure dog hiking and group dog walking businesses.";
 
+export const ADVENTURE_DOG_HIKING_SOFTWARE_TITLE =
+  "Adventure Dog Hiking Software for Group Walks & Pickup Routes";
+
+export const ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION =
+  "Operations software for adventure dog hiking teams: multi-driver pickup routes, group hike scheduling, driver workflows, and proactive customer SMS.";
+
 type FaqItem = { readonly q: string; readonly a: string };
 
 /** Full FAQ for structured data and SEO pages. */

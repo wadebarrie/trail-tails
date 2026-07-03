@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactPageContent } from "@/features/landing/components/contact-page";
+import { buildContactPageJsonLdScriptProps } from "@/features/landing/seo";
 import { SITE_NAME } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -25,5 +26,10 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactPageContent />;
+  return (
+    <>
+      <script {...buildContactPageJsonLdScriptProps()} />
+      <ContactPageContent />
+    </>
+  );
 }
