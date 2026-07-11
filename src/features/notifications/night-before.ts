@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
-import { getDateInTimezone, getLocalTimeInTimezone, isPastLocalTime } from "@/lib/dates";
+import { getDateInTimezone, getLocalTimeInTimezone, getUtcBoundsForLocalDate, isPastLocalTime } from "@/lib/dates";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
 import { one } from "@/lib/supabase/relations";
@@ -145,13 +145,16 @@ export async function sendNightBeforeRemindersForCompany(
   let sent = 0;
 
   for (const { customerId, dogNames, stopIds, windows, driverFirstNames } of byCustomer.values()) {
+    const { startIso, endIso } = getUtcBoundsForLocalDate(timeZone, today);
+
     const { data: alreadySent } = await supabase
       .from("notification_log")
       .select("id")
       .eq("company_id", companyId)
       .eq("customer_id", customerId)
       .eq("notification_type", "night_before")
-      .gte("created_at", `${today}T00:00:00.000Z`)
+      .gte("created_at", startIso)
+      .lt("created_at", endIso)
       .limit(1);
 
     if (alreadySent?.length) continue;

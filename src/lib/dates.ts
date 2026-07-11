@@ -14,12 +14,58 @@ export function getDateInTimezone(timeZone: string, offsetDays = 0): string {
   if (offsetDays !== 0) {
     date.setUTCDate(date.getUTCDate() + offsetDays);
   }
+  return getDateInTimezoneAt(timeZone, date);
+}
+
+/** YYYY-MM-DD for a specific instant in an IANA timezone. */
+export function getDateInTimezoneAt(timeZone: string, at: Date): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(date);
+  }).format(at);
+}
+
+/** UTC instants bounding a YYYY-MM-DD calendar day in an IANA timezone. */
+export function getUtcBoundsForLocalDate(
+  timeZone: string,
+  dateStr: string,
+): { startIso: string; endIso: string } {
+  const start = resolveLocalTimeToUtc(timeZone, dateStr, 0, 0, 0);
+  const endExclusive = resolveLocalTimeToUtc(timeZone, dateStr, 0, 0, 0);
+  endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+  return { startIso: start.toISOString(), endIso: endExclusive.toISOString() };
+}
+
+function resolveLocalTimeToUtc(
+  timeZone: string,
+  dateStr: string,
+  hour: number,
+  minute: number,
+  second: number,
+): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const targetMinutes = hour * 60 + minute;
+  const anchor = Date.UTC(year, month - 1, day, 12, 0, 0);
+
+  for (let deltaMin = -36 * 60; deltaMin <= 36 * 60; deltaMin++) {
+    const candidate = new Date(anchor + deltaMin * 60_000);
+    if (getDateInTimezoneAt(timeZone, candidate) !== dateStr) continue;
+
+    const local = getLocalTimeInTimezone(timeZone, candidate);
+    if (local.minutesSinceMidnight !== targetMinutes) continue;
+
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      second: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(candidate);
+    const localSecond = Number(parts.find((p) => p.type === "second")?.value ?? 0);
+    return new Date(candidate.getTime() + (second - localSecond) * 1000);
+  }
+
+  return new Date(`${dateStr}T12:00:00.000Z`);
 }
 
 /** 0 = Sunday … 6 = Saturday, in company timezone */
