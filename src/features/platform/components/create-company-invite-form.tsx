@@ -5,7 +5,11 @@ import { createCompanyInviteAction } from "@/features/platform/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
 import { COMMON_TIMEZONES } from "@/features/platform/timezones";
 
-export function CreateCompanyInviteForm() {
+export function CreateCompanyInviteForm({
+  invitesEnabled = true,
+}: {
+  invitesEnabled?: boolean;
+}) {
   const [state, formAction, pending] = useActionState(createCompanyInviteAction, {
     ok: false as const,
     error: "",
@@ -21,18 +25,26 @@ export function CreateCompanyInviteForm() {
           </p>
         </div>
 
+        {!invitesEnabled ? (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Signups are paused. Enable new company signups in Owner → Settings to
+            create invites.
+          </p>
+        ) : null}
+
         {!state.ok && "error" in state && state.error ? (
           <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
             {state.error}
           </p>
         ) : null}
 
-        <Field label="Company name" name="company_name" required />
+        <Field label="Company name" name="company_name" required disabled={!invitesEnabled} />
         <Field
           label="Admin full name"
           name="admin_full_name"
           required
           autoComplete="name"
+          disabled={!invitesEnabled}
         />
         <Field
           label="Admin email"
@@ -40,6 +52,7 @@ export function CreateCompanyInviteForm() {
           type="email"
           required
           autoComplete="email"
+          disabled={!invitesEnabled}
         />
 
         <div>
@@ -50,6 +63,7 @@ export function CreateCompanyInviteForm() {
             id="timezone"
             name="timezone"
             required
+            disabled={!invitesEnabled}
             defaultValue="America/Vancouver"
             className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2"
           >
@@ -61,7 +75,9 @@ export function CreateCompanyInviteForm() {
           </select>
         </div>
 
-        <SubmitButton pending={pending}>Create company &amp; invite</SubmitButton>
+        <SubmitButton pending={pending} disabled={!invitesEnabled}>
+          Create company &amp; invite
+        </SubmitButton>
       </form>
 
       {state.ok ? (
@@ -88,12 +104,14 @@ function Field({
   type = "text",
   required,
   autoComplete,
+  disabled,
 }: {
   label: string;
   name: string;
   type?: string;
   required?: boolean;
   autoComplete?: string;
+  disabled?: boolean;
 }) {
   return (
     <div>
@@ -105,8 +123,9 @@ function Field({
         name={name}
         type={type}
         required={required}
+        disabled={disabled}
         autoComplete={autoComplete}
-        className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2"
+        className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-500"
       />
     </div>
   );

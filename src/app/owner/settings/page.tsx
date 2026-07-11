@@ -1,18 +1,24 @@
 import { PageHeader } from "@/features/admin/components/ui";
 import { CostSettingsForm } from "@/features/platform/components/analytics/cost-settings-form";
+import { SignupSettingsForm } from "@/features/platform/components/signup-settings-form";
 import { getCostAssumptions } from "@/features/platform/analytics/queries";
+import { getPlatformSettings } from "@/features/platform/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerSettingsPage() {
-  const assumptions = await getCostAssumptions();
+  const [assumptions, platformSettings] = await Promise.all([
+    getCostAssumptions(),
+    getPlatformSettings(),
+  ]);
 
   return (
-    <div>
+    <div className="space-y-10">
       <PageHeader
         title="Platform settings"
-        description="Configure cost assumptions used for estimated COGS and margin calculations."
+        description="Onboarding controls and cost assumptions for platform analytics."
       />
+      <SignupSettingsForm settings={platformSettings} />
       <CostSettingsForm assumptions={assumptions} />
     </div>
   );

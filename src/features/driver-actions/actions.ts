@@ -68,6 +68,26 @@ async function loadStop(
   return data as StopContext | null;
 }
 
+/** Optimistic status transition — returns true only when exactly one row updated. */
+async function transitionStopStatus(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  stopId: string,
+  fromStatus: StopStatus,
+  patch: Record<string, unknown>,
+): Promise<{ transitioned: true } | { transitioned: false; error?: string }> {
+  const { data, error } = await supabase
+    .from("stops")
+    .update(patch)
+    .eq("id", stopId)
+    .eq("status", fromStatus)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { transitioned: false, error: error.message };
+  if (!data) return { transitioned: false };
+  return { transitioned: true };
+}
+
 export async function enRouteAction(
   stopId: string,
   lat: number | null,
@@ -100,19 +120,21 @@ export async function enRouteAction(
       ? { lat: customer.address_lat, lng: customer.address_lng }
       : null;
 
-  const { error } = await supabase
-    .from("stops")
-    .update({
-      status: "en_route",
-      en_route_at: new Date().toISOString(),
-      driver_lat: lat,
-      driver_lng: lng,
-      eta_minutes: null,
-    })
-    .eq("id", stopId)
-    .eq("status", "scheduled");
+  const transition = await transitionStopStatus(supabase, stopId, "scheduled", {
+    status: "en_route",
+    en_route_at: new Date().toISOString(),
+    driver_lat: lat,
+    driver_lng: lng,
+    eta_minutes: null,
+  });
 
-  if (error) return { error: error.message };
+  if (!transition.transitioned) {
+    if ("error" in transition && transition.error) {
+      return { error: transition.error };
+    }
+    timer.end("race — already updated");
+    return { success: true, status: "en_route", alreadyDone: true };
+  }
   timer.mark("db-update");
 
   void supabase
@@ -166,19 +188,21 @@ export async function arrivedAction(
     return { error: "Mark en route before arriving." };
   }
 
-  const { error } = await supabase
-    .from("stops")
-    .update({
-      status: "arrived",
-      arrived_at: new Date().toISOString(),
-      ...(lat != null && lng != null
-        ? { driver_lat: lat, driver_lng: lng }
-        : {}),
-    })
-    .eq("id", stopId)
-    .eq("status", "en_route");
+  const transition = await transitionStopStatus(supabase, stopId, "en_route", {
+    status: "arrived",
+    arrived_at: new Date().toISOString(),
+    ...(lat != null && lng != null
+      ? { driver_lat: lat, driver_lng: lng }
+      : {}),
+  });
 
-  if (error) return { error: error.message };
+  if (!transition.transitioned) {
+    if ("error" in transition && transition.error) {
+      return { error: transition.error };
+    }
+    timer.end("race — already updated");
+    return { success: true, status: "arrived", alreadyDone: true };
+  }
   timer.mark("db-update");
 
   const dog = one(stop.dogs);
@@ -219,16 +243,18 @@ export async function completePickupAction(
     return { error: "Mark arrived before picking up." };
   }
 
-  const { error } = await supabase
-    .from("stops")
-    .update({
-      status: "picked_up",
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", stopId)
-    .eq("status", "arrived");
+  const transition = await transitionStopStatus(supabase, stopId, "arrived", {
+    status: "picked_up",
+    completed_at: new Date().toISOString(),
+  });
 
-  if (error) return { error: error.message };
+  if (!transition.transitioned) {
+    if ("error" in transition && transition.error) {
+      return { error: transition.error };
+    }
+    timer.end("race — already updated");
+    return { success: true, status: "picked_up", alreadyDone: true };
+  }
   timer.mark("db-update");
 
   const dog = one(stop.dogs);
@@ -268,16 +294,18 @@ export async function completeDropoffAction(
     return { error: "Mark arrived before dropping off." };
   }
 
-  const { error } = await supabase
-    .from("stops")
-    .update({
-      status: "dropped_off",
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", stopId)
-    .eq("status", "arrived");
+  const transition = await transitionStopStatus(supabase, stopId, "arrived", {
+    status: "dropped_off",
+    completed_at: new Date().toISOString(),
+  });
 
-  if (error) return { error: error.message };
+  if (!transition.transitioned) {
+    if ("error" in transition && transition.error) {
+      return { error: transition.error };
+    }
+    timer.end("race — already updated");
+    return { success: true, status: "dropped_off", alreadyDone: true };
+  }
   timer.mark("db-update");
 
   const dog = one(stop.dogs);

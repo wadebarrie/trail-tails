@@ -20,16 +20,16 @@ function assert(name: string, condition: boolean): Case {
   return { name, pass: condition };
 }
 
+const now = new Date("2026-07-10T12:00:00.000Z");
+
 function trialSubscription(overrides: Partial<SubscriptionLike> = {}): SubscriptionLike {
   return {
     status: "trial",
-    trial_starts_at: "2026-01-01T00:00:00.000Z",
-    trial_ends_at: "2026-01-31T00:00:00.000Z",
+    trial_starts_at: "2026-07-01T00:00:00.000Z",
+    trial_ends_at: "2026-07-31T00:00:00.000Z",
     ...overrides,
   };
 }
-
-const now = new Date("2026-01-15T12:00:00.000Z");
 
 const cases: Case[] = [
   assert("isTrial", isTrial(trialSubscription())),
@@ -40,19 +40,19 @@ const cases: Case[] = [
   assert("isInactive", isInactive({ ...trialSubscription(), status: "inactive" })),
   assert(
     "canAccessApplication allows trial",
-    canAccessApplication(trialSubscription())
+    canAccessApplication(trialSubscription(), now)
   ),
   assert(
     "canAccessApplication allows active",
-    canAccessApplication({ ...trialSubscription(), status: "active" })
+    canAccessApplication({ ...trialSubscription(), status: "active" }, now)
   ),
   assert(
     "canAccessApplication blocks cancelled",
-    !canAccessApplication({ ...trialSubscription(), status: "cancelled" })
+    !canAccessApplication({ ...trialSubscription(), status: "cancelled" }, now)
   ),
   assert(
     "daysRemainingInTrial",
-    daysRemainingInTrial(trialSubscription(), now) === 16
+    daysRemainingInTrial(trialSubscription(), now) === 21
   ),
   assert(
     "daysRemainingInTrial null when not trial",
@@ -60,7 +60,11 @@ const cases: Case[] = [
   ),
   assert(
     "trialHasExpired when past end",
-    trialHasExpired(trialSubscription(), new Date("2026-02-01T00:00:00.000Z"))
+    trialHasExpired(trialSubscription(), new Date("2026-08-01T00:00:00.000Z"))
+  ),
+  assert(
+    "canAccessApplication blocks expired trial",
+    !canAccessApplication(trialSubscription(), new Date("2026-08-01T00:00:00.000Z"))
   ),
   assert(
     "trialHasExpired false before end",

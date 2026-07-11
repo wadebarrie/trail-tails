@@ -307,7 +307,7 @@ function StopCard({
         const coords = await getLocationFast();
         return enRouteAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
       },
-      `${stop.dogName}'s family has been notified.`
+      "En route — customer will be notified."
     );
   }
 

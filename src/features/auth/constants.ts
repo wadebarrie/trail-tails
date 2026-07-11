@@ -46,10 +46,11 @@ export const PUBLIC_PATHS = new Set([
   AUTH_ROUTES.resetPassword,
 ]);
 
-/** Path prefixes accessible without auth (webhooks, health, legal) */
+/** Path prefixes accessible without auth (webhooks, health, legal, cron) */
 export const PUBLIC_PREFIXES = [
   "/api/health",
   "/api/webhooks",
+  "/api/cron",
   "/auth/callback",
   "/legal",
 ];

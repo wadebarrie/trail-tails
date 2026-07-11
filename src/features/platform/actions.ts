@@ -8,6 +8,7 @@ import {
   generateInviteToken,
   hashInviteToken,
 } from "@/features/platform/invite-tokens";
+import { areInvitesEnabled } from "@/features/platform/settings";
 import { requirePlatformOwner } from "@/features/platform/queries";
 import { passwordSchema } from "@/lib/password";
 
@@ -27,6 +28,15 @@ export async function createCompanyInviteAction(
   formData: FormData
 ): Promise<CreateCompanyInviteResult> {
   const owner = await requirePlatformOwner();
+
+  if (!(await areInvitesEnabled())) {
+    return {
+      ok: false,
+      error:
+        "New company signups are paused. Turn them on in Owner → Settings.",
+    };
+  }
+
   const parsed = createCompanyInviteSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
@@ -98,6 +108,14 @@ export async function acceptInviteAction(
 
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  if (!(await areInvitesEnabled())) {
+    return {
+      ok: false,
+      error:
+        "New signups are temporarily paused. Contact the PackRoute team for help.",
+    };
   }
 
   const supabase = createServiceClient();

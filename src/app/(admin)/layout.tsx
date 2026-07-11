@@ -24,7 +24,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const timer = new PerfTimer("page admin-layout");
-  const profile = await requireRole("admin");
+  const profile = await requireRole("admin", { skipMfaCheck: true });
   timer.mark("auth");
 
   const supabase = await createClient();

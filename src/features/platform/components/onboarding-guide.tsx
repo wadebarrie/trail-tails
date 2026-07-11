@@ -9,8 +9,9 @@ export function OnboardingGuide() {
       <div className="border-b border-stone-200 px-5 py-4">
         <h2 className="text-lg font-semibold text-stone-900">Beta onboarding guide</h2>
         <p className="mt-1 text-sm text-stone-600">
-          Invite-only flow for new dog hiking companies. Public signup is disabled —
-          every tenant starts here.
+          Invite-only flow for new dog hiking companies. Toggle signups in{" "}
+          <strong>Owner → Settings</strong> — Supabase public signup should stay
+          disabled separately.
         </p>
       </div>
 

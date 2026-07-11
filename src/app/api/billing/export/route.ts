@@ -1,14 +1,12 @@
-import { canAccessAdmin } from "@/features/auth/access";
-import { getCurrentProfile } from "@/features/auth/queries";
+import { requireAdminApiAccess } from "@/features/auth/admin-api";
 import { billingReportToCsv } from "@/features/billing/csv";
 import { getBillingLineItems } from "@/features/billing/queries";
 import { perfAsync } from "@/lib/perf";
 
 export async function GET(request: Request) {
-  const profile = await getCurrentProfile();
-  if (!profile?.is_active || !canAccessAdmin(profile)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const access = await requireAdminApiAccess();
+  if ("response" in access) return access.response;
+  const { profile } = access;
 
   const { searchParams } = new URL(request.url);
   const start = searchParams.get("start");

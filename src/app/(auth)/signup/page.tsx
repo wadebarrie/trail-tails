@@ -1,14 +1,41 @@
 import Link from "next/link";
 import { SignupForm } from "@/features/platform/components/signup-form";
 import { getInvitePreviewByToken } from "@/features/platform/queries";
+import { areInvitesEnabled } from "@/features/platform/settings";
 
 export const dynamic = "force-dynamic";
+
+function SignupsPausedMessage() {
+  return (
+    <div className="w-full max-w-sm">
+      <h1 className="text-2xl font-semibold text-[var(--color-trail-800)]">
+        Signups paused
+      </h1>
+      <p className="mt-2 text-sm text-stone-600">
+        PackRoute is not accepting new company signups right now. If you have an
+        invite, try again later or contact the PackRoute team.
+      </p>
+      <Link
+        href="/login"
+        className="mt-6 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
+      >
+        Already have an account? Sign in
+      </Link>
+    </div>
+  );
+}
 
 export default async function SignupPage({
   searchParams,
 }: {
   searchParams: Promise<{ token?: string }>;
 }) {
+  const invitesEnabled = await areInvitesEnabled();
+
+  if (!invitesEnabled) {
+    return <SignupsPausedMessage />;
+  }
+
   const { token } = await searchParams;
 
   if (!token) {

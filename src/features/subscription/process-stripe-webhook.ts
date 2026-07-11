@@ -7,7 +7,7 @@ import {
 
 export type StripeWebhookResult =
   | { ok: true; action: "updated" | "ignored" }
-  | { ok: false; error: string };
+  | { ok: false; error: string; permanent?: boolean };
 
 type SubscriptionPatch = {
   status: ReturnType<typeof mapStripeSubscriptionStatus>;
@@ -52,7 +52,7 @@ async function updateSubscription(
 
   if (error) return { ok: false, error: error.message };
   if (!data) {
-    return { ok: false, error: `No subscription matched ${filter.column}=${filter.value}` };
+    return { ok: false, error: "subscription_not_found", permanent: true };
   }
   return { ok: true, action: "updated" };
 }
@@ -86,8 +86,8 @@ export async function syncSubscriptionFromStripeEvent(
 
       return {
         ok: false,
-        error:
-          "Could not match Stripe subscription — set metadata.company_id or link provider ids first.",
+        error: "subscription_not_found",
+        permanent: true,
       };
     }
 
@@ -123,6 +123,26 @@ export async function syncSubscriptionFromStripeEvent(
         { column: "provider_customer_id", value: customerId },
         {
           status: "past_due",
+          current_period_end: stripeUnixToIso(invoice.period_end),
+        }
+      );
+    }
+
+    case "invoice.paid": {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId =
+        typeof invoice.customer === "string"
+          ? invoice.customer
+          : invoice.customer?.id;
+
+      if (!customerId) {
+        return { ok: true, action: "ignored" };
+      }
+
+      return updateSubscription(
+        { column: "provider_customer_id", value: customerId },
+        {
+          status: "active",
           current_period_end: stripeUnixToIso(invoice.period_end),
         }
       );

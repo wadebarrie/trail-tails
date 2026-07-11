@@ -37,7 +37,10 @@ export async function POST(request: Request) {
 
     if (!result.ok) {
       logWarn("webhook", `Stripe webhook ${event.type} failed: ${result.error}`);
-      return new Response(result.error, { status: 422 });
+      if (result.permanent) {
+        return Response.json({ received: true, ignored: true });
+      }
+      return new Response("Webhook processing failed", { status: 500 });
     }
 
     return Response.json({ received: true, action: result.action });

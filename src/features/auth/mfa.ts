@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { AUTH_ROUTES } from "@/features/auth/constants";
 import { createClient } from "@/lib/supabase/server";
 
 export type AdminMfaStatus = {
@@ -19,4 +21,22 @@ export async function getAdminMfaStatus(): Promise<AdminMfaStatus> {
     enrolled && currentLevel === "aal1" && nextLevel === "aal2";
 
   return { enrolled, currentLevel, nextLevel, needsVerify };
+}
+
+/** Server-side MFA gate for admin actions and API routes. */
+export async function requireAdminMfa(): Promise<void> {
+  const status = await getAdminMfaStatus();
+
+  if (!status.enrolled) {
+    redirect(`${AUTH_ROUTES.adminMfa}?setup=1`);
+  }
+
+  if (status.needsVerify || status.currentLevel !== "aal2") {
+    redirect(`${AUTH_ROUTES.adminMfa}?verify=1`);
+  }
+}
+
+export async function isAdminMfaSatisfied(): Promise<boolean> {
+  const status = await getAdminMfaStatus();
+  return status.enrolled && status.currentLevel === "aal2";
 }

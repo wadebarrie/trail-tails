@@ -27,8 +27,14 @@ export function isInactive(subscription: SubscriptionLike): boolean {
   return subscription.status === "inactive";
 }
 
-/** Trial and active subscriptions may use the app; others are redirected. */
-export function canAccessApplication(subscription: SubscriptionLike): boolean {
+/** Trial and active subscriptions may use the app; expired trials are blocked. */
+export function canAccessApplication(
+  subscription: SubscriptionLike,
+  now = new Date(),
+): boolean {
+  if (isTrial(subscription) && trialHasExpired(subscription, now)) {
+    return false;
+  }
   return isTrial(subscription) || isActive(subscription);
 }
 
