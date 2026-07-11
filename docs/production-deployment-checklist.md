@@ -20,6 +20,8 @@ Use this checklist before merging `feature/production-readiness` and launching p
 - [x] Error boundaries (`error.tsx`, `global-error.tsx`, `not-found.tsx`)
 - [x] Driver en-route toast no longer claims SMS already sent
 
+- [x] Owner dashboard toggle for new company signups (`platform_settings.invites_enabled`)
+
 ---
 
 ## Environment configuration (Netlify / hosting)
@@ -40,7 +42,7 @@ Use this checklist before merging `feature/production-readiness` and launching p
 ## Provider dashboard setup
 
 ### Supabase
-- [ ] **Disable public sign-up** in Auth settings (invite-only)
+- [ ] **Disable public sign-up** in Auth settings (defense in depth — separate from Owner → Settings)
 - [ ] Confirm RLS enabled on all tenant tables
 - [ ] Run migrations via `supabase db push` (not raw psql loop on prod)
 - [ ] Verify no test platform-owner email exists in production

@@ -187,16 +187,18 @@ export function SecondaryButton({
 export function SubmitButton({
   children,
   pending,
+  disabled,
   className = "",
 }: {
   children: React.ReactNode;
   pending?: boolean;
+  disabled?: boolean;
   className?: string;
 }) {
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || disabled}
       className={`${primaryButtonClassName} ${className}`.trim()}
     >
       {pending ? "Saving…" : children}

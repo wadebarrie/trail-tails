@@ -5,13 +5,15 @@ import {
   listCompaniesForOwner,
   listInvitesForOwner,
 } from "@/features/platform/queries";
+import { areInvitesEnabled } from "@/features/platform/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function OwnerProvisionPage() {
-  const [companies, invites] = await Promise.all([
+  const [companies, invites, invitesEnabled] = await Promise.all([
     listCompaniesForOwner(),
     listInvitesForOwner(),
+    areInvitesEnabled(),
   ]);
 
   return (
@@ -25,7 +27,17 @@ export default async function OwnerProvisionPage() {
         <OnboardingGuide />
       </div>
 
-      <CreateCompanyInviteForm />
+      {!invitesEnabled ? (
+        <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          New company signups are paused. Enable them in{" "}
+          <a href="/owner/settings" className="font-medium underline">
+            Owner → Settings
+          </a>
+          .
+        </p>
+      ) : null}
+
+      <CreateCompanyInviteForm invitesEnabled={invitesEnabled} />
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold text-stone-900">Recent invites</h2>
