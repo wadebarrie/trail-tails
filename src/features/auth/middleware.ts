@@ -32,7 +32,10 @@ export async function handleAuth(request: NextRequest) {
   const supabaseKey = getSupabaseAnonKey();
 
   if (!supabaseUrl || !supabaseKey) {
-    return supabaseResponse;
+    return NextResponse.json(
+      { error: "Service misconfigured" },
+      { status: 503 },
+    );
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
@@ -90,7 +93,7 @@ export async function handleAuth(request: NextRequest) {
     const subscription = await fetchCompanySubscription(supabase, profile.company_id);
     timer.mark("fetchSubscription");
 
-    if (subscription && !canAccessApplication(subscription)) {
+    if (!subscription || !canAccessApplication(subscription)) {
       return redirectTo(request, "/subscription-inactive");
     }
   }

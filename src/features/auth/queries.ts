@@ -5,6 +5,12 @@ import { perfAsync } from "@/lib/perf";
 import type { Profile, UserRole } from "@/types";
 import { AUTH_ROUTES, getHomeRouteForRole } from "./constants";
 import { canAccessAdmin, canAccessDriver } from "./access";
+import { requireAdminMfa } from "./mfa";
+
+type RequireRoleOptions = {
+  /** Skip MFA check — used by admin layout and MFA setup pages. */
+  skipMfaCheck?: boolean;
+};
 
 const getCurrentUserCached = cache(async () => {
   return perfAsync("auth session lookup", async () => {
@@ -58,7 +64,10 @@ export async function requireProfile(): Promise<Profile> {
   return profile;
 }
 
-export async function requireRole(role: UserRole): Promise<Profile> {
+export async function requireRole(
+  role: UserRole,
+  options?: RequireRoleOptions,
+): Promise<Profile> {
   const profile = await requireProfile();
 
   if (role === "admin" && !canAccessAdmin(profile)) {
@@ -69,7 +78,16 @@ export async function requireRole(role: UserRole): Promise<Profile> {
     redirect(getHomeRouteForRole(profile.role));
   }
 
+  if (role === "admin" && !options?.skipMfaCheck) {
+    await requireAdminMfa();
+  }
+
   return profile;
+}
+
+/** Admin server actions and API routes — role + MFA. */
+export async function requireSecureAdmin(): Promise<Profile> {
+  return requireRole("admin");
 }
 
 /** Driver routes and actions — includes admins with can_drive. */

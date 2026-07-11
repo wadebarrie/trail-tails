@@ -1,39 +1,31 @@
 import { NextResponse } from "next/server";
 import { getClientEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
+import { logErrorFromException } from "@/lib/logger";
 
 export async function GET() {
   try {
     getClientEnv();
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Missing env vars";
-    return NextResponse.json({ status: "error", message }, { status: 503 });
+  } catch {
+    return NextResponse.json({ status: "error" }, { status: 503 });
   }
-
-  const payload: Record<string, unknown> = {
-    status: "ok",
-    app: "packroute",
-  };
 
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       const supabase = createServiceClient();
-      const { count, error } = await supabase
+      const { error } = await supabase
         .from("companies")
-        .select("*", { count: "exact", head: true });
+        .select("id", { count: "exact", head: true });
 
-      payload.database = error ? "error" : "connected";
-      if (!error) payload.companies = count ?? 0;
-      if (error) payload.databaseError = error.message;
+      if (error) {
+        logErrorFromException("system", "Database health check failed", error);
+        return NextResponse.json({ status: "error" }, { status: 503 });
+      }
     } catch (err) {
-      payload.database = "error";
-      payload.databaseError =
-        err instanceof Error ? err.message : "Unknown error";
+      logErrorFromException("system", "Health check exception", err);
+      return NextResponse.json({ status: "error" }, { status: 503 });
     }
-  } else {
-    payload.database = "skipped";
-    payload.note = "Set SUPABASE_SERVICE_ROLE_KEY for DB health check";
   }
 
-  return NextResponse.json(payload);
+  return NextResponse.json({ status: "ok" });
 }

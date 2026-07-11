@@ -1,12 +1,9 @@
-import { canAccessAdmin } from "@/features/auth/access";
-import { getCurrentProfile } from "@/features/auth/queries";
+import { requireAdminApiAccess } from "@/features/auth/admin-api";
 import { buildImportTemplateCsv } from "@/features/import/csv-template";
 
 export async function GET(request: Request) {
-  const profile = await getCurrentProfile();
-  if (!profile?.is_active || !canAccessAdmin(profile)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const access = await requireAdminApiAccess();
+  if ("response" in access) return access.response;
 
   const { searchParams } = new URL(request.url);
   const includeExamples = searchParams.get("examples") !== "0";

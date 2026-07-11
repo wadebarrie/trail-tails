@@ -1,13 +1,11 @@
-import { canAccessAdmin } from "@/features/auth/access";
-import { getCurrentProfile } from "@/features/auth/queries";
+import { requireAdminApiAccess } from "@/features/auth/admin-api";
 import { buildExportCsvFromData } from "@/features/import/csv-template";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
-  const profile = await getCurrentProfile();
-  if (!profile?.is_active || !canAccessAdmin(profile)) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  const access = await requireAdminApiAccess();
+  if ("response" in access) return access.response;
+  const { profile } = access;
 
   const supabase = await createClient();
 

@@ -16,8 +16,10 @@ export default async function handler() {
     );
   }
 
-  const url = `${base}/api/cron/night-before?secret=${encodeURIComponent(secret)}`;
-  const res = await fetch(url);
+  const url = `${base}/api/cron/night-before`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${secret}` },
+  });
   const body = await res.text();
 
   return new Response(body, {

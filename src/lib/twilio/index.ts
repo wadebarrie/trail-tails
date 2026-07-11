@@ -22,6 +22,9 @@ export function isTwilioConfigured(): boolean {
 
 /** When set, all outbound SMS go here instead of the customer phone (pilot/testing). */
 export function getSmsRedirectTo(): string | null {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
   const redirect = process.env.TWILIO_SMS_REDIRECT_TO?.trim();
   return redirect || null;
 }
