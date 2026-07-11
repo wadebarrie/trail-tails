@@ -17,6 +17,7 @@
     "test:sms-parser": "npx --yes tsx scripts/test-sms-parser.ts",
     "test:billing": "npx --yes tsx scripts/test-billing-status.ts",
     "test:subscription": "npx --yes tsx scripts/test-subscription-helpers.ts",
+    "test:safe-redirect": "npx --yes tsx scripts/test-safe-redirect.ts",
     "test:stripe-map": "npx --yes tsx scripts/test-stripe-subscription-map.ts",
     "test:inbound-sms": "node scripts/test-inbound-sms.mjs",
     "test:twilio": "node scripts/test-twilio.mjs"
