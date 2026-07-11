@@ -1,6 +1,7 @@
 export default function DriverLoading() {
   return (
-    <div className="motion-skeleton">
+    <div className="motion-skeleton" aria-busy="true" aria-live="polite">
+      <span className="sr-only">Loading your route…</span>
       <div className="mb-6 flex gap-2">
         <div className="h-10 w-20 rounded-full bg-white/10" />
         <div className="h-10 w-24 rounded-full bg-white/10" />
