@@ -1,7 +1,10 @@
 import { logWarn } from "@/lib/logger";
 import { perfAsync } from "@/lib/perf";
 import { constructStripeEvent, getStripeConfig } from "@/lib/stripe";
-import { syncSubscriptionFromStripeEvent } from "@/features/subscription/process-stripe-webhook";
+import {
+  claimStripeWebhookEvent,
+  syncSubscriptionFromStripeEvent,
+} from "@/features/subscription/process-stripe-webhook";
 
 export const runtime = "nodejs";
 
@@ -33,6 +36,15 @@ export async function POST(request: Request) {
   }
 
   return perfAsync(`api webhook/stripe ${event.type}`, async () => {
+    const claim = await claimStripeWebhookEvent(event.id, event.type);
+    if (claim === "duplicate") {
+      return Response.json({ received: true, action: "duplicate" });
+    }
+    if (claim === "error") {
+      logWarn("webhook", `Stripe webhook ${event.type} claim failed`);
+      return new Response("Webhook processing failed", { status: 500 });
+    }
+
     const result = await syncSubscriptionFromStripeEvent(event);
 
     if (!result.ok) {

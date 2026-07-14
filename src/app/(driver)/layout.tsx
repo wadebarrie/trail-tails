@@ -5,6 +5,7 @@ import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { requireDriverAccess } from "@/features/auth/queries";
 import { RegisterServiceWorker } from "@/features/pwa/register-service-worker";
 import { PackRouteMark } from "@/features/brand/components/packroute-mark";
+import { SkipLink } from "@/features/shared/components/skip-link";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default async function DriverLayout({
 
   return (
     <div className="min-h-dvh bg-atmosphere-driver text-white">
+      <SkipLink />
       <RegisterServiceWorker />
       <header className="surface-header-dark sticky top-0 z-40 flex items-center justify-between px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -58,7 +60,10 @@ export default async function DriverLayout({
           />
         </div>
       </header>
-      <main className="px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <main
+        id="main-content"
+        className="px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+      >
         {children}
       </main>
     </div>

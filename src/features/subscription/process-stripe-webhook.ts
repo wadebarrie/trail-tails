@@ -6,8 +6,24 @@ import {
 } from "@/features/subscription/stripe-map";
 
 export type StripeWebhookResult =
-  | { ok: true; action: "updated" | "ignored" }
+  | { ok: true; action: "updated" | "ignored" | "duplicate" }
   | { ok: false; error: string; permanent?: boolean };
+
+/** Insert event id first — unique constraint makes retries idempotent. */
+export async function claimStripeWebhookEvent(
+  eventId: string,
+  eventType: string,
+): Promise<"claimed" | "duplicate" | "error"> {
+  const supabase = createServiceClient();
+  const { error } = await supabase.from("stripe_webhook_events").insert({
+    event_id: eventId,
+    event_type: eventType,
+  });
+
+  if (!error) return "claimed";
+  if (error.code === "23505") return "duplicate";
+  return "error";
+}
 
 type SubscriptionPatch = {
   status: ReturnType<typeof mapStripeSubscriptionStatus>;

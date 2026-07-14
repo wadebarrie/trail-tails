@@ -10,6 +10,7 @@ import { getAdminMfaStatus } from "@/features/auth/mfa";
 import { createClient } from "@/lib/supabase/server";
 import { PerfTimer } from "@/lib/perf";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
+import { SkipLink } from "@/features/shared/components/skip-link";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-dvh bg-atmosphere">
+      <SkipLink />
       <header className="surface-header sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-6xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
@@ -91,7 +93,10 @@ export default async function AdminLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8">
+      <main
+        id="main-content"
+        className="mx-auto max-w-6xl px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8"
+      >
         <AdminMfaGate status={mfaStatus}>{children}</AdminMfaGate>
       </main>
     </div>
