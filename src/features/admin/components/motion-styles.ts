@@ -37,4 +37,4 @@ export const motionButtonClassName = `${motionInteractiveClassName} ${motionPres
 export const motionCardClassName = `${motionInteractiveClassName} ${motionLiftClassName}`;
 
 /** Driver primary action button — full-width tactile feedback. */
-export const driverActionButtonClassName = `${motionButtonClassName} disabled:opacity-50`;
+export const driverActionButtonClassName = `${motionButtonClassName} cursor-pointer disabled:cursor-not-allowed disabled:opacity-50`;

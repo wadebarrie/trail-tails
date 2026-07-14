@@ -71,7 +71,7 @@ export function LocationServicesIndicator({
       <button
         type="button"
         onClick={recheck}
-        className={`${pillClassName} m-0 appearance-none font-inherit ${motionButtonClassName} md:cursor-pointer`}
+        className={`${pillClassName} m-0 appearance-none font-inherit ${motionButtonClassName} cursor-pointer`}
         aria-label={`${config.label}. Tap to retry.`}
       >
         {content}

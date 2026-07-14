@@ -117,7 +117,7 @@ function ExceptionActions({
           type="button"
           onClick={handleDelete}
           disabled={pending}
-          className="inline-flex min-h-9 items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 active:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 md:cursor-pointer"
+          className="inline-flex min-h-9 cursor-pointer items-center justify-center rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50 active:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? "Deleting…" : "Delete"}
         </button>

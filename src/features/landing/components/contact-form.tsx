@@ -31,7 +31,7 @@ export function ContactForm({ variant = "light", className = "" }: ContactFormPr
     ? "rounded-lg bg-green-950/40 px-3 py-2 text-sm text-green-200"
     : "rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800";
   const buttonClass = isDark
-    ? "inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-[var(--color-trail-800)] transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+    ? "inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-[var(--color-trail-800)] transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
     : `${primaryButtonClassName} w-full sm:w-auto`;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
