@@ -28,6 +28,15 @@ export const SITE_KEYWORDS = [
   "dog hiking route planner",
   "group dog walk software",
   "pack walk software",
+  "time to pet alternative",
+  "time to pet alternatives",
+  "alternatives to time to pet",
+  "time to pet for dog walking",
+  "leashtime alternative",
+  "pet sitter plus alternative",
+  "gingr alternative dog walking",
+  "precise petcare alternative",
+  "scout dog walking software alternative",
   "PackRoute",
 ] as const;
 
@@ -49,6 +58,12 @@ export const ADVENTURE_DOG_HIKING_SOFTWARE_TITLE =
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION =
   "Operations software for adventure dog hiking teams: multi-driver pickup routes, group hike scheduling, driver workflows, and proactive customer SMS.";
+
+export const TIME_TO_PET_ALTERNATIVE_TITLE =
+  "Time to Pet Alternative for Adventure Dog Hiking Teams";
+
+export const TIME_TO_PET_ALTERNATIVE_DESCRIPTION =
+  "Looking for a Time to Pet alternative built for pickup routes and group dog hikes? PackRoute focuses on multi-driver route days, driver workflows, and customer SMS — not generic pet sitting.";
 
 type FaqItem = { readonly q: string; readonly a: string };
 
@@ -94,6 +109,18 @@ export const LANDING_FAQ: readonly FaqItem[] = [
     q: "Does PackRoute handle payments or invoicing?",
     a: "No. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks or your own process.",
   },
+  {
+    q: "Is PackRoute a Time to Pet alternative?",
+    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative to Time to Pet and similar all-in-one pet care tools. It prioritizes pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, or daycare suite.",
+  },
+  {
+    q: "How is PackRoute different from Time to Pet, Pet Sitter Plus, Gingr, or LeashTime?",
+    a: "Those platforms are strong for broad pet sitting, daycare, or general dog walking businesses. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road. If your day is van routes, group hikes, and SMS updates — not in-home visits or facility boarding — PackRoute is the closer fit.",
+  },
+  {
+    q: "Who should keep using Time to Pet or similar software?",
+    a: "Operators whose core work is pet sitting, daycare, boarding, or photo-and-visit reporting may be better served by Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, or Scout. PackRoute is for hiking and pack-walk teams that need calmer route operations.",
+  },
 ];
 
 /** Conversion-focused FAQ shown on the homepage. */
@@ -121,6 +148,10 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   {
     q: "Do customers need to download an app?",
     a: "No. SMS only — no account or login.",
+  },
+  {
+    q: "Is PackRoute a Time to Pet alternative?",
+    a: "For adventure dog hiking teams, yes — a focused alternative for pickup routes, drivers, and customer SMS, not a full pet-sitting suite.",
   },
 ];
 

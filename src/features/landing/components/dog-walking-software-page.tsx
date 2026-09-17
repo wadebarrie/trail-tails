@@ -108,6 +108,12 @@ export function DogWalkingSoftwarePageContent() {
               >
                 Adventure dog hiking software
               </Link>
+              <Link
+                href="/time-to-pet-alternative"
+                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                Time to Pet alternative
+              </Link>
             </div>
           </div>
         </section>

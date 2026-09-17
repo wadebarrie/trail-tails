@@ -107,6 +107,12 @@ export function AdventureDogHikingSoftwarePageContent() {
               >
                 Read the FAQ
               </Link>
+              <Link
+                href="/time-to-pet-alternative"
+                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                Time to Pet alternative
+              </Link>
             </div>
           </div>
         </section>

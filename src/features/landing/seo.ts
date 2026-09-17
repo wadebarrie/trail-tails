@@ -8,6 +8,8 @@ import {
   SITE_CONTACT_EMAIL,
   SITE_DESCRIPTION,
   SITE_NAME,
+  TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
+  TIME_TO_PET_ALTERNATIVE_TITLE,
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -203,6 +205,25 @@ export function buildAdventureDogHikingSoftwareJsonLdScriptProps() {
     type: "application/ld+json" as const,
     dangerouslySetInnerHTML: {
       __html: buildAdventureDogHikingSoftwarePageJsonLd(),
+    },
+  };
+}
+
+export function buildTimeToPetAlternativePageJsonLd(): string {
+  const siteUrl = getSiteUrl();
+  return buildSeoLandingPageJsonLd(
+    `${siteUrl}/time-to-pet-alternative`,
+    TIME_TO_PET_ALTERNATIVE_TITLE,
+    TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
+    "-time-to-pet",
+  );
+}
+
+export function buildTimeToPetAlternativeJsonLdScriptProps() {
+  return {
+    type: "application/ld+json" as const,
+    dangerouslySetInnerHTML: {
+      __html: buildTimeToPetAlternativePageJsonLd(),
     },
   };
 }
