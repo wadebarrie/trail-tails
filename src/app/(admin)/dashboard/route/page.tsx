@@ -2,6 +2,7 @@ import { PageHeader, Card, EmptyState } from "@/features/admin/components/ui";
 import { RouteAddDogSelect } from "@/features/routes/components/route-add-dog-select";
 import { RouteDogsList } from "@/features/routes/components/route-dogs-list";
 import { RouteDriverSelect } from "@/features/routes/components/route-driver-select";
+import { RouteVehicleSelect } from "@/features/routes/components/route-vehicle-select";
 import {
   CreateRouteForm,
   EditRouteForm,
@@ -18,23 +19,30 @@ export default async function RouteOrderPage() {
   const supabase = await createClient();
   const routes = await listRoutes(profile.company_id);
 
-  const [{ data: dogs }, { data: drivers }] = await Promise.all([
-    supabase
-      .from("dogs")
-      .select(
-        "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
-      )
-      .eq("company_id", profile.company_id)
-      .eq("is_active", true)
-      .order("name"),
-    supabase
-      .from("profiles")
-      .select("id, full_name")
-      .eq("company_id", profile.company_id)
-      .eq("role", "driver")
-      .eq("is_active", true)
-      .order("full_name"),
-  ]);
+  const [{ data: dogs }, { data: drivers }, { data: vehicles }] =
+    await Promise.all([
+      supabase
+        .from("dogs")
+        .select(
+          "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
+        )
+        .eq("company_id", profile.company_id)
+        .eq("is_active", true)
+        .order("name"),
+      supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("company_id", profile.company_id)
+        .eq("role", "driver")
+        .eq("is_active", true)
+        .order("full_name"),
+      supabase
+        .from("vehicles")
+        .select("id, name, plate")
+        .eq("company_id", profile.company_id)
+        .eq("is_active", true)
+        .order("name"),
+    ]);
 
   const allDogs = dogs ?? [];
 
@@ -42,7 +50,7 @@ export default async function RouteOrderPage() {
     <div>
       <PageHeader
         title="Routes"
-        description="Each route is a morning or afternoon walk with its own dogs, driver, and schedule. Create separate routes when you run twice daily."
+        description="Each route is a morning or afternoon walk with its own dogs, driver, vehicle, and schedule. Create separate routes when you run twice daily."
       />
 
       <Card className="mb-10">
@@ -113,11 +121,18 @@ export default async function RouteOrderPage() {
                       {routeDogs.length} dog{routeDogs.length === 1 ? "" : "s"}
                     </p>
                   </div>
-                  <RouteDriverSelect
-                    routeId={route.id}
-                    currentDriverId={route.default_driver_id}
-                    drivers={drivers ?? []}
-                  />
+                  <div className="flex flex-col items-stretch gap-2 sm:items-end">
+                    <RouteDriverSelect
+                      routeId={route.id}
+                      currentDriverId={route.default_driver_id}
+                      drivers={drivers ?? []}
+                    />
+                    <RouteVehicleSelect
+                      routeId={route.id}
+                      currentVehicleId={route.default_vehicle_id}
+                      vehicles={vehicles ?? []}
+                    />
+                  </div>
                 </div>
 
                 <EditRouteForm

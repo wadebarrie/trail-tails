@@ -18,13 +18,21 @@ export default async function TodayHikesPage() {
     timeZone: tz,
   });
 
-  const { data: drivers } = await supabase
-    .from("profiles")
-    .select("id, full_name")
-    .eq("company_id", profile.company_id)
-    .eq("role", "driver")
-    .eq("is_active", true)
-    .order("full_name");
+  const [{ data: drivers }, { data: vehicles }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("company_id", profile.company_id)
+      .eq("role", "driver")
+      .eq("is_active", true)
+      .order("full_name"),
+    supabase
+      .from("vehicles")
+      .select("id, name, plate")
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .order("name"),
+  ]);
 
   const withStops = hikes.filter((h) => (h.hike?.stops?.length ?? 0) > 0);
   const runningRoutes = hikes;
@@ -57,6 +65,7 @@ export default async function TodayHikesPage() {
               key={entry.route.id}
               entry={entry}
               drivers={drivers ?? []}
+              vehicles={vehicles ?? []}
               date={date}
               addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}
             />

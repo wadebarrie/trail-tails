@@ -64,7 +64,7 @@ async function ensureHikeRow(
 
   const { data: route } = await supabase
     .from("routes")
-    .select("period, default_driver_id")
+    .select("period, default_driver_id, default_vehicle_id")
     .eq("id", routeId)
     .single();
 
@@ -72,7 +72,7 @@ async function ensureHikeRow(
 
   const { data: existing } = await supabase
     .from("hikes")
-    .select("id, driver_id, period")
+    .select("id, driver_id, vehicle_id, period")
     .eq("company_id", companyId)
     .eq("route_id", routeId)
     .eq("date", date)
@@ -85,6 +85,9 @@ async function ensureHikeRow(
     if (!existing.driver_id) {
       await applyRouteDefaultDriver(supabase, existing.id, routeId);
     }
+    if (!existing.vehicle_id) {
+      await applyRouteDefaultVehicle(supabase, existing.id, routeId);
+    }
     return existing.id;
   }
 
@@ -96,6 +99,7 @@ async function ensureHikeRow(
       date,
       period,
       driver_id: route?.default_driver_id ?? null,
+      vehicle_id: route?.default_vehicle_id ?? null,
     })
     .select("id")
     .single();
@@ -125,6 +129,26 @@ async function applyRouteDefaultDriver(
     .update({ driver_id: route.default_driver_id })
     .eq("id", hikeId)
     .is("driver_id", null);
+}
+
+async function applyRouteDefaultVehicle(
+  supabase: ReturnType<typeof createServiceClient>,
+  hikeId: string,
+  routeId: string
+) {
+  const { data: route } = await supabase
+    .from("routes")
+    .select("default_vehicle_id")
+    .eq("id", routeId)
+    .single();
+
+  if (!route?.default_vehicle_id) return;
+
+  await supabase
+    .from("hikes")
+    .update({ vehicle_id: route.default_vehicle_id })
+    .eq("id", hikeId)
+    .is("vehicle_id", null);
 }
 
 async function cancelScheduledStopsForHikes(hikeIds: string[]) {

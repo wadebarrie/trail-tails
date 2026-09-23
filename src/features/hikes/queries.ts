@@ -19,7 +19,13 @@ const HIKE_SELECT = `
   period,
   status,
   driver_id,
+  vehicle_id,
   route_id,
+  vehicles (
+    id,
+    name,
+    plate
+  ),
   stops (
     id,
     dog_id,
@@ -48,7 +54,12 @@ export type HikeWithRoute = {
     period: HikePeriod;
     status: string;
     driver_id: string | null;
+    vehicle_id: string | null;
     route_id: string;
+    vehicles:
+      | { id: string; name: string; plate: string | null }
+      | { id: string; name: string; plate: string | null }[]
+      | null;
     stops: unknown[];
   } | null;
 };

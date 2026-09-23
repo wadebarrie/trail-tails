@@ -66,6 +66,43 @@ export async function assignDriverAction(hikeId: string, driverId: string | null
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
+  return { success: true };
+}
+
+export async function assignVehicleAction(
+  hikeId: string,
+  vehicleId: string | null
+) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  if (vehicleId) {
+    const { data: vehicle } = await supabase
+      .from("vehicles")
+      .select("id")
+      .eq("id", vehicleId)
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!vehicle) return { error: "Vehicle not found in your company." };
+  }
+
+  const { error } = await supabase
+    .from("hikes")
+    .update({ vehicle_id: vehicleId })
+    .eq("id", hikeId)
+    .eq("company_id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
   return { success: true };
 }
 
