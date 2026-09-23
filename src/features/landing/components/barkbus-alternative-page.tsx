@@ -2,62 +2,58 @@ import Link from "next/link";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
-import { TIME_TO_PET_ALTERNATIVE_TITLE } from "@/lib/seo/metadata";
+import { BARKBUS_ALTERNATIVE_TITLE } from "@/lib/seo/metadata";
 
 const FIT_POINTS = [
   {
-    title: "Built for pickup routes and group hikes",
-    body: "Morning and afternoon routes, recurring dogs, multi-driver days, and stop order you control — not visit calendars designed for in-home pet sitting.",
+    title: "Adventure hiking pickups, not pack-school suites",
+    body: "PackRoute is built for companies that run trail and group hikes with van pickups and drop-offs — office-owned schedules, driver-owned days, and SMS to households.",
   },
   {
-    title: "Driver workflow that answers “what next?”",
-    body: "Drivers open Today in the mobile browser, tap En Route / Arrived / Picked up / Dropped off, and move through the route without a heavy app store install.",
+    title: "Multi-van routes without an owner app",
+    body: "Assign vehicles and drivers to morning or afternoon routes. Customers get texts; they do not need a portal login to know when the van is en route.",
   },
   {
-    title: "Customer SMS without extra office work",
-    body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire from intentional driver actions. Schedule-change texts go to your office first.",
+    title: "Driver web workflow that answers “what next?”",
+    body: "Hikers open Today in the browser, see their vehicle and stops, tap En Route / Arrived / Picked up / Dropped off, and keep moving — no app-store install required.",
   },
   {
-    title: "Calm ops for adventure dog hiking teams",
-    body: "PackRoute is for operators with roughly one to ten drivers and dozens to hundreds of active dogs — not a consumer marketplace or facility boarding system.",
+    title: "SMS-first customer communication",
+    body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire from intentional driver actions. Schedule-change texts land in your office first.",
   },
 ];
 
 const COMPARISON_ROWS = [
   {
-    need: "Adventure dog hiking / pack walks with van pickups",
+    need: "Adventure dog hiking / pack walks with pickup routes in the US & Canada",
     fit: "PackRoute",
   },
   {
-    need: "Broad pet sitting, daycare, boarding, or photo visit reports",
-    fit: "Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, Scout, and similar",
+    need: "Pack school / daycare vans with owner portal, AI booking, lock-screen widgets",
+    fit: "BarkBus and similar van-first pack-school tools",
   },
   {
-    need: "Pack school vans with owner portal, AI booking, lock-screen widgets",
-    fit: "BarkBus and similar pack-school tools — or compare PackRoute if hiking pickups and SMS are the core day",
-  },
-  {
-    need: "Long walking routes with key management emphasis",
-    fit: "LeashTime or similar walking specialists — compare against PackRoute if hiking pickups are your core day",
+    need: "Broad pet sitting, boarding, or photo visit reporting",
+    fit: "Time to Pet, Pet Sitter Plus, Gingr, and similar",
   },
 ];
 
 const FAQ_ITEMS = [
   {
-    q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative for pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, or daycare suite.",
+    q: "Is PackRoute a BarkBus alternative?",
+    a: "For adventure dog hiking teams that want office-owned routes, multi-van pickup days, and customer SMS without requiring an owner app, yes. BarkBus is strong for pack-school ops with AI admin help, lock-screen pickups, and owner portals. PackRoute is narrower: calm route operations and SMS for hiking and pack-walk businesses.",
   },
   {
-    q: "How is PackRoute different from Time to Pet?",
-    a: "Time to Pet is strong for broad pet sitting and facility workflows. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road and keep customers updated by SMS.",
+    q: "Does PackRoute replace BarkBus’s owner portal?",
+    a: "No — PackRoute is SMS-first. Customers get texts for reminders, ETAs, and confirmations without downloading an app or logging into a portal.",
   },
   {
-    q: "Who should keep using Time to Pet?",
-    a: "Operators whose core work is pet sitting, daycare, boarding, or photo-and-visit reporting may be better served by Time to Pet. PackRoute is for hiking and pack-walk teams that need calmer route operations.",
+    q: "Can PackRoute assign multiple vans?",
+    a: "Yes. You can manage vehicles, set a default vehicle on a route, and override the van for a given hike day so drivers see which vehicle they are running.",
   },
 ];
 
-export function TimeToPetAlternativePageContent() {
+export function BarkBusAlternativePageContent() {
   return (
     <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
       <LandingHeader />
@@ -65,21 +61,22 @@ export function TimeToPetAlternativePageContent() {
       <main id="main-content">
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
           <p className="text-sm font-medium uppercase tracking-widest text-[var(--color-trail-600)]">
-            Time to Pet alternative
+            BarkBus alternative
           </p>
           <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
-            {TIME_TO_PET_ALTERNATIVE_TITLE}
+            {BARKBUS_ALTERNATIVE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            Searching for a Time to Pet alternative because your day is group
-            hikes and pickup routes — not in-home visits? PackRoute is dog
-            walking operations software built for adventure dog hiking teams.
+            Searching for a BarkBus alternative because your core day is adventure
+            dog hiking pickups — not a full pack-school product suite? PackRoute
+            is dog walking operations software for multi-van route days and
+            customer SMS.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
-            Time to Pet, Pet Sitter Plus, Gingr, LeashTime, Precise Petcare, and
-            Scout serve many pet care businesses well. PackRoute is different on
-            purpose: office-owned schedules, driver-owned routes, and automatic
-            customer SMS around real field stops.
+            BarkBus is a strong product for pack schools that want vans, AI admin
+            help, lock-screen pickups, and owner apps. PackRoute is different on
+            purpose: calmer route planning, driver mobile web, and SMS that
+            doesn&apos;t require customers to install anything.
           </p>
           <div className="mt-8">
             <CtaButtons />
@@ -89,12 +86,12 @@ export function TimeToPetAlternativePageContent() {
         <section className="border-y border-stone-200/80 bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
-              Why hiking teams look beyond generic pet care software
+              Why hiking teams compare PackRoute with BarkBus
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
-              All-in-one pet sitting platforms optimize for visits, staff check-ins,
-              and client portals. Adventure dog hiking companies usually need
-              something narrower and calmer for multi-stop pickup days.
+              Both tools care about vans and pickups. The fit depends on whether
+              you need a pack-school suite or a focused adventure hiking ops
+              layer.
             </p>
             <ul className="mt-10 grid gap-5 sm:grid-cols-2">
               {FIT_POINTS.map((item) => (
@@ -117,7 +114,7 @@ export function TimeToPetAlternativePageContent() {
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-              Quick fit guide vs Time to Pet and other tools
+              Quick fit guide vs BarkBus and other tools
             </h2>
             <p className="mt-4 text-stone-600">
               Honest positioning — choose the product that matches how your days
@@ -151,7 +148,7 @@ export function TimeToPetAlternativePageContent() {
         <section className="border-t border-stone-200/80 bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-              Time to Pet alternative FAQ
+              BarkBus alternative FAQ
             </h2>
             <dl className="mt-8 space-y-6">
               {FAQ_ITEMS.map((item) => (
@@ -174,8 +171,8 @@ export function TimeToPetAlternativePageContent() {
               Compare PackRoute for your operation
             </h2>
             <p className="mt-4 text-stone-600">
-              See the full product tour, route planning details, or adventure dog
-              hiking software overview — then book a demo if it fits.
+              See the product tour, Time to Pet comparison, or adventure dog hiking
+              overview — then book a demo if it fits.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
               <Link
@@ -185,16 +182,10 @@ export function TimeToPetAlternativePageContent() {
                 Product overview
               </Link>
               <Link
-                href="/barkbus-alternative"
+                href="/time-to-pet-alternative"
                 className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
               >
-                BarkBus alternative
-              </Link>
-              <Link
-                href="/dog-walking-software"
-                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-              >
-                Dog walking software
+                Time to Pet alternative
               </Link>
               <Link
                 href="/adventure-dog-hiking-software"
@@ -216,8 +207,8 @@ export function TimeToPetAlternativePageContent() {
           <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
             <h2 className="text-3xl font-semibold">Book a demo</h2>
             <p className="mt-4 text-lg text-white/80">
-              Tell us how your routes run today — we&apos;ll reply within a
-              business day.
+              Tell us how your routes and vans run today — we&apos;ll reply within
+              a business day.
             </p>
             <div className="mt-8">
               <CtaButtons variant="dark" align="center" />
@@ -229,7 +220,7 @@ export function TimeToPetAlternativePageContent() {
       <MarketingFooter
         extraLinks={[
           { href: "/", label: "Home" },
-          { href: "/barkbus-alternative", label: "BarkBus alternative" },
+          { href: "/time-to-pet-alternative", label: "Time to Pet alternative" },
           { href: "/contact", label: "Contact" },
           { href: "/login", label: "Login" },
         ]}

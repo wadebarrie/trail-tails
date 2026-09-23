@@ -2,13 +2,13 @@
 
 > Dog walking route planning and operations software for adventure dog hiking teams.
 
-PackRoute helps small adventure dog hiking and group dog walking businesses run pickup routes, assign drivers, and keep customers updated with automated SMS — without spreadsheet chaos or constant "where is my dog?" texts.
+PackRoute helps small adventure dog hiking and group dog walking businesses run pickup routes, assign drivers and vehicles, and keep customers updated with automated SMS — without spreadsheet chaos or constant "where is my dog?" texts.
 
 Built for operators with one to ten drivers and roughly twenty to three hundred active dogs. Not a consumer marketplace or generic pet-sitting app.
 
 ## Product summary
 
-- **Route planning:** Build pickup routes, set stop order, adjust today or tomorrow without losing long-term schedules.
+- **Route planning:** Build pickup routes, set stop order, assign vehicles, adjust today or tomorrow without losing long-term schedules.
 - **Scheduling:** Morning and afternoon routes, recurring dogs, as-needed bookings, multi-driver days.
 - **Driver workflow:** Mobile browser Today view — no app store required.
 - **Customer SMS:** Night-before reminders, en-route ETAs, pickup and drop-off confirmations, schedule-change requests reviewed by the office first.
@@ -20,16 +20,22 @@ Built for operators with one to ten drivers and roughly twenty to three hundred 
 - [Dog walking software — route planning & customer updates](https://packroute.app/dog-walking-software)
 - [Adventure dog hiking software — group hikes & pickup operations](https://packroute.app/adventure-dog-hiking-software)
 - [Time to Pet alternative — for adventure dog hiking teams](https://packroute.app/time-to-pet-alternative)
+- [BarkBus alternative — multi-van hiking pickups & SMS](https://packroute.app/barkbus-alternative)
 - [Contact — book a demo or ask a question](https://packroute.app/contact)
 
 ## Compared with common pet care tools
 
-PackRoute is often evaluated alongside Time to Pet, Pet Sitter Plus, Gingr, LeashTime, Precise Petcare, and Scout. Those platforms serve broad pet sitting, daycare, or general walking businesses. PackRoute is a focused alternative for adventure dog hiking and group pack-walk companies that need pickup routes, multi-driver days, and customer SMS.
+PackRoute is often evaluated alongside Time to Pet, BarkBus, Pet Sitter Plus, Gingr, LeashTime, Precise Petcare, and Scout.
+
+- **Time to Pet, Pet Sitter Plus, Gingr:** Strong for broad pet sitting, daycare, boarding, and visit reporting. PackRoute is a focused alternative when the core day is adventure dog hiking pickups and SMS — not a full pet-sitting suite.
+- **BarkBus:** Strong for pack-school ops with vans, AI admin help, lock-screen pickups, and owner portals. PackRoute is a BarkBus alternative for hiking and pack-walk teams that want office-owned multi-van routes and customer SMS without requiring an owner app.
+- **LeashTime and similar walking tools:** Compare when long walking routes are the core day; PackRoute is closer when group hikes and van pickups define the operation.
 
 ## FAQ highlights
 
 - PackRoute is operations software for adventure dog hiking and group dog walking businesses.
 - For hiking teams, PackRoute can be a Time to Pet alternative — not a full pet-sitting suite.
+- For hiking teams that want multi-van routes and SMS without an owner app, PackRoute can be a BarkBus alternative — not a full pack-school product suite.
 - Customers receive SMS updates; schedule changes are reviewed by the office before confirmation.
 - Drivers use a mobile web app — no separate driver app install.
 - Pricing is available on request via the contact page.

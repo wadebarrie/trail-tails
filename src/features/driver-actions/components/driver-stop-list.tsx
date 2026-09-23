@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   driverActionButtonClassName,
   motionInteractiveClassName,
@@ -248,15 +248,21 @@ function StopCard({
   const isPickup = stop.stopType === "pickup";
   const isDone = status === "picked_up" || status === "dropped_off";
 
-  const destination =
-    stop.destinationLat != null && stop.destinationLng != null
-      ? { lat: stop.destinationLat, lng: stop.destinationLng }
-      : null;
+  const destination = useMemo(
+    () =>
+      stop.destinationLat != null && stop.destinationLng != null
+        ? { lat: stop.destinationLat, lng: stop.destinationLng }
+        : null,
+    [stop.destinationLat, stop.destinationLng]
+  );
 
-  const origin =
-    stop.originLat != null && stop.originLng != null
-      ? { lat: stop.originLat, lng: stop.originLng }
-      : null;
+  const origin = useMemo(
+    () =>
+      stop.originLat != null && stop.originLng != null
+        ? { lat: stop.originLat, lng: stop.originLng }
+        : null,
+    [stop.originLat, stop.originLng]
+  );
 
   const runOptimistic = useCallback(
     async (
@@ -345,6 +351,12 @@ function StopCard({
           ) : null}
           {stop.address ? (
             <p className="mt-1 text-sm leading-snug text-white/50">{stop.address}</p>
+          ) : null}
+          {stop.customerNotes ? (
+            <p className="mt-2 line-clamp-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-sm leading-snug text-amber-50/95">
+              <span className="font-medium text-amber-100">Pickup: </span>
+              {stop.customerNotes}
+            </p>
           ) : null}
           {formatWindowRange(stop.windowStart, stop.windowEnd) ? (
             <p className="mt-1 text-xs text-white/40">

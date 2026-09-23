@@ -153,15 +153,20 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
 
       <div>
         <label htmlFor="notes" className="block text-sm font-medium text-stone-700">
-          Notes
+          Driver notes about this dog
         </label>
         <textarea
           id="notes"
           name="notes"
           rows={3}
           defaultValue={dog?.notes ?? ""}
+          placeholder="Temperament, leash preference, harness tips, medical flags…"
           className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
         />
+        <p className="mt-1 text-xs text-stone-500">
+          Shown to hikers with the stop details — separate from household pickup
+          instructions on the customer.
+        </p>
       </div>
 
       {dog ? (

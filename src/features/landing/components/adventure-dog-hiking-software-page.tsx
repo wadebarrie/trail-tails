@@ -113,6 +113,12 @@ export function AdventureDogHikingSoftwarePageContent() {
               >
                 Time to Pet alternative
               </Link>
+              <Link
+                href="/barkbus-alternative"
+                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                BarkBus alternative
+              </Link>
             </div>
           </div>
         </section>

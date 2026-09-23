@@ -1,6 +1,8 @@
 import {
   ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
   ADVENTURE_DOG_HIKING_SOFTWARE_TITLE,
+  BARKBUS_ALTERNATIVE_DESCRIPTION,
+  BARKBUS_ALTERNATIVE_TITLE,
   DOG_WALKING_SOFTWARE_DESCRIPTION,
   DOG_WALKING_SOFTWARE_TITLE,
   HOME_H1,
@@ -31,6 +33,8 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
       "Dog walking software",
       "Dog walking route planner",
       "Adventure dog hiking software",
+      "Time to Pet alternative for dog hiking",
+      "BarkBus alternative for adventure hiking",
     ],
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Dog walking management software",
@@ -46,7 +50,7 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
     featureList: [
       "Dog walking route planning and pickup order",
       "Group hike and pack walk scheduling",
-      "Multi-driver route assignment",
+      "Multi-driver and multi-vehicle route assignment",
       "Driver mobile Today view",
       "Customer SMS from driver status updates",
       "Schedule change requests by text",
@@ -224,6 +228,25 @@ export function buildTimeToPetAlternativeJsonLdScriptProps() {
     type: "application/ld+json" as const,
     dangerouslySetInnerHTML: {
       __html: buildTimeToPetAlternativePageJsonLd(),
+    },
+  };
+}
+
+export function buildBarkBusAlternativePageJsonLd(): string {
+  const siteUrl = getSiteUrl();
+  return buildSeoLandingPageJsonLd(
+    `${siteUrl}/barkbus-alternative`,
+    BARKBUS_ALTERNATIVE_TITLE,
+    BARKBUS_ALTERNATIVE_DESCRIPTION,
+    "-barkbus",
+  );
+}
+
+export function buildBarkBusAlternativeJsonLdScriptProps() {
+  return {
+    type: "application/ld+json" as const,
+    dangerouslySetInnerHTML: {
+      __html: buildBarkBusAlternativePageJsonLd(),
     },
   };
 }
