@@ -10,6 +10,7 @@ import {
   onboardingSaveCompanyInfoAction,
 } from "@/features/onboarding/actions";
 import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
+import { OnboardingCsvImportCallout } from "@/features/onboarding/components/onboarding-csv-import-callout";
 import {
   ONBOARDING_PATH,
   onboardingStepLabel,
@@ -121,7 +122,8 @@ export function OnboardingWizard({
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
             hiker, a customer with an address, their dog, and a weekday route.
-            Takes most teams about 10–15 minutes.
+            You can add people one at a time or bulk-import customers and dogs
+            from a CSV. Takes most teams about 10–15 minutes.
           </p>
           <ul className="space-y-2 text-sm text-stone-700">
             <li className="flex justify-between gap-3">
@@ -314,7 +316,8 @@ export function OnboardingWizard({
           </h2>
           <p className="text-sm text-stone-600">
             Customers need a full street address so we can geocode pickups and
-            send ETA texts.
+            send ETA texts. Add one by hand, or import a spreadsheet of
+            customers and dogs.
           </p>
           {progress.hasCustomer ? (
             <p className="text-sm text-emerald-700">
@@ -329,11 +332,12 @@ export function OnboardingWizard({
           ) : (
             <Link
               href={`/dashboard/customers/new?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=dog`)}`}
-              className={landingPrimaryButtonClassName}
+              className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
             >
               Add a customer
             </Link>
           )}
+          <OnboardingCsvImportCallout returnStep="route" />
         </section>
       ) : null}
 
@@ -344,7 +348,8 @@ export function OnboardingWizard({
           </h2>
           <p className="text-sm text-stone-600">
             Attach a dog to that customer. You can set a recurring route later —
-            pickup window is enough for now.
+            pickup window is enough for now. Or import customers and dogs
+            together from CSV.
           </p>
           {!progress.hasCustomer ? (
             <p className="text-sm text-amber-800">
@@ -369,11 +374,12 @@ export function OnboardingWizard({
           ) : (
             <Link
               href={`/dashboard/dogs/new?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=route`)}`}
-              className={landingPrimaryButtonClassName}
+              className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
             >
               Add a dog
             </Link>
           )}
+          <OnboardingCsvImportCallout returnStep="route" />
         </section>
       ) : null}
 
