@@ -25,7 +25,14 @@ export function authErrorMessage(error: unknown, fallback: string): string {
 
 function humanizeAuthText(message: string, fallback: string): string {
   const lower = message.toLowerCase();
-  if (lower.includes("rate") || lower.includes("seconds")) {
+  // Only treat send/cooldown errors as rate limits — not verify messages that
+  // happen to mention time (bare "seconds" was too broad).
+  if (
+    lower.includes("rate limit") ||
+    lower.includes("only request this after") ||
+    lower.includes("for security purposes") ||
+    /after\s+\d+\s+seconds/.test(lower)
+  ) {
     return "Please wait a moment before requesting another code.";
   }
   if (lower.includes("redirect") || lower.includes("whitelist") || lower.includes("allow list")) {
