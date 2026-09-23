@@ -1,9 +1,8 @@
 import type Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase/service";
-import {
-  mapStripeSubscriptionStatus,
-  stripeUnixToIso,
-} from "@/features/subscription/stripe-map";
+import { patchFromStripeSubscription } from "@/features/subscription/apply-stripe-subscription";
+import { stripeUnixToIso } from "@/features/subscription/stripe-map";
+import { createStripeClient, getStripeSecretKey } from "@/lib/stripe";
 
 export type StripeWebhookResult =
   | { ok: true; action: "updated" | "ignored" | "duplicate" }
@@ -25,37 +24,13 @@ export async function claimStripeWebhookEvent(
   return "error";
 }
 
-type SubscriptionPatch = {
-  status: ReturnType<typeof mapStripeSubscriptionStatus>;
-  current_period_start: string | null;
-  current_period_end: string | null;
-  provider_customer_id: string;
-  provider_subscription_id: string;
-  provider_price_id: string | null;
-  payment_provider: "stripe";
-  cancelled_at: string | null;
-};
-
-function buildPatch(stripeSubscription: Stripe.Subscription): SubscriptionPatch {
-  const customerId =
-    typeof stripeSubscription.customer === "string"
-      ? stripeSubscription.customer
-      : stripeSubscription.customer?.id ?? "";
-
-  return {
-    status: mapStripeSubscriptionStatus(stripeSubscription.status),
-    current_period_start: stripeUnixToIso(stripeSubscription.current_period_start),
-    current_period_end: stripeUnixToIso(stripeSubscription.current_period_end),
-    provider_customer_id: customerId,
-    provider_subscription_id: stripeSubscription.id,
-    provider_price_id: stripeSubscription.items.data[0]?.price?.id ?? null,
-    payment_provider: "stripe",
-    cancelled_at: stripeUnixToIso(stripeSubscription.canceled_at),
-  };
-}
+type SubscriptionPatch = ReturnType<typeof patchFromStripeSubscription>;
 
 async function updateSubscription(
-  filter: { column: "company_id" | "provider_subscription_id" | "provider_customer_id"; value: string },
+  filter: {
+    column: "company_id" | "provider_subscription_id" | "provider_customer_id";
+    value: string;
+  },
   patch: Partial<SubscriptionPatch> & Pick<SubscriptionPatch, "status">
 ): Promise<StripeWebhookResult> {
   const supabase = createServiceClient();
@@ -73,55 +48,94 @@ async function updateSubscription(
   return { ok: true, action: "updated" };
 }
 
+async function updateBySubscriptionIdentity(
+  subscription: Stripe.Subscription,
+  patch: SubscriptionPatch
+): Promise<StripeWebhookResult> {
+  const companyId = subscription.metadata?.company_id;
+
+  if (companyId) {
+    return updateSubscription({ column: "company_id", value: companyId }, patch);
+  }
+
+  const byProvider = await updateSubscription(
+    { column: "provider_subscription_id", value: subscription.id },
+    patch
+  );
+  if (byProvider.ok) return byProvider;
+
+  if (patch.provider_customer_id) {
+    return updateSubscription(
+      { column: "provider_customer_id", value: patch.provider_customer_id },
+      patch
+    );
+  }
+
+  return {
+    ok: false,
+    error: "subscription_not_found",
+    permanent: true,
+  };
+}
+
 export async function syncSubscriptionFromStripeEvent(
   event: Stripe.Event
 ): Promise<StripeWebhookResult> {
   switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.mode !== "subscription") {
+        return { ok: true, action: "ignored" };
+      }
+
+      const companyId =
+        session.metadata?.company_id || session.client_reference_id || null;
+      const subscriptionId =
+        typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription?.id;
+
+      if (!companyId || !subscriptionId) {
+        return {
+          ok: false,
+          error: "checkout_missing_company_or_subscription",
+          permanent: true,
+        };
+      }
+
+      const secretKey = getStripeSecretKey();
+      if (!secretKey) {
+        return { ok: false, error: "stripe_not_configured" };
+      }
+
+      const stripe = createStripeClient(secretKey);
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const patch = patchFromStripeSubscription(subscription);
+
+      const customerId =
+        typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id;
+      if (customerId) {
+        patch.provider_customer_id = customerId;
+      }
+
+      return updateSubscription({ column: "company_id", value: companyId }, patch);
+    }
+
     case "customer.subscription.created":
     case "customer.subscription.updated": {
       const subscription = event.data.object as Stripe.Subscription;
-      const patch = buildPatch(subscription);
-      const companyId = subscription.metadata?.company_id;
-
-      if (companyId) {
-        return updateSubscription({ column: "company_id", value: companyId }, patch);
-      }
-
-      const byProvider = await updateSubscription(
-        { column: "provider_subscription_id", value: subscription.id },
-        patch
-      );
-      if (byProvider.ok) return byProvider;
-
-      if (patch.provider_customer_id) {
-        return updateSubscription(
-          { column: "provider_customer_id", value: patch.provider_customer_id },
-          patch
-        );
-      }
-
-      return {
-        ok: false,
-        error: "subscription_not_found",
-        permanent: true,
-      };
+      const patch = patchFromStripeSubscription(subscription);
+      return updateBySubscriptionIdentity(subscription, patch);
     }
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
-      const patch = buildPatch(subscription);
+      const patch = patchFromStripeSubscription(subscription);
       patch.status = "cancelled";
       patch.cancelled_at = patch.cancelled_at ?? new Date().toISOString();
-
-      const companyId = subscription.metadata?.company_id;
-      if (companyId) {
-        return updateSubscription({ column: "company_id", value: companyId }, patch);
-      }
-
-      return updateSubscription(
-        { column: "provider_subscription_id", value: subscription.id },
-        patch
-      );
+      return updateBySubscriptionIdentity(subscription, patch);
     }
 
     case "invoice.payment_failed": {

@@ -54,7 +54,7 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries â€
 
 **Metrics source:** Aggregated from existing tables (`sms_messages`, `notification_log`, `hikes`/`stops`, `dogs`, `profiles`, `system_logs`). ETA count uses `en_route` notifications as a proxy until dedicated API metering exists.
 
-**Economics:** Set monthly subscription per company on the detail page (cents, no Stripe). Margin = subscription âˆ’ estimated COGS from `/owner/settings` assumptions.
+**Economics:** Company subscriptions live in `subscriptions` (plan, status, trial dates, Stripe IDs). Platform owners can edit plans manually on `/owner/companies/[id]`. Paying customers use Stripe Checkout / Customer Portal; webhooks sync status. Margin estimates use `/owner/settings` cost assumptions.
 
 **Migration:** `20250627160000_platform_analytics.sql` adds `companies.plan_tier`, `status`, `monthly_subscription_cents`, `trial_ends_at`, and `platform_cost_assumptions`.
 
