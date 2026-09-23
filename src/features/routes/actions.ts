@@ -173,10 +173,13 @@ async function syncAffectedRoutes(
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
-  for (const routeId of new Set(routeIds.filter(Boolean) as string[])) {
-    await syncStopsForRouteDate(companyId, routeId, today);
-    await syncStopsForRouteDate(companyId, routeId, tomorrow);
-  }
+  const uniqueRouteIds = [...new Set(routeIds.filter(Boolean) as string[])];
+  await Promise.all(
+    uniqueRouteIds.flatMap((routeId) => [
+      syncStopsForRouteDate(companyId, routeId, today),
+      syncStopsForRouteDate(companyId, routeId, tomorrow),
+    ])
+  );
 }
 
 function revalidateRouteDogPaths() {

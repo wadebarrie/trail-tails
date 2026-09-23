@@ -12,12 +12,19 @@ import {
 } from "@/features/hikes/stop-order";
 import { one } from "@/lib/supabase/relations";
 
-function revalidateHikePaths() {
-  revalidatePath("/dashboard");
+function revalidateHikePaths(options?: { includeDashboard?: boolean }) {
+  if (options?.includeDashboard !== false) {
+    revalidatePath("/dashboard");
+  }
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   revalidatePath("/today");
   revalidatePath("/tomorrow");
+}
+
+/** Lightweight revalidation for small day-plan edits (add dog, window tweak). */
+function revalidateHikeDayPaths() {
+  revalidateHikePaths({ includeDashboard: false });
 }
 
 /** Admin: regenerate hikes and stops for a date (after schedule changes). */
@@ -327,7 +334,7 @@ export async function addAsNeededDogToDayAction(
     };
   }
 
-  revalidateHikePaths();
+  revalidateHikeDayPaths();
   return { success: true };
 }
 
@@ -376,7 +383,7 @@ export async function updateStopWindowAction(
 
   if (error) return { error: error.message };
 
-  revalidateHikePaths();
+  revalidateHikeDayPaths();
   return { success: true };
 }
 
@@ -450,6 +457,6 @@ export async function removeAsNeededDogFromDayAction(
 
   if (error) return { error: error.message };
 
-  revalidateHikePaths();
+  revalidateHikeDayPaths();
   return { success: true };
 }

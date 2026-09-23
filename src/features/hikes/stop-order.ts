@@ -16,28 +16,35 @@ export async function dropoffStopIdsReversedFromPickups(
   hikeId: string,
   orderedPickupStopIds: string[]
 ): Promise<string[]> {
-  const dropoffIds: string[] = [];
+  if (orderedPickupStopIds.length === 0) return [];
 
-  for (const pickupId of orderedPickupStopIds) {
-    const { data: pickup } = await supabase
+  const [{ data: pickups }, { data: dropoffs }] = await Promise.all([
+    supabase
       .from("stops")
-      .select("dog_id")
-      .eq("id", pickupId)
+      .select("id, dog_id")
       .eq("hike_id", hikeId)
       .eq("stop_type", "pickup")
-      .maybeSingle();
-
-    if (!pickup?.dog_id) continue;
-
-    const { data: dropoff } = await supabase
+      .in("id", orderedPickupStopIds),
+    supabase
       .from("stops")
-      .select("id")
+      .select("id, dog_id")
       .eq("hike_id", hikeId)
-      .eq("dog_id", pickup.dog_id)
-      .eq("stop_type", "dropoff")
-      .maybeSingle();
+      .eq("stop_type", "dropoff"),
+  ]);
 
-    if (dropoff?.id) dropoffIds.push(dropoff.id);
+  const dogIdByPickupId = new Map(
+    (pickups ?? []).map((row) => [row.id, row.dog_id] as const)
+  );
+  const dropoffIdByDogId = new Map(
+    (dropoffs ?? []).map((row) => [row.dog_id, row.id] as const)
+  );
+
+  const dropoffIds: string[] = [];
+  for (const pickupId of orderedPickupStopIds) {
+    const dogId = dogIdByPickupId.get(pickupId);
+    if (!dogId) continue;
+    const dropoffId = dropoffIdByDogId.get(dogId);
+    if (dropoffId) dropoffIds.push(dropoffId);
   }
 
   return dropoffIds.reverse();
