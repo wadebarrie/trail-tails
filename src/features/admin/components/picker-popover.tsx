@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { pickerPopoverClassName } from "@/features/admin/components/picker-styles";
 
 type PickerPopoverProps = {
@@ -27,13 +27,16 @@ export function PickerPopover({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
-  function setOpen(next: boolean) {
-    if (isControlled) {
-      onOpenChange?.(next);
-    } else {
-      setInternalOpen(next);
-    }
-  }
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (isControlled) {
+        onOpenChange?.(next);
+      } else {
+        setInternalOpen(next);
+      }
+    },
+    [isControlled, onOpenChange]
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonId = useId();
   const panelId = useId();

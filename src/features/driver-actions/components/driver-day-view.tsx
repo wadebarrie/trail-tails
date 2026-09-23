@@ -20,8 +20,8 @@ export function DriverDayView({
   const title = active === "today" ? "Today" : "Tomorrow";
   const emptyMessage =
     active === "today"
-      ? "No hikes scheduled today."
-      : "No hikes scheduled tomorrow.";
+      ? "No hikes on your routes today. If that seems wrong, check with the office — they may still be assigning drivers."
+      : "Nothing on your routes for tomorrow yet. Check back later or ask the office if you expected work.";
 
   const progressMessage = dayProgressMessage(day);
 
@@ -86,7 +86,10 @@ export function DriverDayView({
           ))}
         </div>
       ) : (
-        <p className="mt-8 text-white/60">{emptyMessage}</p>
+        <div className="mt-8 surface-glass-dark rounded-[var(--radius-card)] border border-dashed border-white/20 px-5 py-10 text-center">
+          <p className="text-base font-medium text-white/90">Day off the calendar</p>
+          <p className="mt-2 text-sm text-white/60">{emptyMessage}</p>
+        </div>
       )}
     </div>
   );

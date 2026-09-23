@@ -8,6 +8,7 @@ import {
   SearchBar,
   motionTableRowClassName,
 } from "@/features/admin/components/ui";
+import { QueryErrorBanner } from "@/features/admin/components/query-error-banner";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
 import type { Customer } from "@/types";
@@ -27,7 +28,7 @@ export default async function CustomersPage({
     .eq("company_id", profile.company_id)
     .order("owner_name");
 
-  const { data } = q
+  const { data, error } = q
     ? await base.or(
         `owner_name.ilike.%${q}%,phone.ilike.%${q}%,secondary_owner_name.ilike.%${q}%,secondary_phone.ilike.%${q}%,address.ilike.%${q}%`
       )
@@ -61,17 +62,19 @@ export default async function CustomersPage({
         placeholder="Search by name, phone, or address…"
       />
 
-      {!customers?.length ? (
+      {error ? <QueryErrorBanner /> : null}
+
+      {!error && !customers?.length ? (
         <EmptyState message="No customers found." />
-      ) : (
+      ) : !error && customers?.length ? (
         <TableShell>
           <table className="min-w-full text-sm">
             <thead className="bg-stone-50 text-left text-stone-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Phone</th>
-                <th className="px-4 py-3 font-medium">Address</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th scope="col" className="px-4 py-3 font-medium">Name</th>
+                <th scope="col" className="px-4 py-3 font-medium">Phone</th>
+                <th scope="col" className="px-4 py-3 font-medium">Address</th>
+                <th scope="col" className="px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -104,7 +107,7 @@ export default async function CustomersPage({
             </tbody>
           </table>
         </TableShell>
-      )}
+      ) : null}
     </div>
   );
 }

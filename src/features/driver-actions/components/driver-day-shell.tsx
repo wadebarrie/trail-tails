@@ -118,28 +118,30 @@ function DriverDayShellInner({
   timeZone,
   briefingNotes,
 }: DriverDayShellProps) {
-  const [briefingOpen, setBriefingOpen] = useState(false);
+  const [closedByUser, setClosedByUser] = useState(false);
 
   const totalPickups = countPickupStops(day);
   const allPickups = day.routes.flatMap((r) => r.pickups);
   const estimatedCompletion = estimatePickupCompletionTime(allPickups);
+  const inProgress = isRouteDayInProgress(day);
 
   useEffect(() => {
-    if (preview || active !== "today" || totalPickups === 0) {
-      setBriefingOpen(false);
-      return;
-    }
-    if (isRouteDayInProgress(day)) {
+    if (!preview && active === "today" && inProgress) {
       dismissBriefingForDate(day.date);
-      setBriefingOpen(false);
-      return;
     }
-    setBriefingOpen(!isBriefingDismissed(day.date));
-  }, [active, day, day.date, preview, totalPickups]);
+  }, [active, day.date, inProgress, preview]);
+
+  const briefingOpen =
+    !closedByUser &&
+    !preview &&
+    active === "today" &&
+    totalPickups > 0 &&
+    !inProgress &&
+    !isBriefingDismissed(day.date);
 
   function handleStartRoute() {
     dismissBriefingForDate(day.date);
-    setBriefingOpen(false);
+    setClosedByUser(true);
   }
 
   if (briefingOpen) {
@@ -165,7 +167,10 @@ function DriverDayShellInner({
 export function DriverDayShell(props: DriverDayShellProps) {
   return (
     <DriverFeedbackProvider>
-      <DriverDayShellInner {...props} />
+      <DriverDayShellInner
+        key={`${props.active}-${props.day.date}`}
+        {...props}
+      />
     </DriverFeedbackProvider>
   );
 }

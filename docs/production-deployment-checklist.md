@@ -1,10 +1,10 @@
 # PackRoute Production Deployment Checklist
 
-Use this checklist before merging `feature/production-readiness` and launching publicly.
+Use this checklist before a public launch.
 
 ---
 
-## Completed in code (this branch)
+## Completed in code
 
 - [x] Cron route publicly accessible with Bearer `CRON_SECRET` only
 - [x] Middleware fails closed when Supabase env is missing
@@ -15,12 +15,17 @@ Use this checklist before merging `feature/production-readiness` and launching p
 - [x] Trial expiry blocks application access
 - [x] Missing subscription row blocks access (non–platform-owner)
 - [x] Stripe `invoice.paid` restores active status; generic webhook errors
+- [x] Stripe webhook event idempotency (`stripe_webhook_events`)
 - [x] Health endpoint returns minimal public response
 - [x] Auth callback `next` param role-scoped
 - [x] Error boundaries (`error.tsx`, `global-error.tsx`, `not-found.tsx`)
 - [x] Driver en-route toast no longer claims SMS already sent
-
 - [x] Owner dashboard toggle for new company signups (`platform_settings.invites_enabled`)
+- [x] Production env missing-var warnings via `getServerEnv()`
+- [x] Explicit tenant FK checks on dog create/update
+- [x] Admin customers/dogs pages surface query failures
+- [x] ESLint clean; CI enforces `npm run lint`
+- [x] GitHub Actions CI (typecheck, lint, helper tests, build)
 
 ---
 
@@ -97,11 +102,10 @@ Use this checklist before merging `feature/production-readiness` and launching p
 
 ## Intentionally deferred
 
-- Stripe webhook event idempotency table
-- Outbound notification UNIQUE index migration
-- Full admin page query-error rollout
-- ESLint flat config fix
-- GitHub Actions CI workflow
+- Inbound SMS normalized phone index
+- Outbound notification UNIQUE index / retry queue
+- Full admin page query-error rollout (beyond customers/dogs)
+- Rate limiting on auth/webhooks
 - E2E test suite
 
 ---
@@ -110,4 +114,4 @@ Use this checklist before merging `feature/production-readiness` and launching p
 
 - Revert merge commit on `main`
 - Netlify auto-deploys previous build
-- No destructive migrations in this branch
+- Avoid destructive migrations without a restore plan

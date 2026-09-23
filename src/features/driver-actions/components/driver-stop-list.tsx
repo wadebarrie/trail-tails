@@ -16,7 +16,7 @@ import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/dr
 import { useDriverFeedback } from "@/features/driver-actions/components/driver-feedback";
 import { useDriverDayState } from "@/features/driver-actions/driver-day-state";
 import { useAutoArrival, type GeoWatchStatus } from "@/features/driver-actions/use-auto-arrival";
-import { formatTime, formatWindowRange } from "@/lib/dates";
+import { formatWindowRange } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
 import type { DriverStopView } from "@/features/driver-actions/queries";
 import type { StopStatus, StopType } from "@/types";

@@ -242,7 +242,8 @@ async function fetchCompanyUsageRows(
   ]);
 
   const hikeIds = (hikesRes.data ?? []).map((h) => h.id);
-  let completedByCompany = new Map<string, number>();
+  const completedByCompany = new Map<string, number>();
+
 
   if (hikeIds.length > 0) {
     const { data: completedStops } = await supabase
@@ -566,7 +567,7 @@ export async function getPlatformTrends(
   const enRouteNotifs = notifRes.data ?? [];
   const hikes = hikesRes.data ?? [];
 
-  let completedHikeRows: { created_at: string }[] = [];
+  const completedHikeRows: { created_at: string }[] = [];
   if (hikes.length > 0) {
     const { data: stops } = await supabase
       .from("stops")

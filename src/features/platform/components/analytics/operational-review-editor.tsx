@@ -31,7 +31,7 @@ export function OperationalReviewEditor({
 }: {
   review: OperationalReviewRecord;
 }) {
-  const [review, setReview] = useState(initialReview);
+  const [review] = useState(initialReview);
   const [copied, setCopied] = useState(false);
   const metricsJson = useMemo(() => JSON.stringify(review.metrics), [review.metrics]);
 

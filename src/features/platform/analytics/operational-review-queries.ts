@@ -139,7 +139,8 @@ export async function listOperationalReviews(
     const companyName = Array.isArray(companies)
       ? companies[0]?.name ?? "Unknown"
       : companies?.name ?? "Unknown";
-    const { companies: _, ...rest } = row;
+    const rest = { ...row };
+    delete (rest as { companies?: unknown }).companies;
     return mapReviewRow(rest as Record<string, unknown>, companyName);
   });
 }
