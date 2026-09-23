@@ -29,6 +29,14 @@ const COMPARISON_ROWS = [
     fit: "PackRoute",
   },
   {
+    need: "Multi-driver route days + automated SMS ETAs (replace Sheets / WhatsApp)",
+    fit: "PackRoute",
+  },
+  {
+    need: "Deep CRM, owner portals, and in-app invoicing / payments",
+    fit: "Time to Pet and similar all-in-one pet care platforms (or keep them alongside PackRoute for billing)",
+  },
+  {
     need: "Broad pet sitting, daycare, boarding, or photo visit reports",
     fit: "Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, Scout, and similar",
   },
@@ -45,15 +53,19 @@ const COMPARISON_ROWS = [
 const FAQ_ITEMS = [
   {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative for pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, or daycare suite.",
+    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative for pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, daycare, or deep CRM/invoicing suite.",
   },
   {
     q: "How is PackRoute different from Time to Pet?",
-    a: "Time to Pet is strong for broad pet sitting and facility workflows. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road and keep customers updated by SMS.",
+    a: "Time to Pet is strong for broad pet sitting, facility workflows, CRM, and in-app invoicing. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road and keep customers updated by automated SMS ETAs. Billing is CSV hike export into QuickBooks or your own process — not a replacement for a full pet-care ledger.",
+  },
+  {
+    q: "Does PackRoute lack invoicing and CRM compared to Time to Pet?",
+    a: "PackRoute does not try to match Time to Pet’s full business-administration depth. That is intentional: hiking teams get calmer route ops and SMS without paying for boarding and pet-sitting workflows. You still get completed-hike tracking and CSV export for invoicing. Keep Time to Pet (or QuickBooks) if you need owner CRM and payment collection in one pet-care suite.",
   },
   {
     q: "Who should keep using Time to Pet?",
-    a: "Operators whose core work is pet sitting, daycare, boarding, or photo-and-visit reporting may be better served by Time to Pet. PackRoute is for hiking and pack-walk teams that need calmer route operations.",
+    a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or deep in-app CRM and invoicing may be better served by Time to Pet. PackRoute is for hiking and pack-walk teams that need calmer multi-driver route operations.",
   },
 ];
 
@@ -73,13 +85,17 @@ export function TimeToPetAlternativePageContent() {
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
             Searching for a Time to Pet alternative because your day is group
             hikes and pickup routes — not in-home visits? PackRoute is dog
-            walking operations software built for adventure dog hiking teams.
+            walking operations software built for adventure dog hiking teams
+            replacing Google Sheets and WhatsApp with multi-driver routes and
+            automated SMS ETAs.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Time to Pet, Pet Sitter Plus, Gingr, LeashTime, Precise Petcare, and
-            Scout serve many pet care businesses well. PackRoute is different on
-            purpose: office-owned schedules, driver-owned routes, and automatic
-            customer SMS around real field stops.
+            Scout serve many pet care businesses well — especially on CRM and
+            invoicing. PackRoute is different on purpose: office-owned
+            schedules, driver-owned routes, automatic customer SMS around real
+            field stops, and CSV hike exports for the billing tool you already
+            use.
           </p>
           <div className="mt-8">
             <CtaButtons />

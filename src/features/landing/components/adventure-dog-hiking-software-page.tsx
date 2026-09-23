@@ -7,15 +7,15 @@ import { ADVENTURE_DOG_HIKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
 const CAPABILITIES = [
   {
     title: "Group hikes and pack walks",
-    body: "Schedule recurring dogs across morning and afternoon routes. Handle as-needed bookings without breaking your long-term plan.",
+    body: "Schedule recurring dogs across morning and afternoon routes. Handle as-needed bookings and last-minute skip requests without breaking your long-term plan.",
   },
   {
     title: "Multi-driver pickup coordination",
-    body: "Assign drivers, split routes, and adjust stop order for today or tomorrow — built for days when several vans hit the road.",
+    body: "Assign drivers, split routes, and adjust stop order for today or tomorrow — built for days when several vans hit the road instead of one WhatsApp group chat.",
   },
   {
-    title: "Proactive customer SMS",
-    body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire automatically from driver status taps.",
+    title: "Proactive customer SMS ETAs",
+    body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire automatically from driver status taps — no manual texts from drivers.",
   },
   {
     title: "Schedule changes with office control",
@@ -37,14 +37,15 @@ export function AdventureDogHikingSoftwarePageContent() {
             {ADVENTURE_DOG_HIKING_SOFTWARE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            PackRoute is operations software for adventure dog hiking teams —
-            the kind that run pickup routes, group hikes, and pack walks with
+            PackRoute is the software adventure dog hiking businesses use to
+            manage daily pickup routes — group hikes and pack walks with
             multiple drivers and dozens to hundreds of active dogs.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Not a consumer marketplace or in-home pet sitting app. Built for
-            field days where the office plans the route and drivers execute on
-            the road.
+            field days where Google Sheets and WhatsApp start falling apart:
+            the office plans the route, drivers execute on mobile, and customers
+            get automated SMS updates.
           </p>
           <div className="mt-8">
             <CtaButtons />
