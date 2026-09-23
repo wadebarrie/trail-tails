@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { addDogToRouteAction } from "@/features/routes/actions";
 
 export type AddableDog = {
@@ -17,6 +18,7 @@ export function RouteAddDogSelect({
   routeId: string;
   dogs: AddableDog[];
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -32,6 +34,7 @@ export function RouteAddDogSelect({
         return;
       }
       formRef.current?.reset();
+      router.refresh();
     });
   }
 

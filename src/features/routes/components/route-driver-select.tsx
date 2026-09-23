@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { assignRouteDriverAction } from "@/features/routes/actions";
 
 type Driver = { id: string; full_name: string };
@@ -15,9 +17,15 @@ export function RouteDriverSelect({
   drivers: Driver[];
   label?: string;
 }) {
-  async function assign(formData: FormData) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function assign(formData: FormData) {
     const driverId = String(formData.get("driver_id") || "") || null;
-    await assignRouteDriverAction(routeId, driverId);
+    startTransition(async () => {
+      await assignRouteDriverAction(routeId, driverId);
+      router.refresh();
+    });
   }
 
   return (
@@ -32,7 +40,9 @@ export function RouteDriverSelect({
         id={`route-driver-${routeId}`}
         name="driver_id"
         defaultValue={currentDriverId ?? ""}
-        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+        key={currentDriverId ?? "none"}
+        disabled={pending}
+        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm disabled:opacity-60"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
         <option value="">Unassigned</option>
