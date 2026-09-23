@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { WEEKDAYS } from "@/lib/dates";
 
 export function ScheduleDaysField({
@@ -12,13 +12,14 @@ export function ScheduleDaysField({
   label?: string;
   hint?: string;
 }) {
-  const [selected, setSelected] = useState<number[]>(defaultDays);
   const daysKey = defaultDays.slice().sort().join(",");
+  const [selected, setSelected] = useState<number[]>(defaultDays);
+  const [syncedKey, setSyncedKey] = useState(daysKey);
 
-  useEffect(() => {
+  if (daysKey !== syncedKey) {
+    setSyncedKey(daysKey);
     setSelected(defaultDays);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- remount when server days change
-  }, [daysKey]);
+  }
 
   function toggle(day: number, checked: boolean) {
     setSelected((prev) =>

@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { motionInteractiveClassName } from "@/features/admin/components/motion-styles";
 
 type SortableItem = {
@@ -130,12 +130,15 @@ export function SortableList({
         .join("\n"),
     [initialItems]
   );
-
-  useEffect(() => {
-    if (pending || removingId) return;
+  const [syncedSignature, setSyncedSignature] = useState(propsSignature);
+  if (
+    propsSignature !== syncedSignature &&
+    !pending &&
+    removingId === null
+  ) {
+    setSyncedSignature(propsSignature);
     setItems(initialItems);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync on signature only
-  }, [propsSignature, pending, removingId]);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),
