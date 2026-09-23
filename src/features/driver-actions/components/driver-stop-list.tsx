@@ -352,12 +352,6 @@ function StopCard({
           {stop.address ? (
             <p className="mt-1 text-sm leading-snug text-white/50">{stop.address}</p>
           ) : null}
-          {stop.customerNotes ? (
-            <p className="mt-2 line-clamp-3 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-sm leading-snug text-amber-50/95">
-              <span className="font-medium text-amber-100">Pickup: </span>
-              {stop.customerNotes}
-            </p>
-          ) : null}
           {formatWindowRange(stop.windowStart, stop.windowEnd) ? (
             <p className="mt-1 text-xs text-white/40">
               {formatWindowRange(stop.windowStart, stop.windowEnd)}

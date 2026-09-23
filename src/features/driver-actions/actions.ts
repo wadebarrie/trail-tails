@@ -144,7 +144,7 @@ export async function enRouteAction(
     .eq("status", "planned");
 
   if (dog) {
-    scheduleEnRouteSideEffects({
+    await scheduleEnRouteSideEffects({
       stopId,
       hikeId: stop.hike_id,
       dogId: stop.dog_id,
@@ -207,7 +207,7 @@ export async function arrivedAction(
 
   const dog = one(stop.dogs);
   if (dog) {
-    scheduleArrivedNotification({
+    await scheduleArrivedNotification({
       stopId,
       dogId: stop.dog_id,
       companyId: dog.company_id,
@@ -259,7 +259,7 @@ export async function completePickupAction(
 
   const dog = one(stop.dogs);
   if (dog) {
-    schedulePickupNotification({
+    await schedulePickupNotification({
       stopId,
       dogId: stop.dog_id,
       companyId: dog.company_id,
@@ -310,7 +310,7 @@ export async function completeDropoffAction(
 
   const dog = one(stop.dogs);
   if (dog) {
-    scheduleDropoffSideEffects({
+    await scheduleDropoffSideEffects({
       stopId,
       hikeId: stop.hike_id,
       dogId: stop.dog_id,

@@ -34,7 +34,7 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
       "Dog walking route planner",
       "Adventure dog hiking software",
       "Time to Pet alternative for dog hiking",
-      "BarkBus alternative for adventure hiking",
+      "Adventure dog hiking operations software",
     ],
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Dog walking management software",

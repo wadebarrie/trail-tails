@@ -125,16 +125,12 @@ export const LANDING_FAQ: readonly FaqItem[] = [
     a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative to Time to Pet and similar all-in-one pet care tools. It prioritizes pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, or daycare suite.",
   },
   {
-    q: "Is PackRoute a BarkBus alternative?",
-    a: "For adventure dog hiking teams that want office-owned routes, multi-van pickup days, and customer SMS without requiring an owner app, PackRoute can be a BarkBus alternative. BarkBus is strong for pack-school ops with vans, AI admin help, lock-screen pickups, and owner portals. PackRoute is narrower: calm route operations and SMS for hiking and pack-walk businesses.",
+    q: "How is PackRoute different from Time to Pet, Pet Sitter Plus, Gingr, or LeashTime?",
+    a: "Those platforms are strong for broad pet sitting, daycare, or general dog walking businesses. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road. If your day is van routes, group hikes, and SMS updates — not in-home visits or facility boarding — PackRoute is the closer fit.",
   },
   {
-    q: "How is PackRoute different from Time to Pet, BarkBus, Pet Sitter Plus, Gingr, or LeashTime?",
-    a: "Time to Pet, Pet Sitter Plus, and Gingr excel at broad pet sitting and facility workflows. BarkBus is van- and pack-school oriented with rich driver widgets and owner apps. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road and keep customers updated by SMS.",
-  },
-  {
-    q: "Who should keep using Time to Pet, BarkBus, or similar software?",
-    a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or full pack-school suites with owner portals and AI booking may prefer Time to Pet, BarkBus, Pet Sitter Plus, Gingr, Precise Petcare, or Scout. PackRoute is for hiking and pack-walk teams that need calmer route operations and SMS-first customer updates.",
+    q: "Who should keep using Time to Pet or similar software?",
+    a: "Operators whose core work is pet sitting, daycare, boarding, or photo-and-visit reporting may be better served by Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, or Scout. PackRoute is for hiking and pack-walk teams that need calmer route operations.",
   },
 ];
 
@@ -167,10 +163,6 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   {
     q: "Is PackRoute a Time to Pet alternative?",
     a: "For adventure dog hiking teams, yes — a focused alternative for pickup routes, drivers, and customer SMS, not a full pet-sitting suite.",
-  },
-  {
-    q: "Is PackRoute a BarkBus alternative?",
-    a: "For hiking and pack-walk teams that want multi-van routes and SMS without an owner app, yes — a focused alternative to BarkBus’s pack-school suite.",
   },
 ];
 
