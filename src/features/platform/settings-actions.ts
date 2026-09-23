@@ -47,5 +47,7 @@ export async function updatePlatformSettingsAction(
   revalidatePath("/owner/settings");
   revalidatePath("/owner/provision");
   revalidatePath("/signup");
+  revalidatePath("/");
+  revalidatePath("/pricing");
   return { ok: true };
 }

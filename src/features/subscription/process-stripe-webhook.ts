@@ -24,6 +24,12 @@ export async function claimStripeWebhookEvent(
   return "error";
 }
 
+/** Release a claim so Stripe retries can reprocess after a transient failure. */
+export async function releaseStripeWebhookEvent(eventId: string): Promise<void> {
+  const supabase = createServiceClient();
+  await supabase.from("stripe_webhook_events").delete().eq("event_id", eventId);
+}
+
 type SubscriptionPatch = ReturnType<typeof patchFromStripeSubscription>;
 
 async function updateSubscription(

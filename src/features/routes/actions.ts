@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { getDateInTimezone, parseScheduleDays } from "@/lib/dates";
 import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
@@ -100,6 +102,14 @@ export async function createRouteAction(
     return {
       error: err instanceof Error ? err.message : "Failed to save schedule",
     };
+  }
+
+  const returnTo = safeAppReturnPath(
+    formData.get("returnTo")?.toString(),
+    ""
+  );
+  if (returnTo) {
+    redirect(returnTo);
   }
 
   return { ok: true };

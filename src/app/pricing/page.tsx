@@ -9,6 +9,8 @@ import {
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
+export const dynamic = "force-dynamic";
+
 const title = `${PRICING_TITLE} — ${SITE_NAME}`;
 const canonical = `${getSiteUrl()}/pricing`;
 

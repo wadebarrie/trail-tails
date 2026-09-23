@@ -3,11 +3,13 @@ import { AUTH_ROUTES } from "@/features/auth/constants";
 import { getCurrentProfile } from "@/features/auth/queries";
 import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
 import { SubscribeTierButtons } from "@/features/subscription/components/subscribe-tier-buttons";
+import { ManageBillingButton } from "@/features/subscription/components/manage-billing-button";
 import { CheckoutSuccessSync } from "@/features/subscription/components/checkout-success-sync";
 import {
   areStripePricesConfigured,
   isStripeBillingConfigured,
 } from "@/features/subscription/stripe-prices";
+import { getSubscriptionForCompany } from "@/features/subscription/queries";
 
 type SearchParams = Promise<{
   checkout?: string;
@@ -24,11 +26,25 @@ export default async function SubscriptionInactivePage({
   const isAdmin = profile?.role === "admin";
   const billingReady =
     isStripeBillingConfigured() && areStripePricesConfigured("monthly");
-  const disabledReason = !billingReady
+  const subscription =
+    isAdmin && profile
+      ? await getSubscriptionForCompany(profile.company_id)
+      : null;
+  const hasStripeCustomer = Boolean(subscription?.provider_customer_id);
+
+  const checkoutDisabledReason = !billingReady
     ? "Online checkout is not available yet. Contact us to reactivate your account."
     : !isAdmin
       ? "Ask a company admin to subscribe, or contact PackRoute support."
       : null;
+
+  const portalDisabledReason = !billingReady
+    ? "Billing portal is not available yet. Contact us for help updating your card."
+    : !isAdmin
+      ? "Ask a company admin to manage billing."
+      : !hasStripeCustomer
+        ? "No Stripe customer on file yet — subscribe below first, or contact support."
+        : null;
 
   return (
     <div className="w-full max-w-3xl">
@@ -36,8 +52,10 @@ export default async function SubscriptionInactivePage({
         Subscription inactive
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-stone-600">
-        Your company&apos;s PackRoute subscription is not active. Team members
-        cannot use the dashboard or driver app until billing is restored.
+        Your company&apos;s PackRoute subscription is not active
+        {subscription?.status === "past_due" ? " (payment past due)" : ""}.
+        Team members cannot use the dashboard or driver app until billing is
+        restored.
       </p>
 
       {params.checkout === "success" && params.session_id && isAdmin ? (
@@ -51,15 +69,35 @@ export default async function SubscriptionInactivePage({
       ) : null}
 
       {isAdmin ? (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Choose a plan
-          </h2>
-          <p className="mt-1 text-sm text-stone-500">
-            Beta pricing by hikers and dogs. Subscribe to restore access.
-          </p>
-          <div className="mt-4">
-            <SubscribeTierButtons disabledReason={disabledReason} />
+        <div className="mt-8 space-y-8">
+          {hasStripeCustomer ? (
+            <div>
+              <h2 className="text-lg font-semibold text-stone-900">
+                Update payment method
+              </h2>
+              <p className="mt-1 text-sm text-stone-500">
+                Open the Stripe billing portal to fix a failed card, download
+                invoices, or cancel.
+              </p>
+              <div className="mt-3">
+                <ManageBillingButton
+                  disabledReason={portalDisabledReason}
+                  returnTo="/subscription-inactive"
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">
+              Choose a plan
+            </h2>
+            <p className="mt-1 text-sm text-stone-500">
+              Beta pricing by hikers and dogs. Subscribe to restore access.
+            </p>
+            <div className="mt-4">
+              <SubscribeTierButtons disabledReason={checkoutDisabledReason} />
+            </div>
           </div>
         </div>
       ) : null}
