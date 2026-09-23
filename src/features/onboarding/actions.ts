@@ -40,90 +40,115 @@ export async function selfSignupAction(
   _prev: SelfSignupResult | { error?: string },
   formData: FormData
 ): Promise<SelfSignupResult> {
-  if (!(await areInvitesEnabled())) {
-    return {
-      ok: false,
-      error:
-        "New signups are temporarily paused. Contact PackRoute support for help.",
-    };
-  }
-
-  if (!(await isSelfSignupEnabled())) {
-    return {
-      ok: false,
-      error:
-        "Self-serve signup is not open yet. Ask PackRoute for an invite link.",
-    };
-  }
-
-  const parsed = selfSignupSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  }
-
-  const email = parsed.data.admin_email.trim().toLowerCase();
-  const service = createServiceClient();
-
-  const { data: company, error: companyError } = await service
-    .from("companies")
-    .insert({
-      name: parsed.data.company_name.trim(),
-      timezone: parsed.data.timezone,
-      // Explicit null so first-run wizard runs (backfill set existing rows).
-      onboarding_completed_at: null,
-    })
-    .select("id")
-    .single();
-
-  if (companyError || !company) {
-    return {
-      ok: false,
-      error: companyError?.message ?? "Could not create your company.",
-    };
-  }
-
-  const { data: authData, error: authError } = await service.auth.admin.createUser({
-    email,
-    password: parsed.data.password,
-    email_confirm: true,
-    user_metadata: {
-      company_id: company.id,
-      role: "admin",
-      full_name: parsed.data.admin_full_name.trim(),
-      can_drive: true,
-    },
-  });
-
-  if (authError || !authData.user) {
-    await service.from("companies").delete().eq("id", company.id);
-    if (authError?.message?.toLowerCase().includes("already")) {
+  try {
+    if (!(await areInvitesEnabled())) {
       return {
         ok: false,
-        error: "An account with this email already exists. Try signing in instead.",
+        error:
+          "New signups are temporarily paused. Contact PackRoute support for help.",
       };
     }
-    return {
-      ok: false,
-      error: authError?.message ?? "Could not create your account.",
-    };
+
+    if (!(await isSelfSignupEnabled())) {
+      return {
+        ok: false,
+        error:
+          "Self-serve signup is not open yet. Ask PackRoute for an invite link.",
+      };
+    }
+
+    const parsed = selfSignupSchema.safeParse(Object.fromEntries(formData));
+    if (!parsed.success) {
+      return {
+        ok: false,
+        error: parsed.error.issues[0]?.message ?? "Invalid input.",
+      };
+    }
+
+    const email = parsed.data.admin_email.trim().toLowerCase();
+    const service = createServiceClient();
+
+    const { data: company, error: companyError } = await service
+      .from("companies")
+      .insert({
+        name: parsed.data.company_name.trim(),
+        timezone: parsed.data.timezone,
+        // Explicit null so first-run wizard runs (backfill set existing rows).
+        onboarding_completed_at: null,
+      })
+      .select("id")
+      .single();
+
+    if (companyError || !company) {
+      const message =
+        typeof companyError?.message === "string" && companyError.message.trim()
+          ? companyError.message.trim()
+          : "Could not create your company.";
+      return { ok: false, error: message };
+    }
+
+    const { data: authData, error: authError } =
+      await service.auth.admin.createUser({
+        email,
+        password: parsed.data.password,
+        email_confirm: true,
+        user_metadata: {
+          company_id: company.id,
+          role: "admin",
+          full_name: parsed.data.admin_full_name.trim(),
+          can_drive: true,
+        },
+      });
+
+    if (authError || !authData.user) {
+      await service.from("companies").delete().eq("id", company.id);
+      const authMessage =
+        typeof authError?.message === "string" ? authError.message : "";
+      if (authMessage.toLowerCase().includes("already")) {
+        return {
+          ok: false,
+          error:
+            "An account with this email already exists. Try signing in instead.",
+        };
+      }
+      return {
+        ok: false,
+        error: authMessage.trim() || "Could not create your account.",
+      };
+    }
+
+    const supabase = await createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: parsed.data.password,
+    });
+
+    if (signInError) {
+      return {
+        ok: false,
+        error: "Account created — please sign in to continue setup.",
+      };
+    }
+
+    revalidatePath("/signup");
+    redirect(ONBOARDING_PATH);
+  } catch (error) {
+    // redirect() throws a special Next.js error — rethrow it.
+    if (
+      error &&
+      typeof error === "object" &&
+      "digest" in error &&
+      typeof (error as { digest?: unknown }).digest === "string" &&
+      String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
+    ) {
+      throw error;
+    }
+    const message =
+      error instanceof Error && error.message.trim()
+        ? error.message.trim()
+        : "Could not complete signup. Try again.";
+    return { ok: false, error: message === "{}" ? "Could not complete signup. Try again." : message };
   }
-
-  const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email,
-    password: parsed.data.password,
-  });
-
-  if (signInError) {
-    return {
-      ok: false,
-      error:
-        "Account created — please sign in to continue setup.",
-    };
-  }
-
-  revalidatePath("/signup");
-  redirect(ONBOARDING_PATH);
 }
 
 export async function completeOnboardingAction(): Promise<{ error?: string }> {

@@ -2,10 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  sendAdminEmailOtpAction,
-  verifyAdminEmailOtpAction,
-} from "@/features/auth/actions-email-mfa";
+import { markAdminEmailMfaSatisfiedAction } from "@/features/auth/actions-email-mfa";
+import { authErrorMessage } from "@/features/auth/lib/auth-error-message";
 import { getLoginRedirect } from "@/features/auth/access";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +21,11 @@ type EmailOtpMfaFormProps = {
   showTotpOption?: boolean;
 };
 
+function emailOtpRedirectTo(): string {
+  const next = encodeURIComponent("/dashboard");
+  return `${window.location.origin}/auth/callback?next=${next}&mfa=1`;
+}
+
 export function EmailOtpMfaForm({
   nextPath,
   stayOnPage,
@@ -37,24 +40,55 @@ export function EmailOtpMfaForm({
   const [verifying, startVerify] = useTransition();
   const [sentOnce, setSentOnce] = useState(false);
 
+  function showError(value: unknown, fallback: string) {
+    setError(authErrorMessage(value, fallback));
+  }
+
+  async function sendOtpEmail(): Promise<boolean> {
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user?.email) {
+      showError(
+        userError,
+        "You must be signed in to receive a code. Sign in again."
+      );
+      return false;
+    }
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: user.email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: emailOtpRedirectTo(),
+      },
+    });
+
+    if (otpError) {
+      showError(
+        otpError,
+        "Could not send the sign-in email. Try again in a minute."
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   useEffect(() => {
     startSend(async () => {
       try {
-        const result = await sendAdminEmailOtpAction();
-        if (!result || result.ok !== true) {
-          const message =
-            result && typeof result.error === "string" && result.error.trim()
-              ? result.error
-              : "Could not send the sign-in email. Try Resend.";
-          setError(message);
-          return;
-        }
+        const ok = await sendOtpEmail();
+        if (!ok) return;
         setSentOnce(true);
         setInfo(
           "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
         );
-      } catch {
-        setError("Could not send the sign-in email. Try Resend.");
+      } catch (err) {
+        showError(err, "Could not send the sign-in email. Try Resend.");
       }
     });
     // Intentionally once on mount
@@ -65,19 +99,12 @@ export function EmailOtpMfaForm({
     setError(null);
     startSend(async () => {
       try {
-        const result = await sendAdminEmailOtpAction();
-        if (!result || result.ok !== true) {
-          const message =
-            result && typeof result.error === "string" && result.error.trim()
-              ? result.error
-              : "Could not send the sign-in email. Try again in a minute.";
-          setError(message);
-          return;
-        }
+        const ok = await sendOtpEmail();
+        if (!ok) return;
         setSentOnce(true);
         setInfo("A new email is on the way — code or link both work.");
-      } catch {
-        setError("Could not send the sign-in email. Try again in a minute.");
+      } catch (err) {
+        showError(err, "Could not send the sign-in email. Try again in a minute.");
       }
     });
   }
@@ -87,17 +114,43 @@ export function EmailOtpMfaForm({
     setError(null);
     startVerify(async () => {
       try {
-        const result = await verifyAdminEmailOtpAction(code);
-        if (!result || result.ok !== true) {
-          const message =
-            result && typeof result.error === "string" && result.error.trim()
-              ? result.error
-              : "Invalid or expired code. Try again.";
-          setError(message);
+        const trimmed = code.trim();
+        if (!/^\d{6,8}$/.test(trimmed)) {
+          setError("Enter the 6-digit code from your email.");
           return;
         }
-      } catch {
-        setError("Could not verify that code. Try again.");
+
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user?.email) {
+          setError("Session expired. Sign in again.");
+          return;
+        }
+
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email: user.email,
+          token: trimmed,
+          type: "email",
+        });
+
+        if (verifyError) {
+          showError(verifyError, "Invalid or expired code. Try again.");
+          return;
+        }
+
+        const result = await markAdminEmailMfaSatisfiedAction();
+        if (!result || result.ok !== true) {
+          showError(
+            result && "error" in result ? result.error : null,
+            "Could not finish sign-in. Try again."
+          );
+          return;
+        }
+      } catch (err) {
+        showError(err, "Could not verify that code. Try again.");
         return;
       }
 
@@ -138,6 +191,14 @@ export function EmailOtpMfaForm({
     });
   }
 
+  const errorText =
+    typeof error === "string" &&
+    error.trim() &&
+    error.trim() !== "{}" &&
+    error.trim() !== "[object Object]"
+      ? error.trim()
+      : null;
+
   if (mode === "totp" && showTotpOption) {
     return (
       <div className="space-y-4">
@@ -171,9 +232,9 @@ export function EmailOtpMfaForm({
         </p>
       ) : null}
 
-      {error ? (
+      {errorText ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
+          {errorText}
         </p>
       ) : null}
 
