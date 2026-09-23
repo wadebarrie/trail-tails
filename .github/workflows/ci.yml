@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, feature/**]
+    branches: [main, staging, beta, feature/**, fix/**]
   pull_request:
-    branches: [main]
+    branches: [main, staging, beta]
 
 jobs:
   validate:
@@ -42,3 +42,4 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder
+          PACKROUTE_APP_ENV: preview

@@ -7,4 +7,24 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# App environment defaults by Netlify deploy context / branch.
+# Override secrets and URLs in the Netlify UI (scoped per context).
+# See docs/ENVIRONMENTS.md.
+
+[context.production.environment]
+  PACKROUTE_APP_ENV = "production"
+
+[context.staging.environment]
+  PACKROUTE_APP_ENV = "staging"
+
+[context.beta.environment]
+  PACKROUTE_APP_ENV = "beta"
+
+[context.deploy-preview.environment]
+  PACKROUTE_APP_ENV = "preview"
+
+[context.branch-deploy.environment]
+  PACKROUTE_APP_ENV = "preview"
+
 # Scheduled: netlify/functions/night-before-cron.mjs (hourly → night-before time per company)
+# Keep cron enabled for production only unless you intentionally test on beta/staging.

@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { isProductionApp } from "@/lib/app-env";
 import { perfAsync } from "@/lib/perf";
 
 export type TwilioConfig = {
@@ -21,12 +22,12 @@ export function isTwilioConfigured(): boolean {
 }
 
 /** When set, all outbound SMS go here instead of the customer phone (pilot/testing).
- *  In production this only applies when TWILIO_ALLOW_SMS_REDIRECT=true — otherwise
- *  live customer numbers would be silently redirected. */
+ *  On production this only applies when TWILIO_ALLOW_SMS_REDIRECT=true.
+ *  Staging / beta / preview / local always honor the redirect when set. */
 export function getSmsRedirectTo(): string | null {
   const redirect = process.env.TWILIO_SMS_REDIRECT_TO?.trim();
   if (!redirect) return null;
-  if (process.env.NODE_ENV === "production") {
+  if (isProductionApp()) {
     if (process.env.TWILIO_ALLOW_SMS_REDIRECT !== "true") return null;
   }
   return redirect;

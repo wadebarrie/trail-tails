@@ -66,7 +66,7 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 - App marks the browser session MFA-satisfied with an httpOnly cookie (`packroute_admin_mfa`) after a successful email OTP **or** after clicking the email magic link (`/auth/callback?mfa=1`).
 - Supabase Dashboard → **Authentication → Email → Magic Link** template should include `{{ .Token }}` so the numeric code appears in the email (not only a link). See [Email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
 - MFA emails set `emailRedirectTo` from the **current request host** (so local login doesn’t send you to production).
-- Set **Site URL** / redirect allow-list for each deploy environment (`http://localhost:3000/auth/callback` for local).
+- Set **Site URL** (and redirect allow-list) to each environment’s origin — `https://packroute.app` for production, `http://localhost:3000/auth/callback` for local, plus staging/beta URLs when those deploys exist. See [ENVIRONMENTS.md](./ENVIRONMENTS.md).
 
 ### Optional cookie secret
 
@@ -109,8 +109,8 @@ Users can request a reset from **Forgot password?** on the login page. Supabase 
 
 **Supabase setup required:**
 
-1. **Authentication → URL Configuration** — Site URL `https://packroute.app`
-2. **Redirect URLs** — include `https://packroute.app/auth/callback` (and `http://localhost:3000/auth/callback` for local dev)
+1. **Authentication → URL Configuration** — Site URL `https://packroute.app` (plus staging/beta origins when those deploys exist; see [ENVIRONMENTS.md](./ENVIRONMENTS.md))
+2. **Redirect URLs** — include `https://packroute.app/auth/callback` (and `http://localhost:3000/auth/callback` for local dev; add staging/beta callback URLs too)
 3. **Authentication → Email** — configure SMTP or use Supabase default mail for reset emails
 
 After reset, users sign in again. Admins must complete MFA as usual.
