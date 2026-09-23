@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { markAdminEmailMfaSatisfiedAction } from "@/features/auth/actions-email-mfa";
 import { authErrorMessage } from "@/features/auth/lib/auth-error-message";
@@ -21,9 +21,33 @@ type EmailOtpMfaFormProps = {
   showTotpOption?: boolean;
 };
 
+const OTP_SENT_KEY = "packroute_mfa_otp_sent_at";
+/** Skip auto-resend after remounts / refresh within this window. */
+const OTP_SEND_COOLDOWN_MS = 60_000;
+
 function emailOtpRedirectTo(): string {
   const next = encodeURIComponent("/dashboard");
   return `${window.location.origin}/auth/callback?next=${next}&mfa=1`;
+}
+
+function recentlySentOtp(): boolean {
+  try {
+    const raw = sessionStorage.getItem(OTP_SENT_KEY);
+    if (!raw) return false;
+    const sentAt = Number(raw);
+    if (!Number.isFinite(sentAt)) return false;
+    return Date.now() - sentAt < OTP_SEND_COOLDOWN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function markOtpSent(): void {
+  try {
+    sessionStorage.setItem(OTP_SENT_KEY, String(Date.now()));
+  } catch {
+    // ignore
+  }
 }
 
 export function EmailOtpMfaForm({
@@ -38,13 +62,27 @@ export function EmailOtpMfaForm({
   const [mode, setMode] = useState<"email" | "totp">("email");
   const [sending, startSend] = useTransition();
   const [verifying, startVerify] = useTransition();
-  const [sentOnce, setSentOnce] = useState(false);
+  const [sentOnce, setSentOnce] = useState(() =>
+    typeof window !== "undefined" ? recentlySentOtp() : false
+  );
+  const autoSendStarted = useRef(false);
+  const verifyingRef = useRef(false);
 
   function showError(value: unknown, fallback: string) {
     setError(authErrorMessage(value, fallback));
   }
 
-  async function sendOtpEmail(): Promise<boolean> {
+  async function sendOtpEmail(options?: {
+    force?: boolean;
+  }): Promise<boolean> {
+    if (!options?.force && recentlySentOtp()) {
+      setSentOnce(true);
+      setInfo(
+        "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
+      );
+      return true;
+    }
+
     const supabase = createClient();
     const {
       data: { user },
@@ -68,6 +106,7 @@ export function EmailOtpMfaForm({
     });
 
     if (otpError) {
+      // Remount rate-limits should not look like a verify failure.
       showError(
         otpError,
         "Could not send the sign-in email. Try again in a minute."
@@ -75,10 +114,14 @@ export function EmailOtpMfaForm({
       return false;
     }
 
+    markOtpSent();
     return true;
   }
 
   useEffect(() => {
+    if (autoSendStarted.current) return;
+    autoSendStarted.current = true;
+
     startSend(async () => {
       try {
         const ok = await sendOtpEmail();
@@ -88,6 +131,7 @@ export function EmailOtpMfaForm({
           "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
         );
       } catch (err) {
+        if (verifyingRef.current) return;
         showError(err, "Could not send the sign-in email. Try Resend.");
       }
     });
@@ -96,10 +140,11 @@ export function EmailOtpMfaForm({
   }, []);
 
   function resend() {
+    if (verifyingRef.current) return;
     setError(null);
     startSend(async () => {
       try {
-        const ok = await sendOtpEmail();
+        const ok = await sendOtpEmail({ force: true });
         if (!ok) return;
         setSentOnce(true);
         setInfo("A new email is on the way — code or link both work.");
@@ -111,7 +156,12 @@ export function EmailOtpMfaForm({
 
   function handleVerify(event: React.FormEvent) {
     event.preventDefault();
+    event.stopPropagation();
+    if (verifyingRef.current) return;
+
     setError(null);
+    verifyingRef.current = true;
+
     startVerify(async () => {
       try {
         const trimmed = code.trim();
@@ -149,45 +199,48 @@ export function EmailOtpMfaForm({
           );
           return;
         }
+
+        // Prevent remount auto-send from racing the redirect.
+        markOtpSent();
+
+        if (stayOnPage) {
+          router.replace(AUTH_ROUTES.adminHome);
+          router.refresh();
+          return;
+        }
+
+        const {
+          data: { user: verifiedUser },
+        } = await supabase.auth.getUser();
+        if (!verifiedUser) {
+          setError("Session expired. Sign in again.");
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role, is_active, can_drive")
+          .eq("id", verifiedUser.id)
+          .maybeSingle();
+
+        if (!profile?.is_active) {
+          await supabase.auth.signOut();
+          setError("Your account has been deactivated.");
+          return;
+        }
+
+        router.replace(
+          getLoginRedirect(
+            profile as { role: "admin" | "driver"; can_drive: boolean },
+            nextPath
+          )
+        );
+        router.refresh();
       } catch (err) {
         showError(err, "Could not verify that code. Try again.");
-        return;
+      } finally {
+        verifyingRef.current = false;
       }
-
-      if (stayOnPage) {
-        router.replace(AUTH_ROUTES.adminHome);
-        router.refresh();
-        return;
-      }
-
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setError("Session expired. Sign in again.");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, is_active, can_drive")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!profile?.is_active) {
-        await supabase.auth.signOut();
-        setError("Your account has been deactivated.");
-        return;
-      }
-
-      router.replace(
-        getLoginRedirect(
-          profile as { role: "admin" | "driver"; can_drive: boolean },
-          nextPath
-        )
-      );
-      router.refresh();
     });
   }
 
@@ -215,7 +268,7 @@ export function EmailOtpMfaForm({
   }
 
   return (
-    <form onSubmit={handleVerify} className="space-y-4">
+    <form onSubmit={handleVerify} className="space-y-4" noValidate>
       <p className="text-sm text-stone-600">
         We emailed a one-time login confirmation. Enter the{" "}
         <strong className="font-medium text-stone-800">6-digit code</strong> if
@@ -250,7 +303,6 @@ export function EmailOtpMfaForm({
           name="code"
           inputMode="numeric"
           autoComplete="one-time-code"
-          pattern="[0-9]{6,8}"
           maxLength={8}
           required
           disabled={verifying}
@@ -270,7 +322,7 @@ export function EmailOtpMfaForm({
 
       <button
         type="button"
-        disabled={sending}
+        disabled={sending || verifying}
         onClick={resend}
         className={`${secondaryButtonClassName} w-full rounded-xl py-3`}
       >
