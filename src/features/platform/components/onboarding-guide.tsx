@@ -56,12 +56,8 @@ export function OnboardingGuide() {
               .
             </li>
             <li>
-              On first login, scan the QR code with an authenticator app (1Password,
-              Authy, Google Authenticator, etc.) and enter the 6-digit code.{" "}
-              <strong>TOTP is required for all admin accounts.</strong>
-            </li>
-            <li>
-              On later logins: password, then authenticator code.
+              On login: password, then a <strong>one-time code emailed to them</strong> —
+              no authenticator app required.
             </li>
             <li>
               Set up their company in the office dashboard — customers, dogs, routes,
@@ -143,10 +139,12 @@ export function OnboardingGuide() {
               </dd>
             </div>
             <div>
-              <dt className="font-medium text-stone-900">MFA setup fails</dt>
+              <dt className="font-medium text-stone-900">Email code never arrives</dt>
               <dd className="mt-0.5 text-stone-600">
-                Confirm TOTP is enabled in Supabase → Authentication → MFA. Admin can
-                retry at /dashboard/mfa.
+                Check spam. In Supabase → Authentication → Email Templates → Magic
+                Link, ensure the template includes{" "}
+                <code className="rounded bg-stone-100 px-1 text-xs">{"{{ .Token }}"}</code>{" "}
+                so a numeric code is sent. Resend from the login screen after ~60s.
               </dd>
             </div>
             <div>
