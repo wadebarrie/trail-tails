@@ -19,22 +19,22 @@ const FEATURES = [
   {
     title: "Routes and schedules",
     description:
-      "Build daily routes, assign drivers, manage recurring dogs, and adjust today or tomorrow without rebuilding a spreadsheet.",
+      "Replace the morning spreadsheet: build daily pickup routes, assign drivers, manage recurring dogs, and adjust today or tomorrow.",
   },
   {
     title: "Driver workflow on mobile",
     description:
-      "Drivers open Today, follow stops in order, and tap simple status updates from their phone.",
+      "Drivers open Today on their phone, follow stops in order, and tap status updates — route planning software that works on mobile without an app store download.",
   },
   {
-    title: "Customer SMS, office-approved",
+    title: "Automated SMS ETAs",
     description:
-      "Automated texts from driver taps: night-before confirmations, ETAs, and pickup or drop-off updates — no manual messaging. Customers manage bookings by text too; office approves changes.",
+      "Night-before confirmations, en-route ETAs, and pickup or drop-off updates fire from driver taps — so families get answers without WhatsApp group chats or drivers texting each stop.",
   },
   {
-    title: "Billing export",
+    title: "Billing prep, not a full CRM",
     description:
-      "Track completed hikes by date range and export CSVs for QuickBooks or your own invoicing process.",
+      "Track completed hikes and export CSV for QuickBooks or your own invoicing. PackRoute is ops-first — pair with your existing billing tools if you need deep CRM and owner invoices.",
   },
 ] as const;
 
@@ -60,14 +60,14 @@ export function LandingPage() {
           />
           <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
             <div>
-              <SectionLabel>Route planning &amp; customer updates</SectionLabel>
+              <SectionLabel>Route planning &amp; automated SMS</SectionLabel>
               <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
                 {HOME_H1}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-stone-600">
-                Plan recurring dogs and pickup routes, give drivers a simple
-                mobile workflow, and keep customers updated by text — without
-                spreadsheet or group chat chaos.
+                Growing past one driver? Replace Google Sheets and WhatsApp with
+                multi-driver pickup routes, a simple mobile driver workflow, and
+                automated SMS ETAs — so customers stop calling for updates.
               </p>
               <div className="mt-8">
                 <CtaButtons />
@@ -95,10 +95,11 @@ export function LandingPage() {
               Built for adventure dog hiking teams
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
-              Recurring dogs, multiple drivers, pickup routes, and schedule
-              changes — usually spread across spreadsheets and group texts.
-              PackRoute brings routes, drivers, customer SMS, and billing prep
-              together.
+              Recurring dogs, multiple drivers, pickup routes, and last-minute
+              skip requests — usually spread across spreadsheets and group texts.
+              PackRoute brings routes, drivers, and automated customer SMS
+              together, then exports completed hikes for the billing tool you
+              already use.
             </p>
           </div>
         </section>
@@ -116,15 +117,15 @@ export function LandingPage() {
               {[
                 {
                   role: "Office",
-                  body: "Build routes, assign drivers, approve schedule requests, and export billing.",
+                  body: "Build routes, assign drivers, approve schedule requests, and export hike CSVs for invoicing.",
                 },
                 {
                   role: "Driver",
-                  body: "Opens Today on their phone, reviews the route, and adjusts pickup order when needed. At each stop, status taps send SMS updates to customers.",
+                  body: "Opens Today on their phone, reviews the route, and adjusts pickup order when needed. At each stop, status taps send SMS ETAs and pickup updates to customers.",
                 },
                 {
                   role: "Customer",
-                  body: "SMS updates by text. Schedule requests wait for office approval.",
+                  body: "Automated SMS updates by text. Schedule requests wait for office approval — no surprise route changes.",
                 },
               ].map((item) => (
                 <div

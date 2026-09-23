@@ -5,10 +5,10 @@ export const SITE_TAGLINE =
   "Dog walking route planning for adventure hike teams";
 
 export const SITE_DESCRIPTION =
-  "Dog walking route planning software for adventure dog hiking teams. Plan pickup routes, guide drivers, and keep customers updated by SMS — without spreadsheet chaos.";
+  "Replace Google Sheets and WhatsApp for adventure dog hiking teams. Plan multi-driver pickup routes, give drivers a mobile workflow, and send automated SMS ETAs and pickup updates — without spreadsheet chaos.";
 
 export const SITE_DESCRIPTION_SHORT =
-  "Dog walking software for pickup routes, group hikes, driver workflows, and customer SMS.";
+  "Dog walking route planning software: multi-driver routes, mobile driver workflow, and automated customer SMS ETAs.";
 
 export const SITE_KEYWORDS = [
   "dog walking software",
@@ -21,6 +21,11 @@ export const SITE_KEYWORDS = [
   "route planner for dog walkers",
   "dog walking route app",
   "dog walking route optimization",
+  "route planning software for dog walkers",
+  "replace spreadsheets dog walking",
+  "dog walking ETA SMS",
+  "automated SMS dog walking",
+  "multi-driver dog walking software",
   "pet sitting and dog walking software",
   "pet care business software",
   "adventure dog hiking software",
@@ -50,25 +55,25 @@ export const SITE_CONTACT_EMAIL = "hello@packroute.app";
 export const HOME_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 export const HOME_H1 =
-  "Dog walking route planning software for adventure dog hiking teams";
+  "Replace spreadsheets and group chats with dog walking route planning software";
 
 export const DOG_WALKING_SOFTWARE_TITLE =
   "Dog Walking Route Planner for Adventure Dog Hiking Teams";
 
 export const DOG_WALKING_SOFTWARE_DESCRIPTION =
-  "Plan pickup routes, guide drivers, and send customer updates with PackRoute — dog walking route planning software built for adventure dog hiking and group dog walking businesses.";
+  "Best way to replace spreadsheets for dog walk route planning: PackRoute plans multi-driver pickup routes, guides drivers on mobile, and sends automated SMS ETAs and pickup updates for adventure dog hiking teams.";
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_TITLE =
   "Adventure Dog Hiking Software for Group Walks & Pickup Routes";
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION =
-  "Operations software for adventure dog hiking teams: multi-driver pickup routes, group hike scheduling, driver workflows, and proactive customer SMS.";
+  "Software adventure dog hiking businesses use for daily pickup routes: multi-driver mornings, recurring schedules, skip requests with office approval, and automated customer SMS — without Google Sheets and WhatsApp.";
 
 export const TIME_TO_PET_ALTERNATIVE_TITLE =
   "Time to Pet Alternative for Adventure Dog Hiking Teams";
 
 export const TIME_TO_PET_ALTERNATIVE_DESCRIPTION =
-  "Looking for a Time to Pet alternative built for pickup routes and group dog hikes? PackRoute focuses on multi-driver route days, driver workflows, and customer SMS — not generic pet sitting.";
+  "Looking for a Time to Pet alternative built for pickup routes and group dog hikes? PackRoute focuses on multi-driver route days, driver workflows, and customer SMS ETAs. It exports completed hikes for QuickBooks — it is not a full CRM or invoicing suite.";
 
 export const BARKBUS_ALTERNATIVE_TITLE =
   "BarkBus Alternative for Adventure Dog Hiking & Pickup Routes";
@@ -82,7 +87,7 @@ type FaqItem = { readonly q: string; readonly a: string };
 export const LANDING_FAQ: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "PackRoute is operations software for adventure dog hiking teams. Your office plans routes and schedules; drivers run the day from their phone; customers get SMS updates — without spreadsheet chaos or endless group chats.",
+    a: "PackRoute is operations software for adventure dog hiking teams. Your office plans routes and schedules; drivers run the day from their phone; customers get automated SMS updates — without spreadsheet chaos or endless WhatsApp group chats.",
   },
   {
     q: "Is PackRoute dog walking software?",
@@ -93,16 +98,32 @@ export const LANDING_FAQ: readonly FaqItem[] = [
     a: "Yes. PackRoute is designed for adventure dog hiking teams: recurring dogs, morning and afternoon routes, multi-driver days, pickup and drop-off stops, and customer communication around real field operations.",
   },
   {
-    q: "Can PackRoute help plan dog walking pickup routes?",
-    a: "Yes. You build daily route plans, set pickup order, assign drivers, and adjust windows for today or tomorrow. Drivers follow the plan on the road — PackRoute does not auto-rewrite your route mid-day.",
+    q: "What software do adventure dog hiking businesses use to manage daily pickup routes?",
+    a: "Many teams start with Google Sheets and WhatsApp, then move to PackRoute when they add drivers. PackRoute is built specifically for daily pickup route planning, driver mobile workflows, and customer SMS for adventure dog hiking and group walk businesses.",
+  },
+  {
+    q: "Can PackRoute replace spreadsheets for dog walk route planning?",
+    a: "Yes. You build daily route plans, set pickup order, assign drivers, and adjust windows for today or tomorrow — without rebuilding a spreadsheet every morning. Drivers follow the plan on the road; PackRoute does not auto-rewrite your route mid-day.",
   },
   {
     q: "Can drivers use PackRoute on the road?",
-    a: "Yes. Drivers use a mobile Today view in the browser — stops in order, status taps, optional pickup reorder. No app store download required.",
+    a: "Yes. Drivers use a mobile Today view in the browser — stops in order, status taps, optional pickup reorder. No app store download required. It is route planning software for dog walkers that works on mobile.",
   },
   {
-    q: "Does PackRoute send customer updates?",
-    a: "Yes. Night-before reminders, en-route ETAs, and pickup or drop-off confirmations when drivers update stops. Schedule change requests by text go to your office for approval first.",
+    q: "Does PackRoute send automated SMS ETA and pickup updates?",
+    a: "Yes. Night-before reminders, en-route ETAs, and pickup or drop-off confirmations send when drivers update stops — so customers get updates without drivers manually texting each family. Schedule change requests by text go to your office for approval first.",
+  },
+  {
+    q: "Can customers text schedule changes that still need office approval?",
+    a: "Yes. Their message becomes a pending request in your office dashboard. Nothing changes until your team approves it — useful for last-minute skips without surprise gaps on the route.",
+  },
+  {
+    q: "Does PackRoute include CRM and invoicing like Time to Pet?",
+    a: "No — and that is intentional. PackRoute is operations software for routes, drivers, and customer SMS. It tracks completed hikes by date range and exports CSV for QuickBooks or your own billing process. Mature all-in-one pet care platforms often go deeper on CRM, owner portals, and in-app invoicing; PackRoute stays focused on field-day logistics so hiking teams are not paying for boarding and pet-sitting workflows they do not use.",
+  },
+  {
+    q: "Does PackRoute handle payments or invoicing?",
+    a: "No built-in owner invoices or payment collection. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks, Stripe, or your existing process. If you need a full pet-care CRM and invoicing suite, keep or pair with Time to Pet (or similar) for that layer.",
   },
   {
     q: "Is PackRoute built for pet sitting businesses too?",
@@ -113,24 +134,16 @@ export const LANDING_FAQ: readonly FaqItem[] = [
     a: "No. They get SMS updates and can reply by text. No account, no login.",
   },
   {
-    q: "What happens when a customer texts a schedule change?",
-    a: "Their message becomes a pending request in your office dashboard. Nothing changes until your team approves it.",
-  },
-  {
-    q: "Does PackRoute handle payments or invoicing?",
-    a: "No. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks or your own process.",
-  },
-  {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative to Time to Pet and similar all-in-one pet care tools. It prioritizes pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, or daycare suite.",
+    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative to Time to Pet and similar all-in-one pet care tools. It prioritizes pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, daycare, or deep CRM/invoicing suite.",
   },
   {
     q: "How is PackRoute different from Time to Pet, Pet Sitter Plus, Gingr, or LeashTime?",
-    a: "Those platforms are strong for broad pet sitting, daycare, or general dog walking businesses. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road. If your day is van routes, group hikes, and SMS updates — not in-home visits or facility boarding — PackRoute is the closer fit.",
+    a: "Those platforms are strong for broad pet sitting, daycare, CRM, and general dog walking businesses. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road. If your day is van routes, group hikes, and SMS updates — not in-home visits or facility boarding — PackRoute is the closer fit for operations. Use CSV hike exports (or keep a separate billing tool) for invoicing.",
   },
   {
     q: "Who should keep using Time to Pet or similar software?",
-    a: "Operators whose core work is pet sitting, daycare, boarding, or photo-and-visit reporting may be better served by Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, or Scout. PackRoute is for hiking and pack-walk teams that need calmer route operations.",
+    a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or deep in-app CRM and invoicing may be better served by Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, or Scout. PackRoute is for hiking and pack-walk teams that need calmer multi-driver route operations and automated customer SMS.",
   },
 ];
 
@@ -138,31 +151,31 @@ export const LANDING_FAQ: readonly FaqItem[] = [
 export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "Operations software for adventure dog hiking teams — routes, drivers, customer SMS, and billing prep in one place.",
+    a: "Operations software for adventure dog hiking teams — multi-driver pickup routes, mobile driver workflow, automated customer SMS, and CSV billing prep.",
+  },
+  {
+    q: "Can PackRoute replace Google Sheets and WhatsApp?",
+    a: "Yes. The office owns routes and schedules; drivers run Today on their phone; customers get SMS ETAs and pickup updates instead of group-chat chaos.",
   },
   {
     q: "Can drivers use PackRoute on the road?",
     a: "Yes. A mobile Today view in the browser — stops in order and simple status taps. No app store required.",
   },
   {
-    q: "Does PackRoute send customer updates?",
-    a: "Yes. Reminders, ETAs, and pickup confirmations by SMS when drivers update stops.",
+    q: "Does PackRoute send automated SMS ETAs?",
+    a: "Yes. Night-before reminders, en-route ETAs, and pickup confirmations send when drivers update stops — no manual texts from drivers.",
   },
   {
     q: "What happens when a customer texts a schedule change?",
     a: "It becomes a pending request in your dashboard. Nothing changes until your team approves it.",
   },
   {
-    q: "Does PackRoute handle payments or invoicing?",
-    a: "No. It tracks completed hikes and exports CSV for QuickBooks or your own billing process.",
-  },
-  {
-    q: "Do customers need to download an app?",
-    a: "No. SMS only — no account or login.",
+    q: "Does PackRoute include CRM and invoicing like Time to Pet?",
+    a: "No — on purpose. PackRoute focuses on routes, drivers, and SMS. It exports completed hikes as CSV for QuickBooks or your own billing. Keep a pet-care CRM if you need deep invoicing and owner portals.",
   },
   {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking teams, yes — a focused alternative for pickup routes, drivers, and customer SMS, not a full pet-sitting suite.",
+    a: "For adventure dog hiking teams, yes — a focused alternative for pickup routes, drivers, and customer SMS, not a full pet-sitting or CRM suite.",
   },
 ];
 
