@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type ComponentProps } from "react";
 import {
   createDriverAction,
   updateDriverAction,
@@ -28,7 +28,7 @@ export function DriverForm({ driver, email }: DriverFormProps) {
   const isAdminDriver = driver?.role === "admin";
 
   return (
-    <form action={formAction} className="max-w-lg space-y-4">
+    <form action={formAction} className="max-w-lg space-y-4" noValidate>
       {state.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}
@@ -62,8 +62,10 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             label="Login email"
             name="email"
             type="email"
+            inputMode="email"
             required
             autoComplete="off"
+            placeholder="driver@example.com"
           />
           <Field
             label="Temporary password"
@@ -84,7 +86,10 @@ export function DriverForm({ driver, email }: DriverFormProps) {
         label="Phone"
         name="phone"
         type="tel"
+        inputMode="tel"
         defaultValue={driver?.phone ?? ""}
+        placeholder="+1 604 555 0100"
+        hint="Optional. At least 10 digits if provided."
       />
 
       {driver ? (
@@ -124,14 +129,20 @@ function Field({
   defaultValue,
   required,
   type = "text",
+  inputMode,
   autoComplete,
+  placeholder,
+  hint,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
   required?: boolean;
   type?: string;
+  inputMode?: ComponentProps<"input">["inputMode"];
   autoComplete?: string;
+  placeholder?: string;
+  hint?: string;
 }) {
   return (
     <div>
@@ -142,11 +153,14 @@ function Field({
         id={name}
         name={name}
         type={type}
+        inputMode={inputMode}
         defaultValue={defaultValue}
         required={required}
         autoComplete={autoComplete}
+        placeholder={placeholder}
         className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5"
       />
+      {hint ? <p className="mt-1 text-xs text-stone-500">{hint}</p> : null}
     </div>
   );
 }

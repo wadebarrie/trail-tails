@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { customerSchema, secondaryContactPayload } from "@/features/customers/schema";
+import {
+  customerImportSchema,
+  secondaryContactPayload,
+} from "@/features/customers/schema";
 import { IMPORT_COLUMNS, MAX_IMPORT_ROWS } from "@/features/import/columns";
 import { parseScheduleDaysFlexible } from "@/lib/dates";
 import { phoneMatchKey } from "@/lib/phone";
@@ -54,12 +57,14 @@ function hasCustomerFields(record: Record<string, string>): boolean {
 function validateCustomerRecord(
   record: Record<string, string>,
   rowNum: number
-): { ok: true; data: z.infer<typeof customerSchema> } | { ok: false; error: ImportRowError } {
-  const parsed = customerSchema.safeParse({
+):
+  | { ok: true; data: z.infer<typeof customerImportSchema> }
+  | { ok: false; error: ImportRowError } {
+  const parsed = customerImportSchema.safeParse({
     owner_name: record.customer_owner_name,
     phone: record.customer_phone,
     email: record.customer_email || "",
-    address: record.customer_address,
+    address_line1: record.customer_address,
     secondary_owner_name: record.customer_secondary_owner_name || undefined,
     secondary_phone: record.customer_secondary_phone || undefined,
     notes: record.customer_notes || undefined,
