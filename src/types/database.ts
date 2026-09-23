@@ -70,6 +70,7 @@ export interface Company {
   default_hike_rate_cents: number | null;
   night_before_reminder_time: string;
   twilio_phone_number: string | null;
+  onboarding_completed_at: string | null;
   created_at: string;
   updated_at: string;
 }

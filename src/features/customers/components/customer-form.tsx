@@ -10,9 +10,10 @@ import type { Customer } from "@/types";
 
 type CustomerFormProps = {
   customer?: Customer;
+  returnTo?: string;
 };
 
-export function CustomerForm({ customer }: CustomerFormProps) {
+export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
   const action = customer
     ? updateCustomerAction.bind(null, customer.id)
     : createCustomerAction;
@@ -26,6 +27,7 @@ export function CustomerForm({ customer }: CustomerFormProps) {
 
   return (
     <form action={formAction} className="max-w-lg space-y-4" noValidate>
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       {state.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}

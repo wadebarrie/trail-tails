@@ -8,6 +8,7 @@ import {
   parseVehicleCapacity,
   vehicleSchema,
 } from "@/features/vehicles/schema";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 function parseVehicleForm(formData: FormData, mode: "create" | "update") {
   const raw = Object.fromEntries(formData);
@@ -63,7 +64,12 @@ export async function createVehicleAction(
   if (error) return { error: error.message };
 
   revalidateVehiclePaths();
-  redirect("/dashboard/vehicles");
+  redirect(
+    safeAppReturnPath(
+      formData.get("returnTo")?.toString(),
+      "/dashboard/vehicles"
+    )
+  );
 }
 
 export async function updateVehicleAction(

@@ -15,6 +15,7 @@ import { parseScheduleDays } from "@/lib/dates";
 import { optionalUuidLike, uuidLike } from "@/lib/validation";
 import { one } from "@/lib/supabase/relations";
 import { verifyCustomerInCompany, verifyRouteInCompany } from "@/lib/tenant";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 import type { DogScheduleType, ExceptionType } from "@/types";
 
 const dogSchema = z.object({
@@ -147,7 +148,12 @@ export async function createDogAction(
   }
 
   revalidatePath("/dashboard/dogs");
-  redirect("/dashboard/dogs");
+  redirect(
+    safeAppReturnPath(
+      formData.get("returnTo")?.toString(),
+      "/dashboard/dogs"
+    )
+  );
 }
 
 export async function updateDogAction(
