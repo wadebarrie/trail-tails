@@ -31,7 +31,7 @@ export default async function OnboardingPage({
   const supabase = await createClient();
   const { data: company } = await supabase
     .from("companies")
-    .select("name")
+    .select("name, default_hike_rate_cents, night_before_reminder_time")
     .eq("id", profile.company_id)
     .maybeSingle();
 
@@ -49,6 +49,10 @@ export default async function OnboardingPage({
       progress={progress}
       companyName={company?.name ?? "your company"}
       adminCanDrive={profile.can_drive}
+      defaultHikeRateCents={company?.default_hike_rate_cents ?? null}
+      nightBeforeReminderTime={
+        company?.night_before_reminder_time ?? "19:30:00"
+      }
     />
   );
 }
