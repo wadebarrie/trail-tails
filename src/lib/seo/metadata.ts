@@ -81,6 +81,11 @@ export const BARKBUS_ALTERNATIVE_TITLE =
 export const BARKBUS_ALTERNATIVE_DESCRIPTION =
   "Looking for a BarkBus alternative focused on adventure dog hiking pickups? PackRoute plans multi-van routes, guides drivers on mobile web, and updates customers by SMS — without an owner app or AI booking suite.";
 
+export const PRICING_TITLE = "PackRoute Pricing — First Month Free";
+
+export const PRICING_DESCRIPTION =
+  "Simple pricing by hikers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month USD — every tier includes routes, hiker workflows, and automated customer SMS.";
+
 type FaqItem = { readonly q: string; readonly a: string };
 
 /** Full FAQ for structured data and SEO pages. */
@@ -123,7 +128,11 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute handle payments or invoicing?",
-    a: "No built-in owner invoices or payment collection. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks, Stripe, or your existing process. If you need a full pet-care CRM and invoicing suite, keep or pair with Time to Pet (or similar) for that layer.",
+    a: "No built-in owner invoices or payment collection. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks, Stripe, or your existing process. If you need a full pet-care CRM and invoicing suite, keep or pair with Time to Pet (or similar) for that layer. See packroute.app/pricing for current plans.",
+  },
+  {
+    q: "How much does PackRoute cost?",
+    a: "Beta pricing starts at $29/month USD for one hiker (up to 40 dogs/week), $49 for two hikers (up to 120 dogs/week), and $79 for three or more hikers with unlimited dogs. First month free after a short demo. Every tier includes the same features — tiers only change capacity. Subscribe during beta and your rate is locked. Details at packroute.app/pricing.",
   },
   {
     q: "Is PackRoute built for pet sitting businesses too?",
@@ -174,11 +183,14 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
     a: "No — on purpose. PackRoute focuses on routes, drivers, and SMS. It exports completed hikes as CSV for QuickBooks or your own billing. Keep a pet-care CRM if you need deep invoicing and owner portals.",
   },
   {
+    q: "How much does PackRoute cost?",
+    a: "From $29/month USD during beta (one hiker). First month free after a demo. See /pricing for tiers.",
+  },
+  {
     q: "Is PackRoute a Time to Pet alternative?",
     a: "For adventure dog hiking teams, yes — a focused alternative for pickup routes, drivers, and customer SMS, not a full pet-sitting or CRM suite.",
   },
 ];
-
 /** Prevent indexing of authenticated / internal app surfaces. */
 export const NOINDEX_ROBOTS = {
   index: false,
