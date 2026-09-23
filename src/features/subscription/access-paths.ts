@@ -6,6 +6,7 @@ export const SUBSCRIPTION_EXEMPT_PATHS = new Set([
   AUTH_ROUTES.login,
   AUTH_ROUTES.forgotPassword,
   AUTH_ROUTES.resetPassword,
+  "/api/auth/mfa-email",
 ]);
 
 export function isSubscriptionExemptPath(pathname: string): boolean {

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { clearAdminEmailMfaAction } from "@/features/auth/actions-email-mfa";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 
 type SignOutButtonProps = {
@@ -20,7 +19,14 @@ export function SignOutButton({
 
   async function handleSignOut() {
     setPending(true);
-    await clearAdminEmailMfaAction();
+    try {
+      await fetch("/api/auth/mfa-email", {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+    } catch {
+      // Continue signing out even if cookie clear fails.
+    }
     const supabase = createClient();
     await supabase.auth.signOut();
     router.replace(AUTH_ROUTES.login);
