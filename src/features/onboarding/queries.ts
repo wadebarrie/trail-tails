@@ -16,7 +16,7 @@ export const getOnboardingProgress = cache(
     ] = await Promise.all([
       supabase
         .from("companies")
-        .select("onboarding_completed_at")
+        .select("onboarding_completed_at, default_hike_rate_cents")
         .eq("id", companyId)
         .maybeSingle(),
       supabase
@@ -53,6 +53,7 @@ export const getOnboardingProgress = cache(
       hasCustomer: (customers.count ?? 0) > 0,
       hasDog: (dogs.count ?? 0) > 0,
       hasRoute: (routes.count ?? 0) > 0,
+      hasCompanyInfo: company?.default_hike_rate_cents != null,
       completedAt: company?.onboarding_completed_at ?? null,
     };
   }

@@ -7,6 +7,7 @@ import {
   dismissOnboardingAction,
   onboardingCreateVehicleAction,
   onboardingEnableSelfAsHikerAction,
+  onboardingSaveCompanyInfoAction,
 } from "@/features/onboarding/actions";
 import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
 import {
@@ -16,6 +17,7 @@ import {
   type OnboardingStepId,
 } from "@/features/onboarding/constants";
 import { SubmitButton } from "@/features/admin/components/ui";
+import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import {
   landingPrimaryButtonClassName,
   secondaryButtonClassName,
@@ -28,6 +30,7 @@ const STEP_ORDER: OnboardingStepId[] = [
   "customer",
   "dog",
   "route",
+  "company",
   "done",
 ];
 
@@ -71,14 +74,22 @@ export function OnboardingWizard({
   progress,
   companyName,
   adminCanDrive,
+  defaultHikeRateCents,
+  nightBeforeReminderTime,
 }: {
   step: OnboardingStepId;
   progress: OnboardingProgress;
   companyName: string;
   adminCanDrive: boolean;
+  defaultHikeRateCents: number | null;
+  nightBeforeReminderTime: string;
 }) {
   const [vehicleState, vehicleAction, vehiclePending] = useActionState(
     onboardingCreateVehicleAction,
+    {}
+  );
+  const [companyState, companyAction, companyPending] = useActionState(
+    onboardingSaveCompanyInfoAction,
     {}
   );
   const [hikerError, setHikerError] = useState<string | null>(null);
@@ -96,8 +107,9 @@ export function OnboardingWizard({
           Set up {companyName}
         </h1>
         <p className="mt-2 text-sm text-stone-600">
-          We&apos;ll walk through your first vehicle, hiker, customer, dog, and
-          route — enough to run a morning. You can refine everything later.
+          We&apos;ll walk through your first vehicle, hiker, customer, dog,
+          route, and company defaults — enough to run a morning. You can refine
+          everything later.
         </p>
       </div>
 
@@ -132,6 +144,10 @@ export function OnboardingWizard({
             <li className="flex justify-between gap-3">
               <span>Route</span>
               <DoneCheck done={progress.hasRoute} />
+            </li>
+            <li className="flex justify-between gap-3">
+              <span>Company info</span>
+              <DoneCheck done={progress.hasCompanyInfo} />
             </li>
           </ul>
           <div className="flex flex-wrap gap-3 pt-2">
@@ -371,20 +387,97 @@ export function OnboardingWizard({
             <p className="text-sm text-emerald-700">
               Route ready.{" "}
               <Link
+                href={`${ONBOARDING_PATH}?step=company`}
+                className="font-medium underline-offset-2 hover:underline"
+              >
+                Continue to company info
+              </Link>
+            </p>
+          ) : (
+            <Link
+              href={`/dashboard/route?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=company`)}`}
+              className={landingPrimaryButtonClassName}
+            >
+              Set up a route
+            </Link>
+          )}
+        </section>
+      ) : null}
+
+      {step === "company" ? (
+        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-stone-900">
+            6. Company defaults
+          </h2>
+          <p className="text-sm text-stone-600">
+            Set your default hike price and when customers get the night-before
+            reminder. You can change these anytime under Settings.
+          </p>
+          {progress.hasCompanyInfo ? (
+            <p className="text-sm text-emerald-700">
+              Company defaults saved.{" "}
+              <Link
                 href={`${ONBOARDING_PATH}?step=done`}
                 className="font-medium underline-offset-2 hover:underline"
               >
                 Finish setup
               </Link>
             </p>
-          ) : (
-            <Link
-              href={`/dashboard/route?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=done`)}`}
-              className={landingPrimaryButtonClassName}
-            >
-              Set up a route
-            </Link>
-          )}
+          ) : null}
+          <form action={companyAction} className="space-y-4">
+            {companyState.error ? (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                {companyState.error}
+              </p>
+            ) : null}
+            <div>
+              <label
+                htmlFor="default_hike_rate"
+                className="block text-sm font-medium text-stone-700"
+              >
+                Default hike price ($)
+              </label>
+              <p className="mt-0.5 text-xs text-stone-500">
+                Used for billing unless a dog has its own rate.
+              </p>
+              <input
+                id="default_hike_rate"
+                name="default_hike_rate"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                placeholder="60.00"
+                defaultValue={
+                  defaultHikeRateCents != null
+                    ? (defaultHikeRateCents / 100).toFixed(2)
+                    : ""
+                }
+                className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="night_before_reminder_time"
+                className="block text-sm font-medium text-stone-700"
+              >
+                Night-before reminder time
+              </label>
+              <p className="mt-0.5 text-xs text-stone-500">
+                Local time to text customers about tomorrow&apos;s pickup.
+              </p>
+              <TimePickerField
+                id="night_before_reminder_time"
+                name="night_before_reminder_time"
+                required
+                defaultValue={nightBeforeReminderTime.slice(0, 5)}
+                className="mt-2"
+              />
+            </div>
+            <SubmitButton pending={companyPending}>
+              Save and finish
+            </SubmitButton>
+          </form>
         </section>
       ) : null}
 

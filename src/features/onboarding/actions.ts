@@ -217,6 +217,53 @@ export async function onboardingEnableSelfAsHikerAction(): Promise<{
   redirect(`${ONBOARDING_PATH}?step=customer`);
 }
 
+const companyInfoSchema = z.object({
+  default_hike_rate: z.string().min(1, "Default hike price is required."),
+  night_before_reminder_time: z
+    .string()
+    .min(1, "Reminder time is required."),
+});
+
+function parseRateToCents(raw?: string): number | null {
+  if (!raw?.trim()) return null;
+  const n = Number.parseFloat(raw.replace(/[$,\s]/g, ""));
+  if (Number.isNaN(n) || n < 0) return null;
+  return Math.round(n * 100);
+}
+
+/** Save company defaults from the wizard, then advance to done. */
+export async function onboardingSaveCompanyInfoAction(
+  _prev: { error?: string },
+  formData: FormData
+): Promise<{ error?: string }> {
+  const profile = await requireRole("admin", { skipMfaCheck: true });
+  const parsed = companyInfoSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const rateCents = parseRateToCents(parsed.data.default_hike_rate);
+  if (rateCents == null) {
+    return { error: "Enter a valid hike price (e.g. 60.00)" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("companies")
+    .update({
+      default_hike_rate_cents: rateCents,
+      night_before_reminder_time: parsed.data.night_before_reminder_time,
+    })
+    .eq("id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard/billing");
+  revalidatePath(ONBOARDING_PATH);
+  redirect(`${ONBOARDING_PATH}?step=done`);
+}
+
 export async function maybeAutoCompleteOnboarding(
   companyId: string
 ): Promise<void> {

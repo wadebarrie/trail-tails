@@ -9,6 +9,7 @@ export const ONBOARDING_STEPS = [
   "customer",
   "dog",
   "route",
+  "company",
   "done",
 ] as const;
 
@@ -20,6 +21,7 @@ export type OnboardingProgress = {
   hasCustomer: boolean;
   hasDog: boolean;
   hasRoute: boolean;
+  hasCompanyInfo: boolean;
   completedAt: string | null;
 };
 
@@ -31,6 +33,7 @@ export function nextIncompleteStep(
   if (!progress.hasCustomer) return "customer";
   if (!progress.hasDog) return "dog";
   if (!progress.hasRoute) return "route";
+  if (!progress.hasCompanyInfo) return "company";
   return "done";
 }
 
@@ -40,7 +43,8 @@ export function isOnboardingComplete(progress: OnboardingProgress): boolean {
     progress.hasHiker &&
     progress.hasCustomer &&
     progress.hasDog &&
-    progress.hasRoute
+    progress.hasRoute &&
+    progress.hasCompanyInfo
   );
 }
 
@@ -58,6 +62,8 @@ export function onboardingStepLabel(step: OnboardingStepId): string {
       return "Dog";
     case "route":
       return "Route";
+    case "company":
+      return "Company";
     case "done":
       return "Done";
   }
