@@ -7,6 +7,8 @@ import {
   DOG_WALKING_SOFTWARE_TITLE,
   HOME_H1,
   LANDING_FAQ,
+  PRICING_DESCRIPTION,
+  PRICING_TITLE,
   SITE_CONTACT_EMAIL,
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -14,6 +16,7 @@ import {
   TIME_TO_PET_ALTERNATIVE_TITLE,
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
+import { PRICING_FAQ, PRICING_TIERS } from "@/features/landing/pricing";
 
 type JsonLd = Record<string, unknown>;
 
@@ -42,10 +45,14 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
     description: SITE_DESCRIPTION,
     url: siteUrl,
     offers: {
-      "@type": "Offer",
+      "@type": "AggregateOffer",
       availability: "https://schema.org/InStock",
-      url: `${siteUrl}/contact`,
-      description: "Contact for pricing and demo",
+      url: `${siteUrl}/pricing`,
+      priceCurrency: "USD",
+      lowPrice: "29",
+      highPrice: "79",
+      description:
+        "Beta pricing by hikers and dogs — first month free after demo. Rates locked if you subscribe before 31 December 2026.",
     },
     featureList: [
       "Dog walking route planning and pickup order",
@@ -273,5 +280,62 @@ export function buildContactPageJsonLdScriptProps() {
   return {
     type: "application/ld+json" as const,
     dangerouslySetInnerHTML: { __html: buildContactPageJsonLd() },
+  };
+}
+
+export function buildPricingPageJsonLd(): string {
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/pricing`;
+
+  const webPage: JsonLd = {
+    "@type": "WebPage",
+    "@id": `${pageUrl}/#webpage`,
+    url: pageUrl,
+    name: `${PRICING_TITLE} — ${SITE_NAME}`,
+    description: PRICING_DESCRIPTION,
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    inLanguage: "en-US",
+  };
+
+  const offers = PRICING_TIERS.map((tier) => ({
+    "@type": "Offer",
+    name: tier.name,
+    price: String(tier.priceMonthly),
+    priceCurrency: "USD",
+    description: `${tier.hikers}; ${tier.dogs}`,
+    url: pageUrl,
+    availability: "https://schema.org/InStock",
+  }));
+
+  const software: JsonLd = {
+    "@type": "SoftwareApplication",
+    "@id": `${siteUrl}/#software`,
+    name: SITE_NAME,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    url: siteUrl,
+    offers,
+  };
+
+  const faqPage: JsonLd = {
+    "@type": "FAQPage",
+    "@id": `${pageUrl}/#faq`,
+    mainEntity: PRICING_FAQ.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
+  return graph([buildOrganization(siteUrl), webPage, software, faqPage]);
+}
+
+export function buildPricingJsonLdScriptProps() {
+  return {
+    type: "application/ld+json" as const,
+    dangerouslySetInnerHTML: { __html: buildPricingPageJsonLd() },
   };
 }
