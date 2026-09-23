@@ -72,7 +72,7 @@ export async function runBulkImport(
         .from("dogs")
         .select("id, customer_id, name")
         .eq("company_id", companyId),
-      supabase.from("routes").select("id, name").eq("company_id", companyId),
+      supabase.from("routes").select("id, name").eq("company_id", companyId).eq("is_active", true),
     ]);
 
   const customerByPhone = new Map<string, ExistingCustomer>();

@@ -118,6 +118,7 @@ export interface Route {
   period: HikePeriod;
   default_driver_id: string | null;
   default_vehicle_id: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

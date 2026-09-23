@@ -95,7 +95,8 @@ export default async function DashboardPage() {
     supabase
       .from("routes")
       .select("*", { count: "exact", head: true })
-      .eq("company_id", profile.company_id),
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true),
   ]);
   timer.end();
 

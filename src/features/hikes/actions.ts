@@ -275,6 +275,7 @@ export async function addAsNeededDogToDayAction(
     .select("id, period")
     .eq("id", routeId)
     .eq("company_id", profile.company_id)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (!route) return { error: "Route not found." };
@@ -398,6 +399,7 @@ export async function removeAsNeededDogFromDayAction(
     .select("period")
     .eq("id", routeId)
     .eq("company_id", profile.company_id)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (!route) return { error: "Route not found." };

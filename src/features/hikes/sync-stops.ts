@@ -170,6 +170,7 @@ export async function syncStopsForDate(companyId: string, date: string) {
       .from("routes")
       .select("id")
       .eq("company_id", companyId)
+      .eq("is_active", true)
       .order("sort_order");
 
     const ids: (string | null)[] = [];
