@@ -39,15 +39,23 @@ export function EmailOtpMfaForm({
 
   useEffect(() => {
     startSend(async () => {
-      const result = await sendAdminEmailOtpAction();
-      if (!result.ok) {
-        setError(result.error);
-        return;
+      try {
+        const result = await sendAdminEmailOtpAction();
+        if (!result || result.ok !== true) {
+          const message =
+            result && typeof result.error === "string" && result.error.trim()
+              ? result.error
+              : "Could not send the sign-in email. Try Resend.";
+          setError(message);
+          return;
+        }
+        setSentOnce(true);
+        setInfo(
+          "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
+        );
+      } catch {
+        setError("Could not send the sign-in email. Try Resend.");
       }
-      setSentOnce(true);
-      setInfo(
-        "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
-      );
     });
     // Intentionally once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -56,13 +64,21 @@ export function EmailOtpMfaForm({
   function resend() {
     setError(null);
     startSend(async () => {
-      const result = await sendAdminEmailOtpAction();
-      if (!result.ok) {
-        setError(result.error);
-        return;
+      try {
+        const result = await sendAdminEmailOtpAction();
+        if (!result || result.ok !== true) {
+          const message =
+            result && typeof result.error === "string" && result.error.trim()
+              ? result.error
+              : "Could not send the sign-in email. Try again in a minute.";
+          setError(message);
+          return;
+        }
+        setSentOnce(true);
+        setInfo("A new email is on the way — code or link both work.");
+      } catch {
+        setError("Could not send the sign-in email. Try again in a minute.");
       }
-      setSentOnce(true);
-      setInfo("A new email is on the way — code or link both work.");
     });
   }
 
@@ -70,9 +86,18 @@ export function EmailOtpMfaForm({
     event.preventDefault();
     setError(null);
     startVerify(async () => {
-      const result = await verifyAdminEmailOtpAction(code);
-      if (!result.ok) {
-        setError(result.error);
+      try {
+        const result = await verifyAdminEmailOtpAction(code);
+        if (!result || result.ok !== true) {
+          const message =
+            result && typeof result.error === "string" && result.error.trim()
+              ? result.error
+              : "Invalid or expired code. Try again.";
+          setError(message);
+          return;
+        }
+      } catch {
+        setError("Could not verify that code. Try again.");
         return;
       }
 
