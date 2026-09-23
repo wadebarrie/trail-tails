@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getLoginRedirect } from "@/features/auth/access";
 import { AUTH_ROUTES } from "@/features/auth/constants";
-import { MfaVerifyForm } from "@/features/auth/components/mfa-verify-form";
+import { EmailOtpMfaForm } from "@/features/auth/components/email-otp-mfa-form";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 type LoginFormProps = {
@@ -20,6 +20,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step, setStep] = useState<LoginStep>("credentials");
+  const [totpEnrolled, setTotpEnrolled] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,23 +82,14 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     }
 
     if (profile.role === "admin") {
-      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const enrolled = (factors?.totp ?? []).some(
         (factor) => factor.status === "verified"
       );
-
-      if (!enrolled) {
-        router.replace(`${AUTH_ROUTES.adminMfa}?setup=1`);
-        router.refresh();
-        return;
-      }
-
-      if (aal?.currentLevel === "aal1" && aal?.nextLevel === "aal2") {
-        setStep("mfa");
-        setPending(false);
-        return;
-      }
+      setTotpEnrolled(enrolled);
+      setStep("mfa");
+      setPending(false);
+      return;
     }
 
     router.replace(
@@ -112,7 +104,15 @@ export function LoginForm({ nextPath }: LoginFormProps) {
   if (step === "mfa") {
     return (
       <div className="mt-8">
-        <MfaVerifyForm nextPath={nextPath} />
+        <h2 className="text-lg font-semibold text-[var(--color-trail-800)]">
+          Check your email
+        </h2>
+        <div className="mt-4">
+          <EmailOtpMfaForm
+            nextPath={nextPath}
+            showTotpOption={totpEnrolled}
+          />
+        </div>
       </div>
     );
   }

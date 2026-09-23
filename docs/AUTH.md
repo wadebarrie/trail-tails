@@ -18,8 +18,8 @@ Role comes from `profiles.role`. Middleware enforces route access.
 2. Fill in company name, admin name/email, timezone → **Create company & invite**.
 3. Copy the one-time invite URL and send it to the new admin.
 4. Admin opens `/signup?token=…`, sets a password (12+ chars, letter + number).
-5. Admin signs in at `/login` and completes **TOTP MFA** setup on first login.
-6. On later logins, admin enters password then authenticator code.
+5. Admin signs in at `/login` and completes **email OTP** (one-time code) — no authenticator app required.
+6. On later logins, admin enters password then the email code again (or an authenticator code if they previously enrolled TOTP).
 
 Invites expire after **7 days** and can only be used once.
 
@@ -57,13 +57,21 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 
 **Migration:** `20250627160000_platform_analytics.sql` adds `companies.plan_tier`, `status`, `monthly_subscription_cents`, `trial_ends_at`, and `platform_cost_assumptions`.
 
-## Admin MFA (TOTP)
+## Admin MFA (email OTP)
 
 - Required for **admin** accounts only (drivers skip MFA).
-- Enroll at `/dashboard/mfa` (redirected automatically if not set up).
-- Uses Supabase Auth MFA (`totp` factor type).
-- Enable MFA in **Supabase Dashboard → Authentication → MFA** for production.
-- Set **Site URL** to `https://packroute.app` (Authentication → URL Configuration) so redirects and email links use the correct domain. MFA QR labels use the app hostname via an explicit issuer, but Site URL should still match production.
+- Default second factor: **email one-time code** via Supabase Auth (`signInWithOtp` / `verifyOtp`).
+- Optional: existing **TOTP** authenticator enrollments still work (“Use authenticator app instead”).
+- App marks the browser session MFA-satisfied with an httpOnly cookie (`packroute_admin_mfa`) after a successful email OTP.
+- Supabase Dashboard → **Authentication → Email**: Magic Link template must include `{{ .Token }}` so OTP codes are sent (not only a magic link). See [Email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
+- Set **Site URL** / redirect allow-list for each deploy environment.
+
+### Optional cookie secret
+
+```bash
+# Strong random; falls back to hashing the service role key if unset
+ADMIN_MFA_COOKIE_SECRET=
+```
 
 ## Manual user creation (legacy / emergencies)
 

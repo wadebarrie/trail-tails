@@ -76,7 +76,7 @@ Use this checklist before a public launch.
 - [ ] `/llms.txt` accessible
 
 ### Auth
-- [ ] Admin login → MFA enroll → MFA verify → dashboard
+- [ ] Admin login → email OTP → dashboard
 - [ ] Driver login → `/today`
 - [ ] Password reset flow
 - [ ] Invite-only signup (no public registration)
