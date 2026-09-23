@@ -76,7 +76,7 @@ export async function sendAdminEmailOtpAction(): Promise<EmailOtpResult> {
 
     if (error) {
       logWarn(
-        "auth",
+        "system",
         `Email OTP send failed for ${user.email}: ${authErrorMessage(error, "unknown")} (redirect=${emailRedirectTo})`
       );
       return {
@@ -90,7 +90,7 @@ export async function sendAdminEmailOtpAction(): Promise<EmailOtpResult> {
 
     return { ok: true };
   } catch (error) {
-    logWarn("auth", `Email OTP send threw: ${authErrorMessage(error, "unknown")}`);
+    logWarn("system", `Email OTP send threw: ${authErrorMessage(error, "unknown")}`);
     return {
       ok: false,
       error: authErrorMessage(
@@ -141,7 +141,7 @@ export async function verifyAdminEmailOtpAction(
     await setAdminEmailMfaCookie(verifiedUser.id);
     return { ok: true };
   } catch (error) {
-    logWarn("auth", `Email OTP verify threw: ${authErrorMessage(error, "unknown")}`);
+    logWarn("system", `Email OTP verify threw: ${authErrorMessage(error, "unknown")}`);
     return {
       ok: false,
       error: authErrorMessage(error, "Could not verify that code. Try again."),
