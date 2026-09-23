@@ -15,10 +15,20 @@ import { listAssignableDrivers } from "@/features/drivers/queries";
 import { formatScheduleDayLabels } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
+import { ONBOARDING_PATH } from "@/features/onboarding/constants";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
-export default async function RouteOrderPage() {
+export default async function RouteOrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
   const profile = await requireRole("admin");
   const supabase = await createClient();
+  const { returnTo: rawReturn } = await searchParams;
+  const returnTo = rawReturn
+    ? safeAppReturnPath(rawReturn, ONBOARDING_PATH)
+    : undefined;
   const routes = await listRoutes(profile.company_id);
 
   const [{ data: dogs }, drivers, { data: vehicles }] = await Promise.all([
@@ -55,7 +65,7 @@ export default async function RouteOrderPage() {
           pages.
         </p>
         <div className="mt-4">
-          <CreateRouteForm />
+          <CreateRouteForm returnTo={returnTo} />
         </div>
       </Card>
 

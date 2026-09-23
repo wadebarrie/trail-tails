@@ -12,16 +12,34 @@ export type EmailOtpResult = { ok: true } | { ok: false; error: string };
 
 /**
  * Prefer the host of the current request so local MFA emails don't send
- * magic links to production (NEXT_PUBLIC_APP_URL is often the deploy URL).
+ * magic links to a stale NEXT_PUBLIC_APP_URL — but only trust allowlisted hosts.
  */
 async function emailOtpRedirectUrl(): Promise<string> {
+  const site = getSiteUrl();
+  const siteHost = new URL(site).host;
+  const allowedHosts = new Set([
+    siteHost,
+    "localhost:3000",
+    "127.0.0.1:3000",
+    "packroute.app",
+    "www.packroute.app",
+    "packroute.netlify.app",
+  ]);
+
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto =
-    h.get("x-forwarded-proto") ??
-    (host?.includes("localhost") || host?.startsWith("127.") ? "http" : "https");
+  const trusted =
+    host &&
+    allowedHosts.has(host) &&
+    !host.includes(",") &&
+    !host.includes(" ");
 
-  const base = host ? `${proto}://${host}` : getSiteUrl();
+  const proto =
+    trusted && (host.includes("localhost") || host.startsWith("127."))
+      ? "http"
+      : "https";
+
+  const base = trusted ? `${proto}://${host}` : site;
   const next = encodeURIComponent("/dashboard");
   return `${base}/auth/callback?next=${next}&mfa=1`;
 }

@@ -8,6 +8,8 @@ import {
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: HOME_TITLE,
   description: SITE_DESCRIPTION,

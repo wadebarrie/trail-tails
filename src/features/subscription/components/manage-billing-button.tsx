@@ -6,8 +6,10 @@ import { secondaryButtonClassName } from "@/features/admin/components/button-sty
 
 export function ManageBillingButton({
   disabledReason,
+  returnTo = "/dashboard/settings",
 }: {
   disabledReason?: string | null;
+  returnTo?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -19,7 +21,7 @@ export function ManageBillingButton({
     }
     setError(null);
     startTransition(async () => {
-      const result = await createBillingPortalSessionAction();
+      const result = await createBillingPortalSessionAction(returnTo);
       if (result?.error) setError(result.error);
     });
   }

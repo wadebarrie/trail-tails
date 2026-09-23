@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createStripeClient, getStripeSecretKey } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/site-url";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 import type { BillingInterval } from "@/features/subscription/types";
 import {
   applyStripeSubscriptionToCompany,
@@ -162,7 +163,9 @@ export async function createCheckoutSessionAction(
   redirect(session.url);
 }
 
-export async function createBillingPortalSessionAction(): Promise<{
+export async function createBillingPortalSessionAction(
+  returnPath = "/dashboard/settings"
+): Promise<{
   error?: string;
 }> {
   const auth = await requireStripeAdmin();
@@ -179,9 +182,10 @@ export async function createBillingPortalSessionAction(): Promise<{
   }
 
   const siteUrl = getSiteUrl();
+  const safeReturn = safeAppReturnPath(returnPath, "/dashboard/settings");
   const portal = await stripe.billingPortal.sessions.create({
     customer: subscription.provider_customer_id,
-    return_url: `${siteUrl}/dashboard/settings`,
+    return_url: `${siteUrl}${safeReturn}`,
   });
 
   if (!portal.url) {
@@ -205,8 +209,9 @@ export async function finalizeCheckoutSessionAction(
       expand: ["subscription"],
     });
 
-    const metaCompanyId = session.metadata?.company_id;
-    if (metaCompanyId && metaCompanyId !== profile.company_id) {
+    const metaCompanyId =
+      session.metadata?.company_id || session.client_reference_id || null;
+    if (!metaCompanyId || metaCompanyId !== profile.company_id) {
       return { error: "Checkout session does not belong to your company." };
     }
 

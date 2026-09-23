@@ -85,7 +85,7 @@ function FormMessages({ state }: { state: { error?: string; ok?: boolean } }) {
   );
 }
 
-export function CreateRouteForm() {
+export function CreateRouteForm({ returnTo }: { returnTo?: string }) {
   const [state, formAction, pending] = useActionState(
     createRouteAction,
     {} as { error?: string; ok?: boolean }
@@ -93,6 +93,7 @@ export function CreateRouteForm() {
 
   return (
     <form action={formAction} className="space-y-4">
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <FormMessages state={state} />
       <RouteFormFields submitLabel="Add route" pending={pending} />
     </form>
