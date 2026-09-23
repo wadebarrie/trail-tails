@@ -1,6 +1,9 @@
 /** Application subscription plans — stored as text, not PostgreSQL enums. */
 export const SUBSCRIPTION_PLANS = [
   "beta_partner",
+  "one_hiker",
+  "two_hikers",
+  "three_plus",
   "starter",
   "growth",
   "enterprise",

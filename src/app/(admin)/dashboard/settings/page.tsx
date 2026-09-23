@@ -1,5 +1,7 @@
 import { PageHeader } from "@/features/admin/components/ui";
 import { CompanySettingsForm } from "@/features/company/components/company-settings-form";
+import { CompanyBillingCard } from "@/features/subscription/components/company-billing-card";
+import { getSubscriptionForCompany } from "@/features/subscription/queries";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,11 +11,14 @@ export default async function SettingsPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
-  const { data: company } = await supabase
-    .from("companies")
-    .select("name, default_hike_rate_cents, night_before_reminder_time")
-    .eq("id", profile.company_id)
-    .single();
+  const [{ data: company }, subscription] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("name, default_hike_rate_cents, night_before_reminder_time")
+      .eq("id", profile.company_id)
+      .single(),
+    getSubscriptionForCompany(profile.company_id),
+  ]);
 
   return (
     <div>
@@ -31,6 +36,8 @@ export default async function SettingsPage() {
           }
         />
       </section>
+
+      <CompanyBillingCard subscription={subscription} />
     </div>
   );
 }

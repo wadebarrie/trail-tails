@@ -58,10 +58,14 @@ Use this checklist before a public launch.
 - [ ] Test inbound SMS (skip request) and outbound (en route)
 
 ### Stripe
-- [ ] Live mode keys in production env
+- [ ] Live mode keys in production env (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- [ ] Products/Prices for one / two / three+ hikers ($29 / $49 / $79 USD monthly)
+- [ ] Env Price IDs: `STRIPE_PRICE_ONE_HIKER`, `STRIPE_PRICE_TWO_HIKERS`, `STRIPE_PRICE_THREE_PLUS`
+- [ ] Optional yearly Price IDs (`STRIPE_PRICE_*_YEARLY`) if offering annual
 - [ ] Webhook endpoint: `https://packroute.app/api/webhooks/stripe`
-- [ ] Events: `customer.subscription.*`, `invoice.paid`, `invoice.payment_failed`
-- [ ] Checkout/metadata includes `company_id` when onboarding billing
+- [ ] Events: `checkout.session.completed`, `customer.subscription.*`, `invoice.paid`, `invoice.payment_failed`
+- [ ] Checkout sessions include `metadata.company_id` (app sets this automatically)
+- [ ] Customer Portal enabled in Stripe Dashboard (Settings → Billing → Customer portal)
 
 ### Google Cloud
 - [ ] Maps Geocoding API enabled; key restricted to server IPs/domains
@@ -96,7 +100,10 @@ Use this checklist before a public launch.
 ### Billing
 - [ ] Trial company can access app
 - [ ] Expired trial redirects to `/subscription-inactive`
+- [ ] Admin can start Stripe Checkout from `/subscription-inactive` or Settings → Billing
+- [ ] Successful Checkout restores dashboard access (`status: active`)
 - [ ] Stripe test payment failure → `past_due` → payment success → `active`
+- [ ] Billing portal opens for an active Stripe customer
 
 ---
 

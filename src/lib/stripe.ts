@@ -5,8 +5,13 @@ export type StripeConfig = {
   webhookSecret: string;
 };
 
+/** Secret key only — enough for Checkout / Customer Portal. */
+export function getStripeSecretKey(): string | null {
+  return process.env.STRIPE_SECRET_KEY?.trim() || null;
+}
+
 export function getStripeConfig(): StripeConfig | null {
-  const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  const secretKey = getStripeSecretKey();
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
 
   if (!secretKey || !webhookSecret) return null;
