@@ -8,7 +8,7 @@ Use this checklist before a public launch.
 
 - [x] Cron route publicly accessible with Bearer `CRON_SECRET` only
 - [x] Middleware fails closed when Supabase env is missing
-- [x] `TWILIO_SMS_REDIRECT_TO` ignored in production
+- [x] `TWILIO_SMS_REDIRECT_TO` ignored in production unless `TWILIO_ALLOW_SMS_REDIRECT=true`
 - [x] Server-side admin MFA enforcement on actions and API routes
 - [x] Driver stop optimistic locking before SMS side effects
 - [x] Night-before dedup uses company-local day boundaries
@@ -39,7 +39,7 @@ Use this checklist before a public launch.
 - [ ] `TWILIO_WEBHOOK_URL=https://packroute.app/api/webhooks/twilio`
 - [ ] `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (if billing enabled)
 - [ ] `GOOGLE_MAPS_API_KEY` (for ETA geocoding)
-- [ ] Confirm `TWILIO_SMS_REDIRECT_TO` is **unset** in production
+- [ ] Confirm `TWILIO_SMS_REDIRECT_TO` is **unset** in production (or keep with `TWILIO_ALLOW_SMS_REDIRECT=true` only while piloting Twilio trial)
 - [ ] Confirm `NODE_ENV=production` on deploy
 
 ---

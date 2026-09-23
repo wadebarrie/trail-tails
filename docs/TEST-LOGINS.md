@@ -66,7 +66,7 @@ Requires `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.loc
 |---------|--------|
 | Inbound SMS (Wade test customer) | Phone `+16046792422` → customer **Wade Barrie** (Vancouver / Rawley) |
 | Simulated inbound | `npm run test:inbound-sms -- --from "+16046792422" "SKIP TOMORROW"` |
-| Outbound SMS redirect (pilot) | Set `TWILIO_SMS_REDIRECT_TO=+16046792422` in Netlify / `.env.local` |
+| Outbound SMS redirect (pilot) | Set `TWILIO_SMS_REDIRECT_TO=+16046792422` in `.env.local`. On Netlify production also set `TWILIO_ALLOW_SMS_REDIRECT=true` (redirect is ignored in production without that flag). |
 
 ---
 
