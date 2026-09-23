@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LandingPage } from "@/features/landing/components/landing-page";
 import { LandingJsonLd } from "@/features/landing/components/landing-json-ld";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
 import {
   HOME_TITLE,
   SITE_DESCRIPTION,
@@ -24,11 +25,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const showStartTrial = await isSelfSignupEnabled();
+
   return (
     <>
       <LandingJsonLd />
-      <LandingPage />
+      <LandingPage showStartTrial={showStartTrial} />
     </>
   );
 }

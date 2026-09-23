@@ -55,16 +55,35 @@ function unseal(token: string): CookiePayload | null {
   }
 }
 
+export function buildAdminEmailMfaCookie(userId: string): {
+  name: string;
+  value: string;
+  options: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: "lax";
+    path: string;
+    maxAge: number;
+  };
+} {
+  const exp = Math.floor(Date.now() / 1000) + MAX_AGE_SEC;
+  return {
+    name: ADMIN_EMAIL_MFA_COOKIE,
+    value: sign({ uid: userId, exp }),
+    options: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: MAX_AGE_SEC,
+    },
+  };
+}
+
 export async function setAdminEmailMfaCookie(userId: string): Promise<void> {
   const jar = await cookies();
-  const exp = Math.floor(Date.now() / 1000) + MAX_AGE_SEC;
-  jar.set(ADMIN_EMAIL_MFA_COOKIE, sign({ uid: userId, exp }), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE_SEC,
-  });
+  const cookie = buildAdminEmailMfaCookie(userId);
+  jar.set(cookie.name, cookie.value, cookie.options);
 }
 
 export async function clearAdminEmailMfaCookie(): Promise<void> {

@@ -46,10 +46,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function LandingPage() {
+export function LandingPage({ showStartTrial = false }: { showStartTrial?: boolean }) {
   return (
     <div className="min-h-dvh bg-atmosphere-hero text-stone-900">
-      <LandingHeader />
+      <LandingHeader showStartTrial={showStartTrial} />
 
       <main id="main-content">
         {/* Hero */}
@@ -70,7 +70,7 @@ export function LandingPage() {
                 automated SMS ETAs — so customers stop calling for updates.
               </p>
               <div className="mt-8">
-                <CtaButtons />
+                <CtaButtons showStartTrial={showStartTrial} />
               </div>
               <p className="mt-4 text-sm text-stone-500">
                 Already on PackRoute?{" "}
