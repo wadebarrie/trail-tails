@@ -1,0 +1,25 @@
+---
+description: Ship in a continuous agent loop — code, PR, prod verify, next fix
+alwaysApply: true
+---
+
+# Continuous delivery loop
+
+Run PackRoute work as a cycle, not one-off patches:
+
+1. **Implement** the highest-value fix, UX gap, or perf win in a focused branch.
+2. **Open a PR**; use subagents for review, CI triage, and Autopilot when a PR needs merge-ready cleanup.
+3. **Verify on production** after merge/deploy (`https://packroute.app`) — not localhost — unless the user explicitly asks for local.
+4. **Report** what shipped, what failed in prod, and the next item; then start the next pass without waiting to be asked.
+
+## Testing
+
+- Prefer browser checks against **prod** (or Netlify deploy preview only while a PR is open).
+- Do not use localhost for acceptance testing unless blocked (e.g. MFA) and the user opts in.
+- If MFA/login blocks automation, say so and continue with whatever can be verified (HTTP, deploy status, logged-out surfaces).
+
+## Scope
+
+- Batch related small docs/env cleanups into their own PR when they are ready.
+- Leave unrelated open PRs triaged (merge / fix / defer) rather than ignoring them.
+- Keep pushing the loop: outstanding → PR → prod smoke → next outstanding.
