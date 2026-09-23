@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     "time to pet alternative",
     "time to pet alternatives",
     "alternatives to time to pet",
+    "barkbus alternative",
     "leashtime alternative",
     "pet sitter plus alternative",
     "gingr alternative",

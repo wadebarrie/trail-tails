@@ -41,6 +41,7 @@ export const PUBLIC_PATHS = new Set([
   "/dog-walking-software",
   "/adventure-dog-hiking-software",
   "/time-to-pet-alternative",
+  "/barkbus-alternative",
   AUTH_ROUTES.login,
   AUTH_ROUTES.signup,
   AUTH_ROUTES.forgotPassword,
