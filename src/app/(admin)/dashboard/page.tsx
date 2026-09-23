@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Badge,
   Card,
@@ -11,6 +12,8 @@ import {
   getHikesWithStopsForDate,
   type HikeWithRoute,
 } from "@/features/hikes/queries";
+import { companyNeedsOnboarding } from "@/features/onboarding/queries";
+import { ONBOARDING_PATH } from "@/features/onboarding/constants";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import { PerfTimer } from "@/lib/perf";
@@ -58,6 +61,11 @@ export default async function DashboardPage() {
   const timer = new PerfTimer("page dashboard");
   const profile = await requireRole("admin");
   timer.mark("auth");
+
+  if (await companyNeedsOnboarding(profile.company_id)) {
+    redirect(ONBOARDING_PATH);
+  }
+
   const supabase = await createClient();
   const tz = await getCompanyTimezone(profile.company_id);
   timer.mark("timezone");

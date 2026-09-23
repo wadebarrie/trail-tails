@@ -45,7 +45,9 @@ export function EmailOtpMfaForm({
         return;
       }
       setSentOnce(true);
-      setInfo("We sent a one-time code to your email.");
+      setInfo(
+        "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
+      );
     });
     // Intentionally once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,7 +62,7 @@ export function EmailOtpMfaForm({
         return;
       }
       setSentOnce(true);
-      setInfo("A new code is on the way.");
+      setInfo("A new email is on the way — code or link both work.");
     });
   }
 
@@ -129,7 +131,13 @@ export function EmailOtpMfaForm({
   return (
     <form onSubmit={handleVerify} className="space-y-4">
       <p className="text-sm text-stone-600">
-        Enter the one-time code we emailed you. No authenticator app needed.
+        We emailed a one-time login confirmation. Enter the{" "}
+        <strong className="font-medium text-stone-800">6-digit code</strong> if
+        your email shows one, or{" "}
+        <strong className="font-medium text-stone-800">
+          click the secure link
+        </strong>{" "}
+        in that same email — either finishes this step.
       </p>
 
       {info ? (

@@ -11,6 +11,7 @@ import {
   secondaryContactPayload,
   type CustomerFormData,
 } from "@/features/customers/schema";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 function parseCustomerForm(formData: FormData, mode: "create" | "update") {
   const raw = Object.fromEntries(formData);
@@ -71,7 +72,12 @@ export async function createCustomerAction(
   if (error) return { error: error.message };
 
   revalidatePath("/dashboard/customers");
-  redirect("/dashboard/customers");
+  redirect(
+    safeAppReturnPath(
+      formData.get("returnTo")?.toString(),
+      "/dashboard/customers"
+    )
+  );
 }
 
 export async function updateCustomerAction(

@@ -27,6 +27,7 @@ export function CtaButtons({
   primary = "Book a demo",
   showEarlyAccess = false,
   showHowItWorks = false,
+  showStartTrial = false,
   variant = "light",
   align = "start",
   primaryClassName,
@@ -35,6 +36,8 @@ export function CtaButtons({
   primary?: string;
   showEarlyAccess?: boolean;
   showHowItWorks?: boolean;
+  /** When self-serve signup is open — secondary link to /signup */
+  showStartTrial?: boolean;
   variant?: "light" | "dark";
   align?: "start" | "center";
   primaryClassName?: string;
@@ -55,12 +58,24 @@ export function CtaButtons({
   return (
     <div>
       <div className={rowClassName}>
-        <ContactEmailButton
-          subject={DEMO_EMAIL_SUBJECT}
-          label={primary}
-          className={resolvedPrimaryClassName}
-        />
-        {showEarlyAccess ? (
+        {showStartTrial ? (
+          <Link href="/signup" className={resolvedPrimaryClassName}>
+            Start free trial
+          </Link>
+        ) : (
+          <ContactEmailButton
+            subject={DEMO_EMAIL_SUBJECT}
+            label={primary}
+            className={resolvedPrimaryClassName}
+          />
+        )}
+        {showStartTrial ? (
+          <ContactEmailButton
+            subject={DEMO_EMAIL_SUBJECT}
+            label="Book a demo"
+            className={resolvedSecondaryClassName}
+          />
+        ) : showEarlyAccess ? (
           <ContactEmailButton
             subject={WAITLIST_EMAIL_SUBJECT}
             label="Get early access"

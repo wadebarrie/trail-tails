@@ -10,6 +10,9 @@ const platformSettingsSchema = z.object({
   invites_enabled: z
     .enum(["on", "off"])
     .transform((value) => value === "on"),
+  self_signup_enabled: z
+    .enum(["on", "off"])
+    .transform((value) => value === "on"),
 });
 
 export type UpdatePlatformSettingsResult =
@@ -24,6 +27,7 @@ export async function updatePlatformSettingsAction(
 
   const parsed = platformSettingsSchema.safeParse({
     invites_enabled: formData.get("invites_enabled") ?? "off",
+    self_signup_enabled: formData.get("self_signup_enabled") ?? "off",
   });
 
   if (!parsed.success) {
@@ -34,6 +38,7 @@ export async function updatePlatformSettingsAction(
   const { error } = await supabase.from("platform_settings").upsert({
     id: PLATFORM_SETTINGS_ID,
     invites_enabled: parsed.data.invites_enabled,
+    self_signup_enabled: parsed.data.self_signup_enabled,
     updated_at: new Date().toISOString(),
   });
 

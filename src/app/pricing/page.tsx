@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PricingPageContent } from "@/features/landing/components/pricing-page";
 import { buildPricingJsonLdScriptProps } from "@/features/landing/seo";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
 import {
   PRICING_DESCRIPTION,
   PRICING_TITLE,
@@ -26,11 +27,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const showStartTrial = await isSelfSignupEnabled();
+
   return (
     <>
       <script {...buildPricingJsonLdScriptProps()} />
-      <PricingPageContent />
+      <PricingPageContent showStartTrial={showStartTrial} />
     </>
   );
 }

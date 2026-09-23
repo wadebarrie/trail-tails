@@ -7,6 +7,8 @@ import { AdminNav } from "@/features/admin/components/admin-nav";
 import { getCompanyName } from "@/features/company/queries";
 import { requireRole } from "@/features/auth/queries";
 import { getAdminMfaStatus } from "@/features/auth/mfa";
+import { companyNeedsOnboarding } from "@/features/onboarding/queries";
+import { OnboardingSetupBanner } from "@/features/onboarding/components/onboarding-setup-banner";
 import { createClient } from "@/lib/supabase/server";
 import { PerfTimer } from "@/lib/perf";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
@@ -29,7 +31,7 @@ export default async function AdminLayout({
   timer.mark("auth");
 
   const supabase = await createClient();
-  const [mfaStatus, companyName, { count: pendingRequestCount }] =
+  const [mfaStatus, companyName, { count: pendingRequestCount }, needsOnboarding] =
     await Promise.all([
       getAdminMfaStatus(),
       getCompanyName(profile.company_id),
@@ -38,6 +40,7 @@ export default async function AdminLayout({
         .select("*", { count: "exact", head: true })
         .eq("company_id", profile.company_id)
         .eq("status", "pending"),
+      companyNeedsOnboarding(profile.company_id),
     ]);
   timer.end();
 
@@ -97,6 +100,7 @@ export default async function AdminLayout({
         id="main-content"
         className="mx-auto max-w-6xl px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8"
       >
+        {needsOnboarding ? <OnboardingSetupBanner /> : null}
         <AdminMfaGate status={mfaStatus}>{children}</AdminMfaGate>
       </main>
     </div>

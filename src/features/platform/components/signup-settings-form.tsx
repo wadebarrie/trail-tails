@@ -12,6 +12,7 @@ export function SignupSettingsForm({ settings }: { settings: PlatformSettings })
   });
 
   const invitesEnabled = settings.invites_enabled;
+  const selfSignupEnabled = settings.self_signup_enabled;
 
   return (
     <form
@@ -21,8 +22,8 @@ export function SignupSettingsForm({ settings }: { settings: PlatformSettings })
       <div>
         <h2 className="text-lg font-semibold text-stone-900">Company signups</h2>
         <p className="mt-1 text-sm text-stone-600">
-          Control whether new beta companies can be provisioned and whether invite
-          links can be accepted. Existing companies and logins are not affected.
+          Control invite provisioning and public self-serve signup. Existing
+          companies and logins are not affected.
         </p>
       </div>
 
@@ -47,19 +48,45 @@ export function SignupSettingsForm({ settings }: { settings: PlatformSettings })
         />
         <span>
           <span className="block text-sm font-medium text-stone-900">
-            Allow new company signups
+            Allow invite-based signups
           </span>
           <span className="mt-1 block text-sm text-stone-600">
             When off, you cannot create invites and outstanding invite links show a
-            paused message. Supabase public signup should stay disabled separately.
+            paused message. Also pauses self-serve signup.
+          </span>
+        </span>
+      </label>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-stone-200 bg-stone-50/80 p-4">
+        <input
+          type="checkbox"
+          name="self_signup_enabled"
+          value="on"
+          defaultChecked={selfSignupEnabled}
+          className="mt-1 h-4 w-4 rounded border-stone-300 text-[var(--color-cta)] focus:ring-[var(--color-trail-100)]"
+        />
+        <span>
+          <span className="block text-sm font-medium text-stone-900">
+            Allow public self-serve signup
+          </span>
+          <span className="mt-1 block text-sm text-stone-600">
+            When on, `/signup` without an invite token creates a company + admin
+            and starts the first-run wizard. Leave off until you are ready.
           </span>
         </span>
       </label>
 
       <p className="text-xs text-stone-500">
-        Status:{" "}
+        Invites:{" "}
         <strong className={invitesEnabled ? "text-emerald-700" : "text-amber-700"}>
-          {invitesEnabled ? "Signups open" : "Signups paused"}
+          {invitesEnabled ? "open" : "paused"}
+        </strong>
+        {" · "}
+        Self-serve:{" "}
+        <strong
+          className={selfSignupEnabled ? "text-emerald-700" : "text-amber-700"}
+        >
+          {selfSignupEnabled ? "open" : "closed"}
         </strong>
       </p>
 

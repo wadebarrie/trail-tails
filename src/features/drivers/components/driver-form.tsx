@@ -14,9 +14,10 @@ type DriverFormProps = {
     "id" | "full_name" | "phone" | "is_active" | "role" | "can_drive"
   >;
   email?: string | null;
+  returnTo?: string;
 };
 
-export function DriverForm({ driver, email }: DriverFormProps) {
+export function DriverForm({ driver, email, returnTo }: DriverFormProps) {
   const action = driver
     ? updateDriverAction.bind(null, driver.id)
     : createDriverAction;
@@ -29,6 +30,7 @@ export function DriverForm({ driver, email }: DriverFormProps) {
 
   return (
     <form action={formAction} className="max-w-lg space-y-4" noValidate>
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       {state.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}

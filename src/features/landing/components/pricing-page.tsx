@@ -12,10 +12,14 @@ import {
 } from "@/features/landing/pricing";
 import { PRICING_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
 
-export function PricingPageContent() {
+export function PricingPageContent({
+  showStartTrial = false,
+}: {
+  showStartTrial?: boolean;
+}) {
   return (
     <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
-      <LandingHeader />
+      <LandingHeader showStartTrial={showStartTrial} />
 
       <main id="main-content">
         <section className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
@@ -26,9 +30,9 @@ export function PricingPageContent() {
             First month free. No card required to start.
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
-            Book a short demo, get set up, and run your first month on us. When
-            the trial ends, pick the tier that fits — every tier ships the same
-            features; tiers only set how big you can run.
+            {showStartTrial
+              ? "Start a free trial with no card required, or book a short demo if you’d rather walk through it with us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."
+              : "Book a short demo, get set up, and run your first month on us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."}
           </p>
         </section>
 
@@ -88,11 +92,20 @@ export function PricingPageContent() {
                   ))}
                 </ul>
                 <div className="mt-8">
-                  <ContactEmailButton
-                    subject={`${PRICING_EMAIL_SUBJECT} — ${tier.name}`}
-                    label="Book a demo →"
-                    className={`${landingPrimaryButtonClassName} w-full justify-center`}
-                  />
+                  {showStartTrial ? (
+                    <Link
+                      href="/signup"
+                      className={`${landingPrimaryButtonClassName} w-full justify-center`}
+                    >
+                      Start free trial →
+                    </Link>
+                  ) : (
+                    <ContactEmailButton
+                      subject={`${PRICING_EMAIL_SUBJECT} — ${tier.name}`}
+                      label="Book a demo →"
+                      className={`${landingPrimaryButtonClassName} w-full justify-center`}
+                    />
+                  )}
                 </div>
               </article>
             ))}
@@ -139,6 +152,7 @@ export function PricingPageContent() {
             <div className="mt-8">
               <CtaButtons
                 primary="Book a demo"
+                showStartTrial={showStartTrial}
                 variant="dark"
                 align="center"
               />

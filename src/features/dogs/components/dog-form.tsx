@@ -13,9 +13,16 @@ type DogFormProps = {
   routes: Pick<Route, "id" | "name">[];
   dog?: Dog;
   scheduleDays?: number[];
+  returnTo?: string;
 };
 
-export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormProps) {
+export function DogForm({
+  customers,
+  routes,
+  dog,
+  scheduleDays = [],
+  returnTo,
+}: DogFormProps) {
   const action = dog ? updateDogAction.bind(null, dog.id) : createDogAction;
   const [state, formAction, pending] = useActionState(action, {} as { error?: string });
   const [scheduleType, setScheduleType] = useState<DogScheduleType>(
@@ -28,7 +35,7 @@ export function DogForm({ customers, routes, dog, scheduleDays = [] }: DogFormPr
 
   return (
     <form action={formAction} className="max-w-lg space-y-4">
-      {state.error ? (
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}      {state.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}
         </p>

@@ -11,7 +11,11 @@ import { DEMO_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { NAV_LINKS } from "@/features/landing/constants";
 
-export function LandingHeader() {
+export function LandingHeader({
+  showStartTrial = false,
+}: {
+  showStartTrial?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -46,11 +50,20 @@ export function LandingHeader() {
           >
             Login
           </Link>
-          <ContactEmailButton
-            subject={DEMO_EMAIL_SUBJECT}
-            label="Book a demo"
-            className={`${landingPrimaryButtonClassName} min-h-11 px-4 py-2 text-sm`}
-          />
+          {showStartTrial ? (
+            <Link
+              href="/signup"
+              className={`${landingPrimaryButtonClassName} min-h-11 px-4 py-2 text-sm`}
+            >
+              Start free trial
+            </Link>
+          ) : (
+            <ContactEmailButton
+              subject={DEMO_EMAIL_SUBJECT}
+              label="Book a demo"
+              className={`${landingPrimaryButtonClassName} min-h-11 px-4 py-2 text-sm`}
+            />
+          )}
         </div>
 
         <button
@@ -88,11 +101,21 @@ export function LandingHeader() {
             >
               Login
             </Link>
-            <ContactEmailButton
-              subject={DEMO_EMAIL_SUBJECT}
-              label="Book a demo"
-              className={`${landingPrimaryButtonClassName} mt-2 min-h-11 w-full px-4 py-2.5 text-sm`}
-            />
+            {showStartTrial ? (
+              <Link
+                href="/signup"
+                className={`${landingPrimaryButtonClassName} mt-2 min-h-11 w-full px-4 py-2.5 text-sm`}
+                onClick={() => setOpen(false)}
+              >
+                Start free trial
+              </Link>
+            ) : (
+              <ContactEmailButton
+                subject={DEMO_EMAIL_SUBJECT}
+                label="Book a demo"
+                className={`${landingPrimaryButtonClassName} mt-2 min-h-11 w-full px-4 py-2.5 text-sm`}
+              />
+            )}
           </nav>
         </div>
       ) : null}
