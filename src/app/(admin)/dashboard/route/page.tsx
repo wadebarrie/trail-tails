@@ -7,6 +7,7 @@ import {
   CreateRouteForm,
   EditRouteForm,
 } from "@/features/routes/components/route-form";
+import { DeleteRouteButton } from "@/features/routes/components/delete-route-button";
 import { hikePeriodLabel } from "@/features/hikes/hike-period";
 import { getRouteScheduleDays, listRoutes } from "@/features/routes/queries";
 import { requireRole } from "@/features/auth/queries";
@@ -135,6 +136,14 @@ export default async function RouteOrderPage() {
                   defaultDays={scheduleDays}
                   defaultPeriod={route.period}
                 />
+
+                <div className="mt-4 flex justify-end border-t border-stone-100 pt-4">
+                  <DeleteRouteButton
+                    routeId={route.id}
+                    routeName={route.name}
+                    dogCount={routeDogs.length}
+                  />
+                </div>
 
                 <div className="mt-6 space-y-4 border-t border-stone-100 pt-4">
                   <h3 className="text-sm font-medium text-stone-700">Dogs</h3>
