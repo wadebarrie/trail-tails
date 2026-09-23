@@ -3,6 +3,7 @@ import { perfAsync } from "@/lib/perf";
 import { constructStripeEvent, getStripeConfig } from "@/lib/stripe";
 import {
   claimStripeWebhookEvent,
+  releaseStripeWebhookEvent,
   syncSubscriptionFromStripeEvent,
 } from "@/features/subscription/process-stripe-webhook";
 
@@ -52,6 +53,8 @@ export async function POST(request: Request) {
       if (result.permanent) {
         return Response.json({ received: true, ignored: true });
       }
+      // Allow Stripe to retry — otherwise the claim row would permanently drop the event.
+      await releaseStripeWebhookEvent(event.id);
       return new Response("Webhook processing failed", { status: 500 });
     }
 

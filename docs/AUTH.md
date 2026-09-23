@@ -54,7 +54,7 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 
 **Metrics source:** Aggregated from existing tables (`sms_messages`, `notification_log`, `hikes`/`stops`, `dogs`, `profiles`, `system_logs`). ETA count uses `en_route` notifications as a proxy until dedicated API metering exists.
 
-**Economics:** Set monthly subscription per company on the detail page (cents, no Stripe). Margin = subscription − estimated COGS from `/owner/settings` assumptions.
+**Economics:** Company subscriptions live in `subscriptions` (plan, status, trial dates, Stripe IDs). Platform owners can edit plans manually on `/owner/companies/[id]`. Paying customers use Stripe Checkout / Customer Portal; webhooks sync status. Margin estimates use `/owner/settings` cost assumptions.
 
 **Migration:** `20250627160000_platform_analytics.sql` adds `companies.plan_tier`, `status`, `monthly_subscription_cents`, `trial_ends_at`, and `platform_cost_assumptions`.
 
@@ -63,9 +63,10 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 - Required for **admin** accounts only (drivers skip MFA).
 - Default second factor: **email one-time code** via Supabase Auth (`signInWithOtp` / `verifyOtp`).
 - Optional: existing **TOTP** authenticator enrollments still work (“Use authenticator app instead”).
-- App marks the browser session MFA-satisfied with an httpOnly cookie (`packroute_admin_mfa`) after a successful email OTP.
-- Supabase Dashboard → **Authentication → Email**: Magic Link template must include `{{ .Token }}` so OTP codes are sent (not only a magic link). See [Email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
-- Set **Site URL** (and redirect allow-list) to the environment’s origin — `https://packroute.app` for production, plus staging/beta URLs when those deploys exist. See [ENVIRONMENTS.md](./ENVIRONMENTS.md).
+- App marks the browser session MFA-satisfied with an httpOnly cookie (`packroute_admin_mfa`) after a successful email OTP **or** after clicking the email magic link (`/auth/callback?mfa=1`).
+- Supabase Dashboard → **Authentication → Email → Magic Link** template should include `{{ .Token }}` so the numeric code appears in the email (not only a link). See [Email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
+- MFA emails set `emailRedirectTo` from the **current request host** (so local login doesn’t send you to production).
+- Set **Site URL** (and redirect allow-list) to each environment’s origin — `https://packroute.app` for production, `http://localhost:3000/auth/callback` for local, plus staging/beta URLs when those deploys exist. See [ENVIRONMENTS.md](./ENVIRONMENTS.md).
 
 ### Optional cookie secret
 

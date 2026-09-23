@@ -10,9 +10,20 @@ import {
 } from "@/features/import/components/bulk-import-form";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
+import { ONBOARDING_PATH } from "@/features/onboarding/constants";
 
-export default async function ImportPage() {
+export default async function ImportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
   const profile = await requireRole("admin");
+  const { returnTo: rawReturn } = await searchParams;
+  const returnTo = rawReturn
+    ? safeAppReturnPath(rawReturn, ONBOARDING_PATH)
+    : undefined;
+
   const supabase = await createClient();
 
   const [{ count: customerCount }, { count: dogCount }, { data: routes }] =
@@ -37,9 +48,20 @@ export default async function ImportPage() {
 
   return (
     <div>
+      {returnTo ? (
+        <p className="mb-4 text-sm text-stone-600">
+          <Link
+            href={returnTo}
+            className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+          >
+            ← Back to setup
+          </Link>
+        </p>
+      ) : null}
+
       <PageHeader
         title="Bulk import"
-        description="Download a CSV template, fill in your customers and dogs, then upload to import everything at once."
+        description="Download a CSV template, fill in your customers and dogs, then upload to import everything at once. Leave route blank if you will assign routes later."
         action={
           <div className="flex flex-wrap gap-2">
             <a
@@ -65,8 +87,8 @@ export default async function ImportPage() {
           <h2 className="text-lg font-semibold text-stone-900">How it works</h2>
           <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm text-stone-700">
             <li>
-              Download the template — it includes example rows showing the expected
-              format.
+              Download the template — it includes example rows for customers and
+              dogs (route left blank so you can assign later).
             </li>
             <li>
               Paste or type your customer list. Use one row per dog; repeat the
@@ -86,7 +108,10 @@ export default async function ImportPage() {
               </Link>
               . Leave blank to assign later.
             </li>
-            <li>Upload the completed CSV below. Existing records match by phone (customers) and name (dogs).</li>
+            <li>
+              Upload the completed CSV below. Existing records match by phone
+              (customers) and name (dogs).
+            </li>
           </ol>
 
           {routeNames.length > 0 ? (
@@ -109,7 +134,7 @@ export default async function ImportPage() {
             configured.
           </p>
           <div className="mt-4">
-            <BulkImportForm />
+            <BulkImportForm returnTo={returnTo} />
           </div>
         </Card>
       </div>

@@ -14,8 +14,25 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
     <>
       <Section id="getting-started" title="Getting started" variant="admin">
         <p>
-          Welcome to PackRoute. After you accept your invite and create a password,
-          your first sign-in will ask you to set up an{" "}
+          New companies get a guided{" "}
+          <Link
+            href="/dashboard/onboarding"
+            className="font-medium text-[var(--color-trail-700)] hover:underline"
+          >
+            first-run setup
+          </Link>{" "}
+          (vehicle → hiker → customer → dog → route). Prefer a walkthrough with
+          PackRoute? Use the{" "}
+          <Link
+            href="/contact"
+            className="font-medium text-[var(--color-trail-700)] hover:underline"
+          >
+            contact form
+          </Link>{" "}
+          or email support from that wizard.
+        </p>
+        <p>
+          After you create a password, your first sign-in will ask you to set up an{" "}
           <strong>authenticator app (TOTP)</strong> for two-factor security. You will
           need this code every time you sign in to the office dashboard.
         </p>

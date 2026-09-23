@@ -1,19 +1,109 @@
 import Link from "next/link";
 import { AUTH_ROUTES } from "@/features/auth/constants";
+import { getCurrentProfile } from "@/features/auth/queries";
 import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
+import { SubscribeTierButtons } from "@/features/subscription/components/subscribe-tier-buttons";
+import { ManageBillingButton } from "@/features/subscription/components/manage-billing-button";
+import { CheckoutSuccessSync } from "@/features/subscription/components/checkout-success-sync";
+import {
+  areStripePricesConfigured,
+  isStripeBillingConfigured,
+} from "@/features/subscription/stripe-prices";
+import { getSubscriptionForCompany } from "@/features/subscription/queries";
 
-export default function SubscriptionInactivePage() {
+type SearchParams = Promise<{
+  checkout?: string;
+  session_id?: string;
+}>;
+
+export default async function SubscriptionInactivePage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const profile = await getCurrentProfile();
+  const isAdmin = profile?.role === "admin";
+  const billingReady =
+    isStripeBillingConfigured() && areStripePricesConfigured("monthly");
+  const subscription =
+    isAdmin && profile
+      ? await getSubscriptionForCompany(profile.company_id)
+      : null;
+  const hasStripeCustomer = Boolean(subscription?.provider_customer_id);
+
+  const checkoutDisabledReason = !billingReady
+    ? "Online checkout is not available yet. Contact us to reactivate your account."
+    : !isAdmin
+      ? "Ask a company admin to subscribe, or contact PackRoute support."
+      : null;
+
+  const portalDisabledReason = !billingReady
+    ? "Billing portal is not available yet. Contact us for help updating your card."
+    : !isAdmin
+      ? "Ask a company admin to manage billing."
+      : !hasStripeCustomer
+        ? "No Stripe customer on file yet — subscribe below first, or contact support."
+        : null;
+
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-3xl">
       <h1 className="text-2xl font-semibold text-[var(--color-trail-800)]">
         Subscription inactive
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-stone-600">
-        Your company&apos;s PackRoute subscription is not active. Team members
-        cannot use the dashboard or driver app until billing is restored.
+        Your company&apos;s PackRoute subscription is not active
+        {subscription?.status === "past_due" ? " (payment past due)" : ""}.
+        Team members cannot use the dashboard or driver app until billing is
+        restored.
       </p>
-      <p className="mt-3 text-sm text-stone-600">
-        Contact us at{" "}
+
+      {params.checkout === "success" && params.session_id && isAdmin ? (
+        <CheckoutSuccessSync sessionId={params.session_id} />
+      ) : null}
+
+      {params.checkout === "cancelled" ? (
+        <p className="mt-4 rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-600">
+          Checkout cancelled — pick a plan below when you&apos;re ready.
+        </p>
+      ) : null}
+
+      {isAdmin ? (
+        <div className="mt-8 space-y-8">
+          {hasStripeCustomer ? (
+            <div>
+              <h2 className="text-lg font-semibold text-stone-900">
+                Update payment method
+              </h2>
+              <p className="mt-1 text-sm text-stone-500">
+                Open the Stripe billing portal to fix a failed card, download
+                invoices, or cancel.
+              </p>
+              <div className="mt-3">
+                <ManageBillingButton
+                  disabledReason={portalDisabledReason}
+                  returnTo="/subscription-inactive"
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">
+              Choose a plan
+            </h2>
+            <p className="mt-1 text-sm text-stone-500">
+              Beta pricing by hikers and dogs. Subscribe to restore access.
+            </p>
+            <div className="mt-4">
+              <SubscribeTierButtons disabledReason={checkoutDisabledReason} />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <p className="mt-8 text-sm text-stone-600">
+        Need help? Contact us at{" "}
         <a
           href={`mailto:${SITE_CONTACT_EMAIL}`}
           className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
@@ -26,8 +116,8 @@ export default function SubscriptionInactivePage() {
           className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
         >
           contact form
-        </Link>{" "}
-        to reactivate your account.
+        </Link>
+        .
       </p>
       <Link
         href={AUTH_ROUTES.login}

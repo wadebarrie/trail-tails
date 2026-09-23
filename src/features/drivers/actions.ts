@@ -9,6 +9,7 @@ import {
   driverCreateSchema,
   driverUpdateSchema,
 } from "@/features/drivers/schema";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 function normalizePhone(phone: string | undefined) {
   const trimmed = phone?.trim();
@@ -106,7 +107,12 @@ export async function createDriverAction(
           if (enableError) return { error: enableError.message };
 
           revalidateDriverPaths(existingId);
-          redirect("/dashboard/drivers");
+          redirect(
+            safeAppReturnPath(
+              formData.get("returnTo")?.toString(),
+              "/dashboard/drivers"
+            )
+          );
         }
       }
 
@@ -132,7 +138,12 @@ export async function createDriverAction(
   }
 
   revalidateDriverPaths();
-  redirect("/dashboard/drivers");
+  redirect(
+    safeAppReturnPath(
+      formData.get("returnTo")?.toString(),
+      "/dashboard/drivers"
+    )
+  );
 }
 
 export async function updateDriverAction(

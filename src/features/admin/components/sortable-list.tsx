@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { motionInteractiveClassName } from "@/features/admin/components/motion-styles";
 
 type SortableItem = {
@@ -120,6 +120,25 @@ export function SortableList({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [removingId, setRemovingId] = useState<string | null>(null);
+
+  // Keep local list in sync when the server re-renders with new props
+  // (e.g. after adding a dog), without wiping an in-flight drag/remove.
+  const propsSignature = useMemo(
+    () =>
+      initialItems
+        .map((item) => `${item.id}\0${item.label}\0${item.sublabel ?? ""}`)
+        .join("\n"),
+    [initialItems]
+  );
+  const [syncedSignature, setSyncedSignature] = useState(propsSignature);
+  if (
+    propsSignature !== syncedSignature &&
+    !pending &&
+    removingId === null
+  ) {
+    setSyncedSignature(propsSignature);
+    setItems(initialItems);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),

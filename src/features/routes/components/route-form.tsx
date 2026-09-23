@@ -1,18 +1,21 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { createRouteAction, updateRouteAction } from "@/features/routes/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
 import type { HikePeriod } from "@/features/hikes/hike-period";
 
 function RouteFormFields({
+  formKey,
   defaultName = "",
   defaultDays = [] as number[],
   defaultPeriod = "morning" as HikePeriod,
   submitLabel,
   pending,
 }: {
+  formKey: string;
   defaultName?: string;
   defaultDays?: number[];
   defaultPeriod?: HikePeriod;
@@ -20,7 +23,7 @@ function RouteFormFields({
   pending: boolean;
 }) {
   return (
-    <>
+    <div key={formKey} className="space-y-4">
       <div>
         <label
           htmlFor="route-name"
@@ -61,10 +64,14 @@ function RouteFormFields({
         </p>
       </div>
 
-      <ScheduleDaysField defaultDays={defaultDays} />
+      <ScheduleDaysField
+        defaultDays={defaultDays}
+        label="Schedule days"
+        hint="Weekdays this route runs."
+      />
 
       <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
-    </>
+    </div>
   );
 }
 
@@ -85,16 +92,36 @@ function FormMessages({ state }: { state: { error?: string; ok?: boolean } }) {
   );
 }
 
-export function CreateRouteForm() {
+function useRefreshOnOk(ok: boolean | undefined) {
+  const router = useRouter();
+  const seen = useRef(false);
+  useEffect(() => {
+    if (!ok) {
+      seen.current = false;
+      return;
+    }
+    if (seen.current) return;
+    seen.current = true;
+    router.refresh();
+  }, [ok, router]);
+}
+
+export function CreateRouteForm({ returnTo }: { returnTo?: string }) {
   const [state, formAction, pending] = useActionState(
     createRouteAction,
     {} as { error?: string; ok?: boolean }
   );
+  useRefreshOnOk(state.ok);
 
   return (
     <form action={formAction} className="space-y-4">
+      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <FormMessages state={state} />
-      <RouteFormFields submitLabel="Add route" pending={pending} />
+      <RouteFormFields
+        formKey={`create-${state.ok ? "saved" : "new"}`}
+        submitLabel="Add route"
+        pending={pending}
+      />
     </form>
   );
 }
@@ -115,11 +142,15 @@ export function EditRouteForm({
     boundUpdate,
     {} as { error?: string; ok?: boolean }
   );
+  useRefreshOnOk(state.ok);
+
+  const formKey = `${routeId}-${defaultName}-${defaultPeriod}-${defaultDays.slice().sort().join(",")}`;
 
   return (
     <form action={formAction} className="space-y-4">
       <FormMessages state={state} />
       <RouteFormFields
+        formKey={formKey}
         defaultName={defaultName}
         defaultDays={defaultDays}
         defaultPeriod={defaultPeriod}

@@ -38,6 +38,7 @@ export function getSafeRedirect(role: UserRole, next?: string): string {
 export const PUBLIC_PATHS = new Set([
   "/",
   "/contact",
+  "/pricing",
   "/dog-walking-software",
   "/adventure-dog-hiking-software",
   "/time-to-pet-alternative",

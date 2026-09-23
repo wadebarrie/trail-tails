@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { SignupForm } from "@/features/platform/components/signup-form";
+import { SelfSignupForm } from "@/features/onboarding/components/self-signup-form";
+import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
 import { getInvitePreviewByToken } from "@/features/platform/queries";
-import { areInvitesEnabled } from "@/features/platform/settings";
+import {
+  areInvitesEnabled,
+  isSelfSignupEnabled,
+} from "@/features/platform/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +20,9 @@ function SignupsPausedMessage() {
         PackRoute is not accepting new company signups right now. If you have an
         invite, try again later or contact the PackRoute team.
       </p>
+      <div className="mt-6">
+        <OnboardingSupportCard compact />
+      </div>
       <Link
         href="/login"
         className="mt-6 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
@@ -37,8 +45,30 @@ export default async function SignupPage({
   }
 
   const { token } = await searchParams;
+  const selfSignup = await isSelfSignupEnabled();
 
   if (!token) {
+    if (selfSignup) {
+      return (
+        <div className="w-full max-w-sm">
+          <h1 className="text-2xl font-semibold text-[var(--color-trail-800)]">
+            Start your PackRoute trial
+          </h1>
+          <p className="mt-1 text-sm text-stone-600">
+            Create your company account — we&apos;ll guide you through adding your
+            first vehicle, hikers, customers, and dogs.
+          </p>
+          <SelfSignupForm />
+          <Link
+            href="/login"
+            className="mt-6 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
+          >
+            Already have an account? Sign in
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-semibold text-[var(--color-trail-800)]">
@@ -48,6 +78,9 @@ export default async function SignupPage({
           PackRoute is invite-only during beta. Ask for an invite link from the
           PackRoute team.
         </p>
+        <div className="mt-6">
+          <OnboardingSupportCard compact />
+        </div>
         <Link
           href="/login"
           className="mt-6 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"

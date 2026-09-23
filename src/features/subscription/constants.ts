@@ -1,6 +1,9 @@
 /** Application subscription plans — stored as text, not PostgreSQL enums. */
 export const SUBSCRIPTION_PLANS = [
   "beta_partner",
+  "one_hiker",
+  "two_hikers",
+  "three_plus",
   "starter",
   "growth",
   "enterprise",
@@ -24,3 +27,6 @@ export const PAYMENT_PROVIDERS = ["stripe"] as const;
 
 /** Default trial length when provisioning a new company (stored as fixed dates). */
 export const DEFAULT_TRIAL_DAYS = 30;
+
+/** Show admin trial-expiring banner when this many days (or fewer) remain. */
+export const TRIAL_EXPIRING_BANNER_DAYS = 7;

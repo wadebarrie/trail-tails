@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { assignRouteVehicleAction } from "@/features/routes/actions";
 import { vehicleDisplayLabel } from "@/features/vehicles/schema";
 
@@ -20,9 +22,15 @@ export function RouteVehicleSelect({
   vehicles: VehicleOption[];
   label?: string;
 }) {
-  async function assign(formData: FormData) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function assign(formData: FormData) {
     const vehicleId = String(formData.get("vehicle_id") || "") || null;
-    await assignRouteVehicleAction(routeId, vehicleId);
+    startTransition(async () => {
+      await assignRouteVehicleAction(routeId, vehicleId);
+      router.refresh();
+    });
   }
 
   return (
@@ -37,7 +45,9 @@ export function RouteVehicleSelect({
         id={`route-vehicle-${routeId}`}
         name="vehicle_id"
         defaultValue={currentVehicleId ?? ""}
-        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+        key={currentVehicleId ?? "none"}
+        disabled={pending}
+        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm disabled:opacity-60"
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
         <option value="">Unassigned</option>

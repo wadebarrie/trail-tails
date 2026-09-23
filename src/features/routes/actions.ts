@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { getDateInTimezone, parseScheduleDays } from "@/lib/dates";
 import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
@@ -102,6 +104,14 @@ export async function createRouteAction(
     };
   }
 
+  const returnTo = safeAppReturnPath(
+    formData.get("returnTo")?.toString(),
+    ""
+  );
+  if (returnTo) {
+    redirect(returnTo);
+  }
+
   return { ok: true };
 }
 
@@ -163,10 +173,13 @@ async function syncAffectedRoutes(
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
-  for (const routeId of new Set(routeIds.filter(Boolean) as string[])) {
-    await syncStopsForRouteDate(companyId, routeId, today);
-    await syncStopsForRouteDate(companyId, routeId, tomorrow);
-  }
+  const uniqueRouteIds = [...new Set(routeIds.filter(Boolean) as string[])];
+  await Promise.all(
+    uniqueRouteIds.flatMap((routeId) => [
+      syncStopsForRouteDate(companyId, routeId, today),
+      syncStopsForRouteDate(companyId, routeId, tomorrow),
+    ])
+  );
 }
 
 function revalidateRouteDogPaths() {

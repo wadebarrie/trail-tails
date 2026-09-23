@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  sendAdminEmailOtpAction,
-  verifyAdminEmailOtpAction,
-} from "@/features/auth/actions-email-mfa";
+import { authErrorMessage } from "@/features/auth/lib/auth-error-message";
 import { getLoginRedirect } from "@/features/auth/access";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +20,35 @@ type EmailOtpMfaFormProps = {
   showTotpOption?: boolean;
 };
 
+const OTP_SENT_KEY = "packroute_mfa_otp_sent_at";
+/** Skip auto-resend after remounts / refresh within this window. */
+const OTP_SEND_COOLDOWN_MS = 60_000;
+
+function emailOtpRedirectTo(): string {
+  const next = encodeURIComponent("/dashboard");
+  return `${window.location.origin}/auth/callback?next=${next}&mfa=1`;
+}
+
+function recentlySentOtp(): boolean {
+  try {
+    const raw = sessionStorage.getItem(OTP_SENT_KEY);
+    if (!raw) return false;
+    const sentAt = Number(raw);
+    if (!Number.isFinite(sentAt)) return false;
+    return Date.now() - sentAt < OTP_SEND_COOLDOWN_MS;
+  } catch {
+    return false;
+  }
+}
+
+function markOtpSent(): void {
+  try {
+    sessionStorage.setItem(OTP_SENT_KEY, String(Date.now()));
+  } catch {
+    // ignore
+  }
+}
+
 export function EmailOtpMfaForm({
   nextPath,
   stayOnPage,
@@ -35,81 +61,204 @@ export function EmailOtpMfaForm({
   const [mode, setMode] = useState<"email" | "totp">("email");
   const [sending, startSend] = useTransition();
   const [verifying, startVerify] = useTransition();
-  const [sentOnce, setSentOnce] = useState(false);
+  const [sentOnce, setSentOnce] = useState(() =>
+    typeof window !== "undefined" ? recentlySentOtp() : false
+  );
+  const autoSendStarted = useRef(false);
+  const verifyingRef = useRef(false);
+
+  function showError(value: unknown, fallback: string) {
+    setError(authErrorMessage(value, fallback));
+  }
+
+  async function sendOtpEmail(options?: {
+    force?: boolean;
+  }): Promise<boolean> {
+    if (!options?.force && recentlySentOtp()) {
+      setSentOnce(true);
+      setInfo(
+        "Check your email — enter the code if shown, or click the secure link in the same message."
+      );
+      return true;
+    }
+
+    const supabase = createClient();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user?.email) {
+      showError(
+        userError,
+        "You must be signed in to receive a code. Sign in again."
+      );
+      return false;
+    }
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: user.email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: emailOtpRedirectTo(),
+      },
+    });
+
+    if (otpError) {
+      // Remount rate-limits should not look like a verify failure.
+      showError(
+        otpError,
+        "Could not send the sign-in email. Try again in a minute."
+      );
+      return false;
+    }
+
+    markOtpSent();
+    return true;
+  }
 
   useEffect(() => {
+    if (autoSendStarted.current) return;
+    autoSendStarted.current = true;
+
     startSend(async () => {
-      const result = await sendAdminEmailOtpAction();
-      if (!result.ok) {
-        setError(result.error);
-        return;
+      try {
+        const ok = await sendOtpEmail();
+        if (!ok) return;
+        setSentOnce(true);
+        setInfo(
+          "Check your email — enter the code if shown, or click the secure link in the same message."
+        );
+      } catch (err) {
+        if (verifyingRef.current) return;
+        showError(err, "Could not send the sign-in email. Try Resend.");
       }
-      setSentOnce(true);
-      setInfo("We sent a one-time code to your email.");
     });
     // Intentionally once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function resend() {
+    if (verifyingRef.current) return;
     setError(null);
     startSend(async () => {
-      const result = await sendAdminEmailOtpAction();
-      if (!result.ok) {
-        setError(result.error);
-        return;
+      try {
+        const ok = await sendOtpEmail({ force: true });
+        if (!ok) return;
+        setSentOnce(true);
+        setInfo("A new email is on the way — code or link both work.");
+      } catch (err) {
+        showError(err, "Could not send the sign-in email. Try again in a minute.");
       }
-      setSentOnce(true);
-      setInfo("A new code is on the way.");
     });
   }
 
   function handleVerify(event: React.FormEvent) {
     event.preventDefault();
+    event.stopPropagation();
+    if (verifyingRef.current) return;
+
     setError(null);
+    verifyingRef.current = true;
+
     startVerify(async () => {
-      const result = await verifyAdminEmailOtpAction(code);
-      if (!result.ok) {
-        setError(result.error);
-        return;
-      }
+      try {
+        const trimmed = code.trim();
+        if (!/^\d{6,8}$/.test(trimmed)) {
+          setError("Enter the code from your email.");
+          return;
+        }
 
-      if (stayOnPage) {
-        router.replace(AUTH_ROUTES.adminHome);
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user?.email) {
+          setError("Session expired. Sign in again.");
+          return;
+        }
+
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email: user.email,
+          token: trimmed,
+          type: "email",
+        });
+
+        if (verifyError) {
+          showError(verifyError, "Invalid or expired code. Try again.");
+          return;
+        }
+
+        const mfaRes = await fetch("/api/auth/mfa-email", {
+          method: "POST",
+          credentials: "same-origin",
+        });
+        let result: { ok?: boolean; error?: string } | null = null;
+        try {
+          result = (await mfaRes.json()) as { ok?: boolean; error?: string };
+        } catch {
+          result = null;
+        }
+        if (!mfaRes.ok || !result || result.ok !== true) {
+          showError(
+            result?.error,
+            "Could not finish sign-in. Try again."
+          );
+          return;
+        }
+
+        // Prevent remount auto-send from racing the redirect.
+        markOtpSent();
+
+        if (stayOnPage) {
+          router.replace(AUTH_ROUTES.adminHome);
+          router.refresh();
+          return;
+        }
+
+        const {
+          data: { user: verifiedUser },
+        } = await supabase.auth.getUser();
+        if (!verifiedUser) {
+          setError("Session expired. Sign in again.");
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role, is_active, can_drive")
+          .eq("id", verifiedUser.id)
+          .maybeSingle();
+
+        if (!profile?.is_active) {
+          await supabase.auth.signOut();
+          setError("Your account has been deactivated.");
+          return;
+        }
+
+        router.replace(
+          getLoginRedirect(
+            profile as { role: "admin" | "driver"; can_drive: boolean },
+            nextPath
+          )
+        );
         router.refresh();
-        return;
+      } catch (err) {
+        showError(err, "Could not verify that code. Try again.");
+      } finally {
+        verifyingRef.current = false;
       }
-
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setError("Session expired. Sign in again.");
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, is_active, can_drive")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!profile?.is_active) {
-        await supabase.auth.signOut();
-        setError("Your account has been deactivated.");
-        return;
-      }
-
-      router.replace(
-        getLoginRedirect(
-          profile as { role: "admin" | "driver"; can_drive: boolean },
-          nextPath
-        )
-      );
-      router.refresh();
     });
   }
+
+  const errorText =
+    typeof error === "string" &&
+    error.trim() &&
+    error.trim() !== "{}" &&
+    error.trim() !== "[object Object]"
+      ? error.trim()
+      : null;
 
   if (mode === "totp" && showTotpOption) {
     return (
@@ -127,9 +276,15 @@ export function EmailOtpMfaForm({
   }
 
   return (
-    <form onSubmit={handleVerify} className="space-y-4">
+    <form onSubmit={handleVerify} className="space-y-4" noValidate>
       <p className="text-sm text-stone-600">
-        Enter the one-time code we emailed you. No authenticator app needed.
+        We emailed a one-time login confirmation. Enter the{" "}
+        <strong className="font-medium text-stone-800">code</strong> from that
+        email (usually 8 digits), or{" "}
+        <strong className="font-medium text-stone-800">
+          click the secure link
+        </strong>{" "}
+        — either finishes this step.
       </p>
 
       {info ? (
@@ -138,9 +293,9 @@ export function EmailOtpMfaForm({
         </p>
       ) : null}
 
-      {error ? (
+      {errorText ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
+          {errorText}
         </p>
       ) : null}
 
@@ -156,7 +311,6 @@ export function EmailOtpMfaForm({
           name="code"
           inputMode="numeric"
           autoComplete="one-time-code"
-          pattern="[0-9]{6,8}"
           maxLength={8}
           required
           disabled={verifying}
@@ -176,7 +330,7 @@ export function EmailOtpMfaForm({
 
       <button
         type="button"
-        disabled={sending}
+        disabled={sending || verifying}
         onClick={resend}
         className={`${secondaryButtonClassName} w-full rounded-xl py-3`}
       >

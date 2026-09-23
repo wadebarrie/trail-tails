@@ -3,11 +3,8 @@ import { RouteAddDogSelect } from "@/features/routes/components/route-add-dog-se
 import { RouteDogsList } from "@/features/routes/components/route-dogs-list";
 import { RouteDriverSelect } from "@/features/routes/components/route-driver-select";
 import { RouteVehicleSelect } from "@/features/routes/components/route-vehicle-select";
-import {
-  CreateRouteForm,
-  EditRouteForm,
-} from "@/features/routes/components/route-form";
-import { DeleteRouteButton } from "@/features/routes/components/delete-route-button";
+import { CreateRouteForm } from "@/features/routes/components/route-form";
+import { RouteEditPanel } from "@/features/routes/components/route-edit-panel";
 import { hikePeriodLabel } from "@/features/hikes/hike-period";
 import { getRouteScheduleDays, listRoutes } from "@/features/routes/queries";
 import { requireRole } from "@/features/auth/queries";
@@ -15,10 +12,20 @@ import { listAssignableDrivers } from "@/features/drivers/queries";
 import { formatScheduleDayLabels } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
+import { ONBOARDING_PATH } from "@/features/onboarding/constants";
+import { safeAppReturnPath } from "@/lib/safe-return-path";
 
-export default async function RouteOrderPage() {
+export default async function RouteOrderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
   const profile = await requireRole("admin");
   const supabase = await createClient();
+  const { returnTo: rawReturn } = await searchParams;
+  const returnTo = rawReturn
+    ? safeAppReturnPath(rawReturn, ONBOARDING_PATH)
+    : undefined;
   const routes = await listRoutes(profile.company_id);
 
   const [{ data: dogs }, drivers, { data: vehicles }] = await Promise.all([
@@ -55,7 +62,7 @@ export default async function RouteOrderPage() {
           pages.
         </p>
         <div className="mt-4">
-          <CreateRouteForm />
+          <CreateRouteForm returnTo={returnTo} />
         </div>
       </Card>
 
@@ -106,10 +113,11 @@ export default async function RouteOrderPage() {
               >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 pb-4">
                   <div>
-                    <p className="text-sm font-medium text-stone-700">
-                      {hikePeriodLabel(route.period)} route
+                    <p className="text-base font-semibold text-stone-900">
+                      {route.name}
                     </p>
                     <p className="text-sm text-stone-500">
+                      {hikePeriodLabel(route.period)} ·{" "}
                       {formatScheduleDayLabels(scheduleDays)}
                     </p>
                     <p className="mt-0.5 text-sm text-stone-500">
@@ -130,22 +138,17 @@ export default async function RouteOrderPage() {
                   </div>
                 </div>
 
-                <EditRouteForm
-                  routeId={route.id}
-                  defaultName={route.name}
-                  defaultDays={scheduleDays}
-                  defaultPeriod={route.period}
-                />
-
-                <div className="mt-4 flex justify-end border-t border-stone-100 pt-4">
-                  <DeleteRouteButton
+                <div className="mb-6 border-b border-stone-100 pb-4">
+                  <RouteEditPanel
                     routeId={route.id}
                     routeName={route.name}
+                    defaultDays={scheduleDays}
+                    defaultPeriod={route.period}
                     dogCount={routeDogs.length}
                   />
                 </div>
 
-                <div className="mt-6 space-y-4 border-t border-stone-100 pt-4">
+                <div className="space-y-4">
                   <h3 className="text-sm font-medium text-stone-700">Dogs</h3>
 
                   <RouteAddDogSelect routeId={route.id} dogs={addableDogs} />

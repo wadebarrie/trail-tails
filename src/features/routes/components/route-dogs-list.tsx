@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { SortableList } from "@/features/admin/components/sortable-list";
 import { reorderRouteDogsAction } from "@/features/hikes/actions";
 import { removeDogFromRouteAction } from "@/features/routes/actions";
@@ -17,8 +19,28 @@ export function RouteDogsList({
   routeId: string;
   items: Item[];
 }) {
-  const onReorder = reorderRouteDogsAction.bind(null, routeId);
-  const onRemove = removeDogFromRouteAction.bind(null, routeId);
+  const router = useRouter();
+  const [, startTransition] = useTransition();
+
+  async function onReorder(orderedIds: string[]) {
+    const result = await reorderRouteDogsAction(routeId, orderedIds);
+    if (!("error" in result && result.error)) {
+      startTransition(() => {
+        router.refresh();
+      });
+    }
+    return result;
+  }
+
+  async function onRemove(dogId: string) {
+    const result = await removeDogFromRouteAction(routeId, dogId);
+    if (!("error" in result && result.error)) {
+      startTransition(() => {
+        router.refresh();
+      });
+    }
+    return result;
+  }
 
   return <SortableList items={items} onReorder={onReorder} onRemove={onRemove} />;
 }

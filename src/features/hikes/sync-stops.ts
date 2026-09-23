@@ -294,10 +294,15 @@ async function syncStopsForRouteDateInner(
     (stop) => stop.status !== "cancelled" && stop.status !== "skipped"
   );
 
-  for (const stop of existingStops ?? []) {
-    if (!eligibleIds.has(stop.dog_id)) {
-      await supabase.from("stops").delete().eq("id", stop.id);
-    }
+  const stopsToDelete = (existingStops ?? [])
+    .filter((stop) => !eligibleIds.has(stop.dog_id))
+    .map((stop) => stop.id);
+  if (stopsToDelete.length > 0) {
+    const { error: deleteError } = await supabase
+      .from("stops")
+      .delete()
+      .in("id", stopsToDelete);
+    if (deleteError) throw new Error(deleteError.message);
   }
 
   const eligibleDogs = scheduledDogs.filter((d) => eligibleIds.has(d.id));
@@ -311,34 +316,41 @@ async function syncStopsForRouteDateInner(
     sortedEligible.map((dog, index) => [dog.id, index])
   );
 
+  const existingByKey = new Map(
+    (existingStops ?? [])
+      .filter((stop) => eligibleIds.has(stop.dog_id))
+      .map((stop) => [`${stop.dog_id}:${stop.stop_type}`, stop] as const)
+  );
+
+  const inserts: Array<{
+    hike_id: string;
+    dog_id: string;
+    stop_type: StopType;
+    window_start: string | null;
+    window_end: string | null;
+    sort_order: number;
+  }> = [];
+  const reactivateIds: string[] = [];
+  const sortUpdates: Array<{ id: string; sort_order: number }> = [];
+
   for (const dog of eligibleDogs) {
     const pickupIndex = pickupIndexByDogId.get(dog.id) ?? 0;
 
     for (const stopType of ["pickup", "dropoff"] as StopType[]) {
       const sortOrder =
         stopType === "pickup" ? 1000 + pickupIndex : 2000 + pickupIndex;
-
-      const { data: existing } = await supabase
-        .from("stops")
-        .select("id, status")
-        .eq("hike_id", hikeId)
-        .eq("dog_id", dog.id)
-        .eq("stop_type", stopType)
-        .maybeSingle();
+      const existing = existingByKey.get(`${dog.id}:${stopType}`);
 
       if (existing) {
         if (existing.status === "cancelled") {
-          await supabase
-            .from("stops")
-            .update({ status: "scheduled", sort_order: sortOrder })
-            .eq("id", existing.id);
+          reactivateIds.push(existing.id);
         }
+        sortUpdates.push({ id: existing.id, sort_order: sortOrder });
         continue;
       }
 
       const windows = stopWindowsForDog(dog, stopType);
-
-      const { error } = await supabase.from("stops").insert({
+      inserts.push({
         hike_id: hikeId,
         dog_id: dog.id,
         stop_type: stopType,
@@ -346,8 +358,32 @@ async function syncStopsForRouteDateInner(
         window_end: windows.window_end,
         sort_order: sortOrder,
       });
-      if (error) throw new Error(error.message);
     }
+  }
+
+  if (reactivateIds.length > 0) {
+    const { error } = await supabase
+      .from("stops")
+      .update({ status: "scheduled" })
+      .in("id", reactivateIds);
+    if (error) throw new Error(error.message);
+  }
+
+  if (sortUpdates.length > 0) {
+    await Promise.all(
+      sortUpdates.map(async ({ id, sort_order }) => {
+        const { error } = await supabase
+          .from("stops")
+          .update({ sort_order })
+          .eq("id", id);
+        if (error) throw new Error(error.message);
+      })
+    );
+  }
+
+  if (inserts.length > 0) {
+    const { error } = await supabase.from("stops").insert(inserts);
+    if (error) throw new Error(error.message);
   }
 
   const newDogs = sortedEligible.filter((dog) => !existingDogIdsBefore.has(dog.id));

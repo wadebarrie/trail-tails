@@ -14,7 +14,7 @@ const initialState: ImportResult = {
   rowErrors: [],
 };
 
-export function BulkImportForm() {
+export function BulkImportForm({ returnTo }: { returnTo?: string }) {
   const [state, formAction, pending] = useActionState(bulkImportAction, initialState);
   const [fileName, setFileName] = useState<string | null>(null);
   const csvRef = useRef<HTMLTextAreaElement>(null);
@@ -42,6 +42,9 @@ export function BulkImportForm() {
 
   return (
     <form action={formAction} className="space-y-6">
+      {returnTo ? (
+        <input type="hidden" name="returnTo" value={returnTo} />
+      ) : null}
       <div>
         <label
           htmlFor="csv_file"
@@ -103,6 +106,16 @@ export function BulkImportForm() {
               <li>{state.dogsUpdated} dog(s) updated</li>
             ) : null}
           </ul>
+          {returnTo ? (
+            <p className="mt-3">
+              <a
+                href={returnTo}
+                className="font-medium text-emerald-900 underline-offset-2 hover:underline"
+              >
+                Continue setup →
+              </a>
+            </p>
+          ) : null}
         </div>
       ) : null}
 

@@ -17,7 +17,7 @@ export default function AuthLayout({
         <PackRouteLogo href="/" markSize="sm" />
       </header>
       <div className="flex flex-1 items-center justify-center px-6 pb-12">
-        <div className="surface-glass-strong w-full max-w-md rounded-[var(--radius-card)] p-6 sm:p-8">
+        <div className="surface-glass-strong w-full max-w-3xl rounded-[var(--radius-card)] p-6 sm:p-8">
           {children}
         </div>
       </div>
