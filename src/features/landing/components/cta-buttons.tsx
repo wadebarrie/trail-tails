@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   landingPrimaryButtonClassName,
   landingSecondaryDarkClassName,
@@ -66,9 +67,9 @@ export function CtaButtons({
             className={resolvedSecondaryClassName}
           />
         ) : showHowItWorks ? (
-          <a href="/#how-it-works" className={resolvedSecondaryClassName}>
+          <Link href="/#how-it-works" className={resolvedSecondaryClassName}>
             See how it works
-          </a>
+          </Link>
         ) : null}
       </div>
       <ContactEmailFallback variant={variant} className={fallbackClassName} />

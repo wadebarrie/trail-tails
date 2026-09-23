@@ -1,4 +1,4 @@
-import type { Profile, UserRole } from "@/types";
+import type { Profile } from "@/types";
 import { DRIVER_PATH_PREFIXES } from "@/features/auth/constants";
 
 type AccessProfile = Pick<Profile, "role" | "is_active" | "can_drive">;

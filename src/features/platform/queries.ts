@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Profile } from "@/types";
 import { AUTH_ROUTES } from "@/features/auth/constants";

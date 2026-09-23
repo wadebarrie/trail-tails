@@ -11,25 +11,24 @@ export type GeolocationServiceStatus =
   | "active";
 
 export function useGeolocationStatus(enabled = true) {
-  const [status, setStatus] = useState<GeolocationServiceStatus>("checking");
+  const [liveStatus, setLiveStatus] =
+    useState<GeolocationServiceStatus>("checking");
 
   const probe = useCallback(() => {
     if (!enabled) return;
 
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setStatus("unsupported");
+      setLiveStatus("unsupported");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      () => setStatus("active"),
+      () => setLiveStatus("active"),
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
-          setStatus("denied");
-        } else if (error.code === error.TIMEOUT) {
-          setStatus("waiting");
+          setLiveStatus("denied");
         } else {
-          setStatus("waiting");
+          setLiveStatus("waiting");
         }
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
@@ -37,20 +36,17 @@ export function useGeolocationStatus(enabled = true) {
   }, [enabled]);
 
   useEffect(() => {
-    if (!enabled) {
-      setStatus("checking");
-      return;
-    }
+    if (!enabled) return;
 
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setStatus("unsupported");
+      queueMicrotask(() => setLiveStatus("unsupported"));
       return;
     }
 
     let cancelled = false;
-    setStatus("checking");
+    let removePermissionListener: (() => void) | undefined;
 
-    async function syncFromPermission() {
+    void (async () => {
       try {
         const result = await navigator.permissions.query({
           name: "geolocation",
@@ -59,9 +55,9 @@ export function useGeolocationStatus(enabled = true) {
         const applyState = () => {
           if (cancelled) return;
           if (result.state === "denied") {
-            setStatus("denied");
+            setLiveStatus("denied");
           } else if (result.state === "prompt") {
-            setStatus("prompt");
+            setLiveStatus("prompt");
           } else {
             probe();
           }
@@ -69,17 +65,12 @@ export function useGeolocationStatus(enabled = true) {
 
         applyState();
         result.addEventListener("change", applyState);
-        return () => result.removeEventListener("change", applyState);
+        removePermissionListener = () =>
+          result.removeEventListener("change", applyState);
       } catch {
-        probe();
-        return undefined;
+        if (!cancelled) probe();
       }
-    }
-
-    let removePermissionListener: (() => void) | undefined;
-    void syncFromPermission().then((remove) => {
-      removePermissionListener = remove;
-    });
+    })();
 
     const onVisible = () => {
       if (document.visibilityState === "visible") probe();
@@ -95,6 +86,8 @@ export function useGeolocationStatus(enabled = true) {
       window.clearInterval(intervalId);
     };
   }, [enabled, probe]);
+
+  const status: GeolocationServiceStatus = enabled ? liveStatus : "checking";
 
   return { status, recheck: probe };
 }

@@ -8,6 +8,7 @@ import {
   SearchBar,
   motionTableRowClassName,
 } from "@/features/admin/components/ui";
+import { QueryErrorBanner } from "@/features/admin/components/query-error-banner";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatTime, WEEKDAYS } from "@/lib/dates";
@@ -24,8 +25,8 @@ export default async function DogsPage({
 
   const base = supabase
     .from("dogs")
-      .select(
-        `
+    .select(
+      `
       id,
       name,
       breed,
@@ -37,11 +38,13 @@ export default async function DogsPage({
       customers ( owner_name ),
       dog_schedule_days ( day_of_week )
     `
-      )
+    )
     .eq("company_id", profile.company_id)
     .order("route_sort_order");
 
-  const { data: dogs } = q ? await base.ilike("name", `%${q}%`) : await base;
+  const { data: dogs, error } = q
+    ? await base.ilike("name", `%${q}%`)
+    : await base;
 
   return (
     <div>
@@ -53,19 +56,33 @@ export default async function DogsPage({
 
       <SearchBar defaultValue={q} placeholder="Search by dog name…" />
 
-      {!dogs?.length ? (
+      {error ? <QueryErrorBanner /> : null}
+
+      {!error && !dogs?.length ? (
         <EmptyState message="No dogs found." />
-      ) : (
+      ) : !error && dogs?.length ? (
         <TableShell minWidth="42rem">
           <table className="min-w-full text-sm">
             <thead className="bg-stone-50 text-left text-stone-500">
               <tr>
-                <th className="px-4 py-3 font-medium">#</th>
-                <th className="px-4 py-3 font-medium">Dog</th>
-                <th className="px-4 py-3 font-medium">Owner</th>
-                <th className="px-4 py-3 font-medium">Window</th>
-                <th className="px-4 py-3 font-medium">Days</th>
-                <th className="px-4 py-3 font-medium">Status</th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  #
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Dog
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Owner
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Window
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Days
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -79,7 +96,10 @@ export default async function DogsPage({
                     | { owner_name: string }[]
                 );
                 const days = scheduleDays
-                  .map((d) => WEEKDAYS.find((w) => w.value === d.day_of_week)?.label)
+                  .map(
+                    (d) =>
+                      WEEKDAYS.find((w) => w.value === d.day_of_week)?.label
+                  )
                   .filter(Boolean)
                   .join(", ");
                 const scheduleLabel =
@@ -117,7 +137,7 @@ export default async function DogsPage({
             </tbody>
           </table>
         </TableShell>
-      )}
+      ) : null}
     </div>
   );
 }

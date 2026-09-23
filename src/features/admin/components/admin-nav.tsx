@@ -80,7 +80,9 @@ function NavDropdown({
   pathname: string;
   pendingRequestCount: number;
 }) {
-  const [open, setOpen] = useState(false);
+  // Open only while still on the path that opened the menu (closes on navigate).
+  const [openForPath, setOpenForPath] = useState<string | null>(null);
+  const open = openForPath === pathname;
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const active = isGroupActive(pathname, group);
@@ -91,11 +93,11 @@ function NavDropdown({
     if (!open) return;
     function onPointerDown(event: MouseEvent) {
       if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+        setOpenForPath(null);
       }
     }
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") setOpenForPath(null);
     }
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -105,10 +107,6 @@ function NavDropdown({
     };
   }, [open]);
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
   return (
     <div ref={rootRef} className="relative">
       <button
@@ -116,7 +114,9 @@ function NavDropdown({
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls={menuId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() =>
+          setOpenForPath((current) => (current === pathname ? null : pathname))
+        }
         className={`inline-flex items-center gap-1.5 ${
           active
             ? "rounded-[var(--radius-surface)] bg-[var(--color-trail-700)] px-3 py-2 font-medium text-white shadow-[var(--elevation-1)]"
@@ -158,7 +158,7 @@ function NavDropdown({
                     ? "bg-[var(--color-trail-50)] font-medium text-[var(--color-trail-800)]"
                     : "text-stone-700 motion-interactive hover:bg-white/60"
                 }`}
-                onClick={() => setOpen(false)}
+                onClick={() => setOpenForPath(null)}
               >
                 <span>{item.label}</span>
                 {item.showRequestBadge && pendingRequestCount > 0 ? (
@@ -275,16 +275,13 @@ type AdminNavProps = {
 
 export function AdminNav({ pendingRequestCount }: AdminNavProps) {
   const pathname = usePathname();
-  const [peopleOpen, setPeopleOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [peopleOpenFor, setPeopleOpenFor] = useState<string | null>(null);
+  const [moreOpenFor, setMoreOpenFor] = useState<string | null>(null);
+  const peopleOpen = peopleOpenFor === pathname;
+  const moreOpen = moreOpenFor === pathname;
 
   const peopleActive = isMobilePeopleActive(pathname);
   const moreActive = isMobileMoreActive(pathname);
-
-  useEffect(() => {
-    setPeopleOpen(false);
-    setMoreOpen(false);
-  }, [pathname]);
 
   return (
     <>
@@ -358,7 +355,7 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
 
           <button
             type="button"
-            onClick={() => setPeopleOpen(true)}
+            onClick={() => setPeopleOpenFor(pathname)}
             aria-expanded={peopleOpen}
             aria-haspopup="dialog"
             className={mobileTabClass(peopleActive)}
@@ -379,7 +376,7 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
 
           <button
             type="button"
-            onClick={() => setMoreOpen(true)}
+            onClick={() => setMoreOpenFor(pathname)}
             aria-expanded={moreOpen}
             aria-haspopup="dialog"
             className={mobileTabClass(moreActive)}
@@ -403,7 +400,7 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
       <MobileSheet
         title="People"
         open={peopleOpen}
-        onClose={() => setPeopleOpen(false)}
+        onClose={() => setPeopleOpenFor(null)}
       >
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {mobilePeopleNav.items.map((item) => {
@@ -414,7 +411,7 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={sheetLinkClass(active)}
-                onClick={() => setPeopleOpen(false)}
+                onClick={() => setPeopleOpenFor(null)}
               >
                 <NavLabel
                   item={item}
@@ -430,13 +427,13 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
       <MobileSheet
         title="More"
         open={moreOpen}
-        onClose={() => setMoreOpen(false)}
+        onClose={() => setMoreOpenFor(null)}
       >
         <MobileNavSections
           sections={mobileMoreSections}
           pathname={pathname}
           pendingRequestCount={pendingRequestCount}
-          onNavigate={() => setMoreOpen(false)}
+          onNavigate={() => setMoreOpenFor(null)}
         />
       </MobileSheet>
     </>

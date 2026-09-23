@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const DISMISS_KEY = "packroute-driver-install-dismissed";
 
@@ -18,18 +18,27 @@ function isIos(): boolean {
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
 }
 
-export function DriverInstallHint() {
-  const [visible, setVisible] = useState(false);
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
+}
 
-  useEffect(() => {
-    if (isStandalone()) return;
-    try {
-      if (localStorage.getItem(DISMISS_KEY) === "1") return;
-    } catch {
-      /* private mode */
-    }
-    setVisible(true);
-  }, []);
+function getSnapshot(): boolean {
+  if (isStandalone()) return false;
+  try {
+    if (localStorage.getItem(DISMISS_KEY) === "1") return false;
+  } catch {
+    /* private mode */
+  }
+  return true;
+}
+
+function getServerSnapshot(): boolean {
+  return false;
+}
+
+export function DriverInstallHint() {
+  const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   if (!visible) return null;
 
@@ -39,7 +48,7 @@ export function DriverInstallHint() {
     } catch {
       /* ignore */
     }
-    setVisible(false);
+    window.dispatchEvent(new Event("storage"));
   }
 
   return (

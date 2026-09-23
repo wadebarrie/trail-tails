@@ -14,6 +14,7 @@ import { requireRole } from "@/features/auth/queries";
 import { parseScheduleDays } from "@/lib/dates";
 import { optionalUuidLike, uuidLike } from "@/lib/validation";
 import { one } from "@/lib/supabase/relations";
+import { verifyCustomerInCompany, verifyRouteInCompany } from "@/lib/tenant";
 import type { DogScheduleType, ExceptionType } from "@/types";
 
 const dogSchema = z.object({
@@ -78,6 +79,22 @@ export async function createDogAction(
   const supabase = await createClient();
   const isAsNeeded = parsed.data.schedule_type === "as_needed";
   const routeId = isAsNeeded ? null : parsed.data.route_id;
+
+  const customerCheck = await verifyCustomerInCompany(
+    supabase,
+    parsed.data.customer_id,
+    profile.company_id
+  );
+  if (!customerCheck.ok) return { error: customerCheck.error };
+
+  if (routeId) {
+    const routeCheck = await verifyRouteInCompany(
+      supabase,
+      routeId,
+      profile.company_id
+    );
+    if (!routeCheck.ok) return { error: routeCheck.error };
+  }
 
   const sortOrder =
     routeId != null
@@ -153,6 +170,22 @@ export async function updateDogAction(
   const supabase = await createClient();
   const isAsNeeded = parsed.data.schedule_type === "as_needed";
   const routeId = isAsNeeded ? null : parsed.data.route_id;
+
+  const customerCheck = await verifyCustomerInCompany(
+    supabase,
+    parsed.data.customer_id,
+    profile.company_id
+  );
+  if (!customerCheck.ok) return { error: customerCheck.error };
+
+  if (routeId) {
+    const routeCheck = await verifyRouteInCompany(
+      supabase,
+      routeId,
+      profile.company_id
+    );
+    if (!routeCheck.ok) return { error: routeCheck.error };
+  }
 
   const { data: existing } = await supabase
     .from("dogs")

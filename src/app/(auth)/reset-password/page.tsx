@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ResetPasswordForm } from "@/features/auth/components/reset-password-form";
 import { AUTH_ROUTES } from "@/features/auth/constants";
