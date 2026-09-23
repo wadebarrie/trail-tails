@@ -16,7 +16,6 @@ import {
   type OnboardingProgress,
   type OnboardingStepId,
 } from "@/features/onboarding/constants";
-import { SubmitButton } from "@/features/admin/components/ui";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import {
   landingPrimaryButtonClassName,
@@ -244,9 +243,13 @@ export function OnboardingWizard({
                   />
                 </div>
               </div>
-              <SubmitButton pending={vehiclePending}>
-                Save and continue
-              </SubmitButton>
+              <button
+                type="submit"
+                disabled={vehiclePending}
+                className={`${landingPrimaryButtonClassName} w-full justify-center text-center disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                {vehiclePending ? "Saving…" : "Save and continue"}
+              </button>
             </form>
           )}
         </section>
@@ -474,9 +477,13 @@ export function OnboardingWizard({
                 className="mt-2"
               />
             </div>
-            <SubmitButton pending={companyPending}>
-              Save and finish
-            </SubmitButton>
+            <button
+              type="submit"
+              disabled={companyPending}
+              className={`${landingPrimaryButtonClassName} w-full justify-center text-center disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {companyPending ? "Saving…" : "Save and finish"}
+            </button>
           </form>
         </section>
       ) : null}
