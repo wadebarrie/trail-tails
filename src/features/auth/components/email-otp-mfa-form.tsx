@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { markAdminEmailMfaSatisfiedAction } from "@/features/auth/actions-email-mfa";
 import { authErrorMessage } from "@/features/auth/lib/auth-error-message";
 import { getLoginRedirect } from "@/features/auth/access";
 import { AUTH_ROUTES } from "@/features/auth/constants";
@@ -78,7 +77,7 @@ export function EmailOtpMfaForm({
     if (!options?.force && recentlySentOtp()) {
       setSentOnce(true);
       setInfo(
-        "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
+        "Check your email — enter the code if shown, or click the secure link in the same message."
       );
       return true;
     }
@@ -128,7 +127,7 @@ export function EmailOtpMfaForm({
         if (!ok) return;
         setSentOnce(true);
         setInfo(
-          "Check your email — use the 6-digit code if shown, or click the secure link in the same message."
+          "Check your email — enter the code if shown, or click the secure link in the same message."
         );
       } catch (err) {
         if (verifyingRef.current) return;
@@ -166,7 +165,7 @@ export function EmailOtpMfaForm({
       try {
         const trimmed = code.trim();
         if (!/^\d{6,8}$/.test(trimmed)) {
-          setError("Enter the 6-digit code from your email.");
+          setError("Enter the code from your email.");
           return;
         }
 
@@ -191,10 +190,19 @@ export function EmailOtpMfaForm({
           return;
         }
 
-        const result = await markAdminEmailMfaSatisfiedAction();
-        if (!result || result.ok !== true) {
+        const mfaRes = await fetch("/api/auth/mfa-email", {
+          method: "POST",
+          credentials: "same-origin",
+        });
+        let result: { ok?: boolean; error?: string } | null = null;
+        try {
+          result = (await mfaRes.json()) as { ok?: boolean; error?: string };
+        } catch {
+          result = null;
+        }
+        if (!mfaRes.ok || !result || result.ok !== true) {
           showError(
-            result && "error" in result ? result.error : null,
+            result?.error,
             "Could not finish sign-in. Try again."
           );
           return;
@@ -271,12 +279,12 @@ export function EmailOtpMfaForm({
     <form onSubmit={handleVerify} className="space-y-4" noValidate>
       <p className="text-sm text-stone-600">
         We emailed a one-time login confirmation. Enter the{" "}
-        <strong className="font-medium text-stone-800">6-digit code</strong> if
-        your email shows one, or{" "}
+        <strong className="font-medium text-stone-800">code</strong> from that
+        email (usually 8 digits), or{" "}
         <strong className="font-medium text-stone-800">
           click the secure link
         </strong>{" "}
-        in that same email — either finishes this step.
+        — either finishes this step.
       </p>
 
       {info ? (
