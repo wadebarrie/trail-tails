@@ -22,6 +22,7 @@ import {
   estimatePickupCompletionTime,
   isRouteDayInProgress,
   routeSummaryLabel,
+  vehicleSummaryLabel,
 } from "@/features/driver-actions/driver-greeting";
 import {
   dismissBriefingForDate,
@@ -149,6 +150,7 @@ function DriverDayShellInner({
       <DriverDailyBriefing
         greeting={driverGreeting(driverName, timeZone)}
         routeLabel={routeSummaryLabel(day)}
+        vehicleLabel={vehicleSummaryLabel(day)}
         dogCount={totalPickups}
         estimatedPickupCompletion={estimatedCompletion}
         notes={briefingNotes}

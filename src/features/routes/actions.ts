@@ -297,3 +297,56 @@ export async function assignRouteDriverAction(
 
   return { success: true };
 }
+
+export async function assignRouteVehicleAction(
+  routeId: string,
+  vehicleId: string | null
+) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  if (vehicleId) {
+    const { data: vehicle } = await supabase
+      .from("vehicles")
+      .select("id")
+      .eq("id", vehicleId)
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!vehicle) return { error: "Vehicle not found in your company." };
+  }
+
+  const { error } = await supabase
+    .from("routes")
+    .update({ default_vehicle_id: vehicleId })
+    .eq("id", routeId)
+    .eq("company_id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", profile.company_id)
+    .single();
+
+  const tz = company?.timezone ?? "America/Los_Angeles";
+  const today = getDateInTimezone(tz, 0);
+  const tomorrow = getDateInTimezone(tz, 1);
+
+  await supabase
+    .from("hikes")
+    .update({ vehicle_id: vehicleId })
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId)
+    .in("date", [today, tomorrow]);
+
+  revalidatePath("/dashboard/route");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
+
+  return { success: true };
+}

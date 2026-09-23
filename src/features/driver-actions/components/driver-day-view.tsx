@@ -53,9 +53,16 @@ export function DriverDayView({
         <div className="mt-8 space-y-12">
           {day.routes.map((route) => (
             <section key={route.hikeId}>
-              <h2 className="mb-4 text-lg font-semibold text-white/90">
-                {route.routeName}
-              </h2>
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-white/90">
+                  {route.routeName}
+                </h2>
+                <p className="mt-1 text-sm text-white/60">
+                  {route.vehicleLabel
+                    ? `Vehicle: ${route.vehicleLabel}`
+                    : "Vehicle: not assigned"}
+                </p>
+              </div>
               <div className="space-y-10">
                 <DriverPickupReorder
                   hikeId={route.hikeId}

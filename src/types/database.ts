@@ -117,6 +117,7 @@ export interface Route {
   sort_order: number;
   period: HikePeriod;
   default_driver_id: string | null;
+  default_vehicle_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -205,8 +206,20 @@ export interface Hike {
   date: string;
   period: HikePeriod;
   driver_id: string | null;
+  vehicle_id: string | null;
   status: HikeStatus;
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Vehicle {
+  id: string;
+  company_id: string;
+  name: string;
+  plate: string | null;
+  capacity: number | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -306,6 +319,7 @@ export interface Database {
       schedule_exceptions: TableDef<ScheduleException>;
       hikes: TableDef<Hike>;
       stops: TableDef<Stop>;
+      vehicles: TableDef<Vehicle>;
       pending_requests: TableDef<PendingRequest>;
       sms_messages: TableDef<SmsMessage>;
       notification_log: TableDef<NotificationLog>;

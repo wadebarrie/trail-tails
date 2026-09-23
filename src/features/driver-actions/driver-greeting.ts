@@ -63,6 +63,19 @@ export function routeSummaryLabel(day: DriverDayView): string {
   return `${day.routes.length} routes`;
 }
 
+export function vehicleSummaryLabel(day: DriverDayView): string | null {
+  const labels = [
+    ...new Set(
+      day.routes
+        .map((r) => r.vehicleLabel)
+        .filter((label): label is string => Boolean(label))
+    ),
+  ];
+  if (labels.length === 0) return null;
+  if (labels.length === 1) return labels[0];
+  return labels.join(" · ");
+}
+
 export function dayProgressMessage(day: DriverDayView): string | null {
   const totalPickups = countPickupStops(day);
   const donePickups = countCompletedPickups(day);

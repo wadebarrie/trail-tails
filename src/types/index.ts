@@ -25,6 +25,7 @@ export type {
   RequestStatus,
   NotificationType,
   Route,
+  Vehicle,
 } from "./database";
 
 export type { Database } from "./database";

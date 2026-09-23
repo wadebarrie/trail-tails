@@ -6,6 +6,7 @@ import type { DriverBriefingNote } from "@/features/driver-actions/briefing-note
 type DriverDailyBriefingProps = {
   greeting: string;
   routeLabel: string;
+  vehicleLabel: string | null;
   dogCount: number;
   estimatedPickupCompletion: string | null;
   notes: DriverBriefingNote[];
@@ -15,6 +16,7 @@ type DriverDailyBriefingProps = {
 export function DriverDailyBriefing({
   greeting,
   routeLabel,
+  vehicleLabel,
   dogCount,
   estimatedPickupCompletion,
   notes,
@@ -32,6 +34,15 @@ export function DriverDailyBriefing({
           <p className="mt-2 text-lg font-medium text-white">{routeLabel}</p>
           <p className="mt-1 text-3xl font-semibold tabular-nums text-white">
             {dogCount} {dogCount === 1 ? "dog" : "dogs"}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium uppercase tracking-widest text-white/45">
+            Vehicle
+          </p>
+          <p className="mt-2 text-lg font-medium text-white">
+            {vehicleLabel ?? "Not assigned yet — check with the office"}
           </p>
         </div>
 

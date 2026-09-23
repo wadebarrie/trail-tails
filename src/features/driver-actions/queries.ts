@@ -5,6 +5,7 @@ import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import { perfAsync } from "@/lib/perf";
 import { hikePeriodWalkLabel } from "@/features/hikes/hike-period";
+import { vehicleDisplayLabel } from "@/features/vehicles/schema";
 import type { StopStatus, StopType } from "@/types";
 
 export type DriverStopView = {
@@ -34,6 +35,7 @@ export type DriverRouteView = {
   routeId: string;
   routeName: string;
   hikeId: string;
+  vehicleLabel: string | null;
   pickups: DriverStopView[];
   dropoffs: DriverStopView[];
 };
@@ -158,10 +160,18 @@ export async function getDriverDayView(
       .map((entry) => {
         const rawStops = (entry.hike?.stops ?? []) as Record<string, unknown>[];
         const mapped = rawStops.map(mapStop).filter((s) => isActiveStop(s.status));
+        const vehicle = one(
+          entry.hike?.vehicles as
+            | { id: string; name: string; plate: string | null }
+            | { id: string; name: string; plate: string | null }[]
+            | null
+            | undefined
+        );
         return {
           routeId: entry.route.id,
           routeName: `${entry.route.name} — ${hikePeriodWalkLabel(entry.route.period)}`,
           hikeId: entry.hike!.id,
+          vehicleLabel: vehicle ? vehicleDisplayLabel(vehicle) : null,
           pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),
           dropoffs: sortStops(mapped.filter((s) => s.stopType === "dropoff")),
         };

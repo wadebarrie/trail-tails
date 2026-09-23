@@ -1,4 +1,5 @@
 import { DriverSelect } from "@/features/hikes/components/driver-select";
+import { VehicleSelect } from "@/features/hikes/components/vehicle-select";
 import {
   HikeAddAsNeededDogSelect,
   type AddableAsNeededDog,
@@ -12,16 +13,19 @@ import { hikePeriodWalkLabel } from "@/features/hikes/hike-period";
 import type { HikeWithRoute } from "@/features/hikes/queries";
 
 type Driver = { id: string; full_name: string };
+type VehicleOption = { id: string; name: string; plate: string | null };
 
 export function AdminHikeRouteSection({
   entry,
   drivers,
+  vehicles,
   dateLabel,
   date,
   addableAsNeededDogs = [],
 }: {
   entry: HikeWithRoute;
   drivers: Driver[];
+  vehicles: VehicleOption[];
   dateLabel?: string;
   date?: string;
   addableAsNeededDogs?: AddableAsNeededDog[];
@@ -53,11 +57,16 @@ export function AdminHikeRouteSection({
       </div>
 
       {hike ? (
-        <div className="mt-4 mb-6">
+        <div className="mt-4 mb-6 flex flex-wrap gap-x-6 gap-y-3">
           <DriverSelect
             hikeId={hike.id}
             currentDriverId={hike.driver_id}
             drivers={drivers}
+          />
+          <VehicleSelect
+            hikeId={hike.id}
+            currentVehicleId={hike.vehicle_id}
+            vehicles={vehicles}
           />
         </div>
       ) : null}
