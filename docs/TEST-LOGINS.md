@@ -15,7 +15,7 @@ Dev/test accounts only. Shared password for all users below.
 
 **Shortcuts**
 
-- Admin: `/login?role=admin` → `/dashboard` (TOTP MFA required on first login)
+- Admin: `/login?role=admin` → password → email OTP → `/dashboard`
 - Driver: `/login?role=driver` → `/today`
 - Platform owner: sign in as admin → **Owner** in header → `/owner` (superadmin analytics)
 

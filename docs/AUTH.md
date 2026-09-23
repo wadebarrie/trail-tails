@@ -8,9 +8,10 @@ PackRoute is **invite-only** during beta. Public signup is disabled in Supabase 
 |------|--------|
 | **Admin** | `/dashboard` — office dashboard |
 | **Driver** | `/today`, `/tomorrow`, `/help` — mobile driver view |
+| **Admin + driver** | Same person, one email: `role=admin` and `can_drive=true` — dashboard plus Driver view / `/today` |
 | **Platform owner** | `/owner` — create beta companies and send invites (you) |
 
-Role comes from `profiles.role`. Middleware enforces route access.
+Role comes from `profiles.role`. Company admins are created with `can_drive=true` by default so they can also run routes without a second account. Middleware enforces route access.
 
 ## Beta flow (new companies)
 
@@ -18,8 +19,8 @@ Role comes from `profiles.role`. Middleware enforces route access.
 2. Fill in company name, admin name/email, timezone → **Create company & invite**.
 3. Copy the one-time invite URL and send it to the new admin.
 4. Admin opens `/signup?token=…`, sets a password (12+ chars, letter + number).
-5. Admin signs in at `/login` and completes **TOTP MFA** setup on first login.
-6. On later logins, admin enters password then authenticator code.
+5. Admin signs in at `/login` and completes **email OTP** (one-time code) — no authenticator app required.
+6. On later logins, admin enters password then the email code again (or an authenticator code if they previously enrolled TOTP).
 
 Invites expire after **7 days** and can only be used once.
 
@@ -57,13 +58,21 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 
 **Migration:** `20250627160000_platform_analytics.sql` adds `companies.plan_tier`, `status`, `monthly_subscription_cents`, `trial_ends_at`, and `platform_cost_assumptions`.
 
-## Admin MFA (TOTP)
+## Admin MFA (email OTP)
 
 - Required for **admin** accounts only (drivers skip MFA).
-- Enroll at `/dashboard/mfa` (redirected automatically if not set up).
-- Uses Supabase Auth MFA (`totp` factor type).
-- Enable MFA in **Supabase Dashboard → Authentication → MFA** for each environment.
-- Set **Site URL** (and redirect allow-list) to the environment’s origin — `https://packroute.app` for production, plus staging/beta URLs when those deploys exist. See [ENVIRONMENTS.md](./ENVIRONMENTS.md). MFA QR labels use the app hostname via an explicit issuer, but Site URL should still match the deploy the admin is using.
+- Default second factor: **email one-time code** via Supabase Auth (`signInWithOtp` / `verifyOtp`).
+- Optional: existing **TOTP** authenticator enrollments still work (“Use authenticator app instead”).
+- App marks the browser session MFA-satisfied with an httpOnly cookie (`packroute_admin_mfa`) after a successful email OTP.
+- Supabase Dashboard → **Authentication → Email**: Magic Link template must include `{{ .Token }}` so OTP codes are sent (not only a magic link). See [Email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
+- Set **Site URL** (and redirect allow-list) to the environment’s origin — `https://packroute.app` for production, plus staging/beta URLs when those deploys exist. See [ENVIRONMENTS.md](./ENVIRONMENTS.md).
+
+### Optional cookie secret
+
+```bash
+# Strong random; falls back to hashing the service role key if unset
+ADMIN_MFA_COOKIE_SECRET=
+```
 
 ## Manual user creation (legacy / emergencies)
 
@@ -99,8 +108,8 @@ Users can request a reset from **Forgot password?** on the login page. Supabase 
 
 **Supabase setup required:**
 
-1. **Authentication → URL Configuration** — Site URL `https://packroute.app`
-2. **Redirect URLs** — include `https://packroute.app/auth/callback` (and `http://localhost:3000/auth/callback` for local dev)
+1. **Authentication → URL Configuration** — Site URL `https://packroute.app` (plus staging/beta origins when those deploys exist; see [ENVIRONMENTS.md](./ENVIRONMENTS.md))
+2. **Redirect URLs** — include `https://packroute.app/auth/callback` (and `http://localhost:3000/auth/callback` for local dev; add staging/beta callback URLs too)
 3. **Authentication → Email** — configure SMTP or use Supabase default mail for reset emails
 
 After reset, users sign in again. Admins must complete MFA as usual.

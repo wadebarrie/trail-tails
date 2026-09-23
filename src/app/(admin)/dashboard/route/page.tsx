@@ -7,9 +7,11 @@ import {
   CreateRouteForm,
   EditRouteForm,
 } from "@/features/routes/components/route-form";
+import { DeleteRouteButton } from "@/features/routes/components/delete-route-button";
 import { hikePeriodLabel } from "@/features/hikes/hike-period";
 import { getRouteScheduleDays, listRoutes } from "@/features/routes/queries";
 import { requireRole } from "@/features/auth/queries";
+import { listAssignableDrivers } from "@/features/drivers/queries";
 import { formatScheduleDayLabels } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
@@ -19,30 +21,23 @@ export default async function RouteOrderPage() {
   const supabase = await createClient();
   const routes = await listRoutes(profile.company_id);
 
-  const [{ data: dogs }, { data: drivers }, { data: vehicles }] =
-    await Promise.all([
-      supabase
-        .from("dogs")
-        .select(
-          "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
-        )
-        .eq("company_id", profile.company_id)
-        .eq("is_active", true)
-        .order("name"),
-      supabase
-        .from("profiles")
-        .select("id, full_name")
-        .eq("company_id", profile.company_id)
-        .eq("role", "driver")
-        .eq("is_active", true)
-        .order("full_name"),
-      supabase
-        .from("vehicles")
-        .select("id, name, plate")
-        .eq("company_id", profile.company_id)
-        .eq("is_active", true)
-        .order("name"),
-    ]);
+  const [{ data: dogs }, drivers, { data: vehicles }] = await Promise.all([
+    supabase
+      .from("dogs")
+      .select(
+        "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
+      )
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .order("name"),
+    listAssignableDrivers(profile.company_id, { activeOnly: true }),
+    supabase
+      .from("vehicles")
+      .select("id, name, plate")
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .order("name"),
+  ]);
 
   const allDogs = dogs ?? [];
 
@@ -125,7 +120,7 @@ export default async function RouteOrderPage() {
                     <RouteDriverSelect
                       routeId={route.id}
                       currentDriverId={route.default_driver_id}
-                      drivers={drivers ?? []}
+                      drivers={drivers}
                     />
                     <RouteVehicleSelect
                       routeId={route.id}
@@ -141,6 +136,14 @@ export default async function RouteOrderPage() {
                   defaultDays={scheduleDays}
                   defaultPeriod={route.period}
                 />
+
+                <div className="mt-4 flex justify-end border-t border-stone-100 pt-4">
+                  <DeleteRouteButton
+                    routeId={route.id}
+                    routeName={route.name}
+                    dogCount={routeDogs.length}
+                  />
+                </div>
 
                 <div className="mt-6 space-y-4 border-t border-stone-100 pt-4">
                   <h3 className="text-sm font-medium text-stone-700">Dogs</h3>

@@ -131,7 +131,8 @@ export async function updateRouteAction(
       period: parsed.data.period,
     })
     .eq("id", routeId)
-    .eq("company_id", profile.company_id);
+    .eq("company_id", profile.company_id)
+    .eq("is_active", true);
 
   if (error) return { error: error.message };
 
@@ -186,6 +187,7 @@ export async function addDogToRouteAction(routeId: string, dogId: string) {
     .select("id")
     .eq("id", routeId)
     .eq("company_id", profile.company_id)
+    .eq("is_active", true)
     .maybeSingle();
 
   if (!route) return { error: "Route not found" };
@@ -295,6 +297,83 @@ export async function assignRouteDriverAction(
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
 
+  return { success: true };
+}
+
+export async function deleteRouteAction(routeId: string) {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: route } = await supabase
+    .from("routes")
+    .select("id, name")
+    .eq("id", routeId)
+    .eq("company_id", profile.company_id)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!route) return { error: "Route not found" };
+
+  const { error: unassignError } = await supabase
+    .from("dogs")
+    .update({ route_id: null })
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId);
+
+  if (unassignError) return { error: unassignError.message };
+
+  const { error: assignmentError } = await supabase
+    .from("dog_day_assignments")
+    .delete()
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId);
+
+  if (assignmentError) return { error: assignmentError.message };
+
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", profile.company_id)
+    .single();
+
+  const tz = company?.timezone ?? "America/Los_Angeles";
+  const today = getDateInTimezone(tz, 0);
+
+  const { data: upcomingHikes } = await supabase
+    .from("hikes")
+    .select("id")
+    .eq("company_id", profile.company_id)
+    .eq("route_id", routeId)
+    .gte("date", today);
+
+  const hikeIds = (upcomingHikes ?? []).map((h) => h.id);
+  if (hikeIds.length > 0) {
+    const { error: cancelError } = await supabase
+      .from("stops")
+      .update({ status: "cancelled" })
+      .in("hike_id", hikeIds)
+      .eq("status", "scheduled");
+
+    if (cancelError) return { error: cancelError.message };
+  }
+
+  const { error } = await supabase
+    .from("routes")
+    .update({ is_active: false })
+    .eq("id", routeId)
+    .eq("company_id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  try {
+    await revalidateRoutesAndSync(supabase, profile.company_id);
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Route deleted but sync failed",
+    };
+  }
+
+  revalidatePath("/dashboard/dogs");
   return { success: true };
 }
 

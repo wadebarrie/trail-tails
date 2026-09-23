@@ -118,6 +118,7 @@ export interface Route {
   period: HikePeriod;
   default_driver_id: string | null;
   default_vehicle_id: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -138,6 +139,11 @@ export interface Customer {
   secondary_phone: string | null;
   email: string | null;
   address: string;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state_province: string | null;
+  postal_code: string | null;
   address_lat: number | null;
   address_lng: number | null;
   notes: string | null;

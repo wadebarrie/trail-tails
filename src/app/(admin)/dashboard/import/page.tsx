@@ -29,6 +29,7 @@ export default async function ImportPage() {
         .from("routes")
         .select("name")
         .eq("company_id", profile.company_id)
+        .eq("is_active", true)
         .order("name"),
     ]);
 

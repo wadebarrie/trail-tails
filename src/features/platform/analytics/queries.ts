@@ -654,7 +654,8 @@ export async function getCompanyDetail(
       supabase
         .from("routes")
         .select("id", { count: "exact", head: true })
-        .eq("company_id", companyId),
+        .eq("company_id", companyId)
+        .eq("is_active", true),
       supabase
         .from("customers")
         .select("id", { count: "exact", head: true })

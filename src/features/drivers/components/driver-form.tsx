@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type ComponentProps } from "react";
 import {
   createDriverAction,
   updateDriverAction,
@@ -9,7 +9,10 @@ import { SubmitButton } from "@/features/admin/components/ui";
 import type { Profile } from "@/types";
 
 type DriverFormProps = {
-  driver?: Pick<Profile, "id" | "full_name" | "phone" | "is_active">;
+  driver?: Pick<
+    Profile,
+    "id" | "full_name" | "phone" | "is_active" | "role" | "can_drive"
+  >;
   email?: string | null;
 };
 
@@ -22,8 +25,10 @@ export function DriverForm({ driver, email }: DriverFormProps) {
     error?: string;
   });
 
+  const isAdminDriver = driver?.role === "admin";
+
   return (
-    <form action={formAction} className="max-w-lg space-y-4">
+    <form action={formAction} className="max-w-lg space-y-4" noValidate>
       {state.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}
@@ -46,7 +51,9 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             {email ?? "—"}
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            Email is tied to the driver&apos;s login and cannot be changed here.
+            {isAdminDriver
+              ? "This is the same email used for the admin dashboard and driver app."
+              : "Email is tied to the driver’s login and cannot be changed here."}
           </p>
         </div>
       ) : (
@@ -55,8 +62,10 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             label="Login email"
             name="email"
             type="email"
+            inputMode="email"
             required
             autoComplete="off"
+            placeholder="driver@example.com"
           />
           <Field
             label="Temporary password"
@@ -66,7 +75,9 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             autoComplete="new-password"
           />
           <p className="-mt-2 text-xs text-stone-500">
-            Share this with the driver so they can sign in at the driver app.
+            Share this with the driver so they can sign in. If the email belongs
+            to a company admin, we enable driver access on that existing login
+            instead of creating a second account.
           </p>
         </>
       )}
@@ -75,7 +86,10 @@ export function DriverForm({ driver, email }: DriverFormProps) {
         label="Phone"
         name="phone"
         type="tel"
+        inputMode="tel"
         defaultValue={driver?.phone ?? ""}
+        placeholder="+1 604 555 0100"
+        hint="Optional. At least 10 digits if provided."
       />
 
       {driver ? (
@@ -87,6 +101,18 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             defaultChecked={driver.is_active}
           />
           Active
+        </label>
+      ) : null}
+
+      {isAdminDriver ? (
+        <label className="flex items-center gap-2 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            name="can_drive"
+            value="true"
+            defaultChecked={driver.can_drive}
+          />
+          Also drives (same login for Driver view / Today)
         </label>
       ) : null}
 
@@ -103,14 +129,20 @@ function Field({
   defaultValue,
   required,
   type = "text",
+  inputMode,
   autoComplete,
+  placeholder,
+  hint,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
   required?: boolean;
   type?: string;
+  inputMode?: ComponentProps<"input">["inputMode"];
   autoComplete?: string;
+  placeholder?: string;
+  hint?: string;
 }) {
   return (
     <div>
@@ -121,11 +153,14 @@ function Field({
         id={name}
         name={name}
         type={type}
+        inputMode={inputMode}
         defaultValue={defaultValue}
         required={required}
         autoComplete={autoComplete}
+        placeholder={placeholder}
         className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5"
       />
+      {hint ? <p className="mt-1 text-xs text-stone-500">{hint}</p> : null}
     </div>
   );
 }

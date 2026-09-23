@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { AUTH_ROUTES } from "@/features/auth/constants";
-import { getLoginRedirect } from "@/features/auth/access";
+import { getLoginRedirect, canAccessDriver } from "@/features/auth/access";
 import { getCurrentProfile } from "@/features/auth/queries";
 
 export default async function LoginPage({
@@ -20,7 +20,9 @@ export default async function LoginPage({
 
   if (profile?.is_active) {
     const driverHintNext =
-      role === "driver" && profile.can_drive ? AUTH_ROUTES.driverHome : undefined;
+      role === "driver" && canAccessDriver(profile)
+        ? AUTH_ROUTES.driverHome
+        : undefined;
     redirect(getLoginRedirect(profile, next ?? driverHintNext));
   }
 
