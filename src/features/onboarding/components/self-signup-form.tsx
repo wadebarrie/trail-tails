@@ -15,7 +15,10 @@ export function SelfSignupForm() {
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
-      {!state.ok && "error" in state && state.error ? (
+      {!state.ok &&
+      "error" in state &&
+      typeof state.error === "string" &&
+      state.error.trim() ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {state.error}
         </p>
