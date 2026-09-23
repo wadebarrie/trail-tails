@@ -17,24 +17,27 @@ export default async function EditDriverPage({
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, phone, is_active, role")
+    .select("id, full_name, phone, is_active, role, can_drive")
     .eq("id", id)
     .eq("company_id", profile.company_id)
-    .eq("role", "driver")
+    .or("role.eq.driver,and(role.eq.admin,can_drive.eq.true)")
     .maybeSingle();
 
   if (!data) notFound();
 
   const driver = data as Pick<
     Profile,
-    "id" | "full_name" | "phone" | "is_active"
+    "id" | "full_name" | "phone" | "is_active" | "role" | "can_drive"
   >;
   const email = await getDriverEmail(id);
 
   return (
     <div>
       <BackLink href="/dashboard/drivers">Back to drivers</BackLink>
-      <PageHeader title="Edit driver" description={driver.full_name} />
+      <PageHeader
+        title={driver.role === "admin" ? "Edit admin driver" : "Edit driver"}
+        description={driver.full_name}
+      />
       <DriverForm driver={driver} email={email} />
     </div>
   );

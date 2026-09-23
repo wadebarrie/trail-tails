@@ -134,8 +134,13 @@ export function OnboardingGuide() {
             <div>
               <dt className="font-medium text-stone-900">“Account already exists”</dt>
               <dd className="mt-0.5 text-stone-600">
-                They should sign in at /login instead. If they never finished MFA, they
-                will be prompted on login.
+                That email is already registered — sign in at{" "}
+                <code className="rounded bg-stone-100 px-1.5 py-0.5 text-xs">
+                  /login
+                </code>{" "}
+                instead. Company admins use the <strong>same login</strong> for the
+                driver app — enable yourself on <strong>Drivers</strong>, then use{" "}
+                <strong>Driver view</strong> in the header.
               </dd>
             </div>
             <div>
