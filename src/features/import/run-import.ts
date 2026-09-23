@@ -127,20 +127,21 @@ export async function runBulkImport(
           continue;
         }
 
+        const addressLine1 = record.customer_address.trim();
         const customerPayload = {
           owner_name: record.customer_owner_name.trim(),
           phone: record.customer_phone.trim(),
           ...secondaryContactPayload({
-            owner_name: record.customer_owner_name,
-            phone: record.customer_phone,
-            email: record.customer_email || "",
-            address: record.customer_address,
             secondary_owner_name: record.customer_secondary_owner_name || undefined,
             secondary_phone: record.customer_secondary_phone || undefined,
-            notes: record.customer_notes || undefined,
           }),
           email: record.customer_email?.trim() || null,
-          address: record.customer_address.trim(),
+          address_line1: addressLine1,
+          address_line2: null,
+          city: null,
+          state_province: null,
+          postal_code: null,
+          address: addressLine1,
           address_lat: coords.lat,
           address_lng: coords.lng,
           notes: record.customer_notes?.trim() || null,

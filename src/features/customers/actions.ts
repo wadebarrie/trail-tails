@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
+import { formatCustomerAddress } from "@/lib/address";
 import { resolveCustomerCoordinates } from "@/lib/google-maps/geocode";
 import {
   customerSchema,
@@ -26,12 +27,18 @@ function parseCustomerForm(formData: FormData, mode: "create" | "update") {
 }
 
 function customerInsertPayload(data: CustomerFormData) {
+  const composed = formatCustomerAddress(data);
   return {
     owner_name: data.owner_name,
     phone: data.phone,
     ...secondaryContactPayload(data),
     email: data.email || null,
-    address: data.address,
+    address_line1: data.address_line1,
+    address_line2: data.address_line2?.trim() || null,
+    city: data.city,
+    state_province: data.state_province,
+    postal_code: data.postal_code,
+    address: composed,
     notes: data.notes || null,
     is_active: data.is_active ?? true,
     night_before_reminders_enabled: data.night_before_reminders_enabled ?? true,
@@ -49,7 +56,8 @@ export async function createCustomerAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  const coords = await resolveCustomerCoordinates(parsed.data.address);
+  const composed = formatCustomerAddress(parsed.data);
+  const coords = await resolveCustomerCoordinates(composed);
   if (!coords.ok) return { error: coords.error };
 
   const supabase = await createClient();
@@ -85,7 +93,8 @@ export async function updateCustomerAction(
     .eq("id", id)
     .maybeSingle();
 
-  const coords = await resolveCustomerCoordinates(parsed.data.address, existing);
+  const composed = formatCustomerAddress(parsed.data);
+  const coords = await resolveCustomerCoordinates(composed, existing);
   if (!coords.ok) return { error: coords.error };
 
   const { error } = await supabase
