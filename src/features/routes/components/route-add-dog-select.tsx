@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState, useTransition } from "react";
 import { addDogToRouteAction } from "@/features/routes/actions";
 
 export type AddableDog = {
@@ -16,10 +17,22 @@ export function RouteAddDogSelect({
   routeId: string;
   dogs: AddableDog[];
 }) {
-  async function add(formData: FormData) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function add(formData: FormData) {
     const dogId = String(formData.get("dog_id") ?? "");
-    if (!dogId) return;
-    await addDogToRouteAction(routeId, dogId);
+    if (!dogId || pending) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await addDogToRouteAction(routeId, dogId);
+      if (result && "error" in result && result.error) {
+        setError(result.error);
+        return;
+      }
+      formRef.current?.reset();
+    });
   }
 
   if (!dogs.length) {
@@ -31,7 +44,7 @@ export function RouteAddDogSelect({
   }
 
   return (
-    <form action={add} className="flex flex-wrap items-end gap-2">
+    <form ref={formRef} action={add} className="flex flex-wrap items-end gap-2">
       <div className="min-w-[12rem] flex-1">
         <label
           htmlFor={`add-dog-${routeId}`}
@@ -44,7 +57,8 @@ export function RouteAddDogSelect({
           name="dog_id"
           required
           defaultValue=""
-          className="mt-1 w-full rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+          disabled={pending}
+          className="mt-1 w-full rounded-lg border border-stone-300 px-2 py-1.5 text-sm disabled:opacity-60"
         >
           <option value="" disabled>
             Select a dog…
@@ -62,10 +76,16 @@ export function RouteAddDogSelect({
       </div>
       <button
         type="submit"
-        className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+        disabled={pending}
+        className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
       >
-        Add
+        {pending ? "Adding…" : "Add"}
       </button>
+      {error ? (
+        <p className="w-full text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
     </form>
   );
 }

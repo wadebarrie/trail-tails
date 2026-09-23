@@ -7,23 +7,35 @@ export async function applyStopReorder(
   stopType: "pickup" | "dropoff",
   orderedStopIds: string[]
 ): Promise<string | null> {
-  for (let i = 0; i < orderedStopIds.length; i++) {
-    const { error } = await supabase
-      .from("stops")
-      .update({ sort_order: 1000 + i })
-      .eq("id", orderedStopIds[i])
-      .eq("hike_id", hikeId)
-      .eq("stop_type", stopType);
+  if (orderedStopIds.length === 0) return null;
+
+  // Phase 1: park all rows in a high range (parallel).
+  const phase1 = await Promise.all(
+    orderedStopIds.map((id, i) =>
+      supabase
+        .from("stops")
+        .update({ sort_order: 1000 + i })
+        .eq("id", id)
+        .eq("hike_id", hikeId)
+        .eq("stop_type", stopType)
+    )
+  );
+  for (const { error } of phase1) {
     if (error) return error.message;
   }
 
-  for (let i = 0; i < orderedStopIds.length; i++) {
-    const { error } = await supabase
-      .from("stops")
-      .update({ sort_order: i })
-      .eq("id", orderedStopIds[i])
-      .eq("hike_id", hikeId)
-      .eq("stop_type", stopType);
+  // Phase 2: write final 0..n-1 order (parallel).
+  const phase2 = await Promise.all(
+    orderedStopIds.map((id, i) =>
+      supabase
+        .from("stops")
+        .update({ sort_order: i })
+        .eq("id", id)
+        .eq("hike_id", hikeId)
+        .eq("stop_type", stopType)
+    )
+  );
+  for (const { error } of phase2) {
     if (error) return error.message;
   }
 
