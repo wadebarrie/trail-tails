@@ -18,17 +18,12 @@ export function AdminMfaGate({ status, children }: AdminMfaGateProps) {
   useEffect(() => {
     if (onMfaPage) return;
 
-    if (!status.enrolled) {
-      router.replace(`${AUTH_ROUTES.adminMfa}?setup=1`);
-      return;
-    }
-
     if (status.needsVerify) {
       router.replace(`${AUTH_ROUTES.adminMfa}?verify=1`);
     }
-  }, [onMfaPage, status.enrolled, status.needsVerify, router]);
+  }, [onMfaPage, status.needsVerify, router]);
 
-  if (!onMfaPage && (!status.enrolled || status.needsVerify)) {
+  if (!onMfaPage && status.needsVerify) {
     return (
       <div className="py-12 text-center text-sm text-stone-500">
         Checking security settings…
