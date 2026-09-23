@@ -1,4 +1,7 @@
-import { DEFAULT_TRIAL_DAYS } from "@/features/subscription/constants";
+import {
+  DEFAULT_TRIAL_DAYS,
+  TRIAL_EXPIRING_BANNER_DAYS,
+} from "@/features/subscription/constants";
 import type { SubscriptionLike } from "@/features/subscription/types";
 
 const MS_PER_DAY = 86_400_000;
@@ -49,6 +52,16 @@ export function daysRemainingInTrial(
   return Math.ceil(
     (new Date(subscription.trial_ends_at).getTime() - now.getTime()) / MS_PER_DAY
   );
+}
+
+/** True when trial is active and within the reminder window (including ends today). */
+export function shouldShowTrialExpiringBanner(
+  subscription: SubscriptionLike,
+  now = new Date(),
+  withinDays = TRIAL_EXPIRING_BANNER_DAYS
+): boolean {
+  const remaining = daysRemainingInTrial(subscription, now);
+  return remaining !== null && remaining >= 0 && remaining <= withinDays;
 }
 
 export function trialHasExpired(
