@@ -5,6 +5,7 @@ import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-ro
 import { SyncRoutesButton } from "@/features/hikes/components/sync-routes-button";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { listAddableAsNeededDogsForRouteDate } from "@/features/dogs/queries";
+import { listAssignableDrivers } from "@/features/drivers/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 
@@ -18,14 +19,8 @@ export default async function TodayHikesPage() {
     timeZone: tz,
   });
 
-  const [{ data: drivers }, { data: vehicles }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, full_name")
-      .eq("company_id", profile.company_id)
-      .eq("role", "driver")
-      .eq("is_active", true)
-      .order("full_name"),
+  const [drivers, { data: vehicles }] = await Promise.all([
+    listAssignableDrivers(profile.company_id, { activeOnly: true }),
     supabase
       .from("vehicles")
       .select("id, name, plate")
@@ -64,7 +59,7 @@ export default async function TodayHikesPage() {
             <AdminHikeRouteSection
               key={entry.route.id}
               entry={entry}
-              drivers={drivers ?? []}
+              drivers={drivers}
               vehicles={vehicles ?? []}
               date={date}
               addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}

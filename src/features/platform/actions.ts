@@ -147,6 +147,8 @@ export async function acceptInviteAction(
       company_id: invite.company_id,
       role: invite.role,
       full_name: invite.full_name ?? invite.email.split("@")[0],
+      // Same login for office dashboard + driver Today view
+      can_drive: invite.role === "admin",
     },
   });
 

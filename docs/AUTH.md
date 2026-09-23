@@ -8,9 +8,10 @@ PackRoute is **invite-only** during beta. Public signup is disabled in Supabase 
 |------|--------|
 | **Admin** | `/dashboard` — office dashboard |
 | **Driver** | `/today`, `/tomorrow`, `/help` — mobile driver view |
+| **Admin + driver** | Same person, one email: `role=admin` and `can_drive=true` — dashboard plus Driver view / `/today` |
 | **Platform owner** | `/owner` — create beta companies and send invites (you) |
 
-Role comes from `profiles.role`. Middleware enforces route access.
+Role comes from `profiles.role`. Company admins are created with `can_drive=true` by default so they can also run routes without a second account. Middleware enforces route access.
 
 ## Beta flow (new companies)
 

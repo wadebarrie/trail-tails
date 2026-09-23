@@ -9,7 +9,10 @@ import { SubmitButton } from "@/features/admin/components/ui";
 import type { Profile } from "@/types";
 
 type DriverFormProps = {
-  driver?: Pick<Profile, "id" | "full_name" | "phone" | "is_active">;
+  driver?: Pick<
+    Profile,
+    "id" | "full_name" | "phone" | "is_active" | "role" | "can_drive"
+  >;
   email?: string | null;
 };
 
@@ -21,6 +24,8 @@ export function DriverForm({ driver, email }: DriverFormProps) {
   const [state, formAction, pending] = useActionState(action, {} as {
     error?: string;
   });
+
+  const isAdminDriver = driver?.role === "admin";
 
   return (
     <form action={formAction} className="max-w-lg space-y-4">
@@ -46,7 +51,9 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             {email ?? "—"}
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            Email is tied to the driver&apos;s login and cannot be changed here.
+            {isAdminDriver
+              ? "This is the same email used for the admin dashboard and driver app."
+              : "Email is tied to the driver’s login and cannot be changed here."}
           </p>
         </div>
       ) : (
@@ -66,7 +73,9 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             autoComplete="new-password"
           />
           <p className="-mt-2 text-xs text-stone-500">
-            Share this with the driver so they can sign in at the driver app.
+            Share this with the driver so they can sign in. If the email belongs
+            to a company admin, we enable driver access on that existing login
+            instead of creating a second account.
           </p>
         </>
       )}
@@ -87,6 +96,18 @@ export function DriverForm({ driver, email }: DriverFormProps) {
             defaultChecked={driver.is_active}
           />
           Active
+        </label>
+      ) : null}
+
+      {isAdminDriver ? (
+        <label className="flex items-center gap-2 text-sm text-stone-700">
+          <input
+            type="checkbox"
+            name="can_drive"
+            value="true"
+            defaultChecked={driver.can_drive}
+          />
+          Also drives (same login for Driver view / Today)
         </label>
       ) : null}
 

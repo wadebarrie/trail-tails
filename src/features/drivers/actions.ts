@@ -15,6 +15,43 @@ function normalizePhone(phone: string | undefined) {
   return trimmed ? trimmed : null;
 }
 
+function isEmailTakenError(message: string | undefined) {
+  const lower = message?.toLowerCase() ?? "";
+  return (
+    lower.includes("already") ||
+    lower.includes("registered") ||
+    lower.includes("exists")
+  );
+}
+
+async function findAuthUserIdByEmail(
+  service: ReturnType<typeof createServiceClient>,
+  email: string
+): Promise<string | null> {
+  const target = email.trim().toLowerCase();
+  let page = 1;
+  for (;;) {
+    const { data, error } = await service.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+    if (error || !data?.users?.length) return null;
+    const match = data.users.find((u) => u.email?.toLowerCase() === target);
+    if (match) return match.id;
+    if (data.users.length < 200) return null;
+    page += 1;
+    if (page > 20) return null;
+  }
+}
+
+function revalidateDriverPaths(driverId?: string) {
+  revalidatePath("/dashboard/drivers");
+  if (driverId) revalidatePath(`/dashboard/drivers/${driverId}`);
+  revalidatePath("/dashboard/route");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+}
+
 export async function createDriverAction(
   _prev: { error?: string },
   formData: FormData
@@ -26,10 +63,11 @@ export async function createDriverAction(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
+  const email = parsed.data.email.trim().toLowerCase();
   const service = createServiceClient();
   const { data: authData, error: authError } =
     await service.auth.admin.createUser({
-      email: parsed.data.email,
+      email,
       password: parsed.data.password,
       email_confirm: true,
       user_metadata: {
@@ -40,6 +78,43 @@ export async function createDriverAction(
     });
 
   if (authError || !authData.user) {
+    if (isEmailTakenError(authError?.message)) {
+      const existingId = await findAuthUserIdByEmail(service, email);
+      if (existingId) {
+        const { data: existingProfile } = await service
+          .from("profiles")
+          .select("id, role, company_id, can_drive")
+          .eq("id", existingId)
+          .maybeSingle();
+
+        if (
+          existingProfile &&
+          existingProfile.company_id === profile.company_id &&
+          existingProfile.role === "admin"
+        ) {
+          const phone = normalizePhone(parsed.data.phone);
+          const { error: enableError } = await service
+            .from("profiles")
+            .update({
+              can_drive: true,
+              full_name: parsed.data.full_name,
+              ...(phone ? { phone } : {}),
+              is_active: true,
+            })
+            .eq("id", existingId);
+
+          if (enableError) return { error: enableError.message };
+
+          revalidateDriverPaths(existingId);
+          redirect("/dashboard/drivers");
+        }
+      }
+
+      return {
+        error:
+          "That email already has an account. Company admins use the same login for the driver app — enable “Also drives” on their profile, or sign in as that admin.",
+      };
+    }
     return { error: authError?.message ?? "Failed to create driver account." };
   }
 
@@ -56,10 +131,7 @@ export async function createDriverAction(
     }
   }
 
-  revalidatePath("/dashboard/drivers");
-  revalidatePath("/dashboard/route");
-  revalidatePath("/dashboard/hikes/today");
-  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidateDriverPaths();
   redirect("/dashboard/drivers");
 }
 
@@ -78,23 +150,36 @@ export async function updateDriverAction(
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, role, company_id")
+    .select("id, role, company_id, can_drive")
     .eq("id", id)
     .eq("company_id", profile.company_id)
     .maybeSingle();
 
-  if (!existing || existing.role !== "driver") {
+  const isDriverRow = existing?.role === "driver";
+  const isDrivingAdmin =
+    existing?.role === "admin" && existing.can_drive === true;
+
+  if (!existing || (!isDriverRow && !isDrivingAdmin)) {
     return { error: "Driver not found." };
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      full_name: parsed.data.full_name,
-      phone: normalizePhone(parsed.data.phone),
-      is_active: formData.has("is_active"),
-    })
-    .eq("id", id);
+  const updates: {
+    full_name: string;
+    phone: string | null;
+    is_active: boolean;
+    can_drive?: boolean;
+  } = {
+    full_name: parsed.data.full_name,
+    phone: normalizePhone(parsed.data.phone),
+    is_active: formData.has("is_active"),
+  };
+
+  if (existing.role === "admin") {
+    // Admins stay admins; toggling off removes them from the driver roster.
+    updates.can_drive = formData.has("can_drive");
+  }
+
+  const { error } = await supabase.from("profiles").update(updates).eq("id", id);
 
   if (error) return { error: error.message };
 
@@ -103,12 +188,28 @@ export async function updateDriverAction(
     user_metadata: { full_name: parsed.data.full_name },
   });
 
-  revalidatePath("/dashboard/drivers");
-  revalidatePath(`/dashboard/drivers/${id}`);
-  revalidatePath("/dashboard/route");
-  revalidatePath("/dashboard/hikes/today");
-  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidateDriverPaths(id);
   redirect("/dashboard/drivers");
+}
+
+/** Enable the signed-in company admin to use /today with the same login. */
+export async function enableSelfAsDriverAction(): Promise<{ error?: string }> {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ can_drive: true })
+    .eq("id", profile.id)
+    .eq("company_id", profile.company_id)
+    .eq("role", "admin");
+
+  if (error) return { error: error.message };
+
+  revalidateDriverPaths(profile.id);
+  revalidatePath("/today");
+  revalidatePath("/dashboard");
+  return {};
 }
 
 export async function getDriverEmail(driverId: string): Promise<string | null> {
