@@ -69,15 +69,21 @@ export function CustomerForm({ customer }: CustomerFormProps) {
       </div>
       <div>
         <label htmlFor="notes" className="block text-sm font-medium text-stone-700">
-          Notes
+          Pickup instructions
         </label>
         <textarea
           id="notes"
           name="notes"
-          rows={3}
+          rows={4}
           defaultValue={customer?.notes ?? ""}
+          placeholder="Gate code, buzzer #, key location, parking, which door…"
           className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
         />
+        <p className="mt-1 text-xs text-stone-500">
+          Shown to hikers on the driver app when they open this stop. Include
+          anything needed to get the dog — gate codes, apartment buzzers, spare
+          key spots, parking notes.
+        </p>
       </div>
       <label className="flex items-start gap-2 text-sm text-stone-700">
         <input

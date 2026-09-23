@@ -153,17 +153,26 @@ export function DriverCustomerInfoSheet({
             </InfoRow>
           ) : null}
 
-          {stop.customerNotes ? (
-            <InfoRow label="Customer notes">
-              <p className="whitespace-pre-wrap text-white/85">{stop.customerNotes}</p>
-            </InfoRow>
-          ) : null}
+          <InfoRow label="Pickup instructions">
+            {stop.customerNotes ? (
+              <p className="whitespace-pre-wrap text-white/85">
+                {stop.customerNotes}
+              </p>
+            ) : (
+              <p className="text-white/45">
+                None on file — ask the office if you need a gate code, buzzer, or
+                key location.
+              </p>
+            )}
+          </InfoRow>
 
-          {stop.dogNotes ? (
-            <InfoRow label="Dog notes">
+          <InfoRow label="Dog notes">
+            {stop.dogNotes ? (
               <p className="whitespace-pre-wrap text-white/85">{stop.dogNotes}</p>
-            </InfoRow>
-          ) : null}
+            ) : (
+              <p className="text-white/45">No dog-specific notes.</p>
+            )}
+          </InfoRow>
         </dl>
 
         {directionsUrl ? (

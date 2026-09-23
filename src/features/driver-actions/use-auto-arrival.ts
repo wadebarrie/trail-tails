@@ -123,184 +123,172 @@ export function useAutoArrival({
 
   useWakeLock(enabled);
 
-  useEffect(() => {
-    let cancelled = false;
-    let watchId: number | undefined;
-    let pollId: number | undefined;
-    let handleVisibilityChange: (() => void) | undefined;
-    let handlePageShow: ((event: PageTransitionEvent) => void) | undefined;
+  const destLat = destination?.lat ?? null;
+  const destLng = destination?.lng ?? null;
+  const originLat = origin?.lat ?? null;
+  const originLng = origin?.lng ?? null;
 
+  useEffect(() => {
     triggeredRef.current = false;
     initialDistanceRef.current = null;
     maxProgressRef.current = 0;
 
-    // Defer React state work — setState synchronously in an effect trips the linter.
-    queueMicrotask(() => {
-      if (cancelled) return;
+    // Geolocation subscription: reset + start watchers when the stop/coords change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset when enabling a watch
+    setDistanceMetersAway(null);
+    setTravelProgress(null);
+    setLocationStatus("idle");
 
-      setDistanceMetersAway(null);
-      setTravelProgress(null);
-      setLocationStatus("idle");
+    if (!enabled || destLat == null || destLng == null) return;
+    if (!navigator.geolocation) {
+      setLocationStatus("unavailable");
+      return;
+    }
 
-      if (!enabled || !destination) return;
-      if (!navigator.geolocation) {
-        setLocationStatus("unavailable");
-        return;
-      }
+    const dest = { lat: destLat, lng: destLng };
+    const originPoint =
+      originLat != null && originLng != null
+        ? { lat: originLat, lng: originLng }
+        : null;
 
-      const dest = destination;
-      const stored = readStoredTravel(stopId);
-      if (stored) {
-        initialDistanceRef.current = stored.initialDistance;
-        maxProgressRef.current = stored.maxProgress;
-        setTravelProgress(stored.maxProgress);
-      } else if (origin) {
+    const stored = readStoredTravel(stopId);
+    if (stored) {
+      initialDistanceRef.current = stored.initialDistance;
+      maxProgressRef.current = stored.maxProgress;
+      setTravelProgress(stored.maxProgress);
+    } else if (originPoint) {
+      initialDistanceRef.current = resolveInitialDistance(
+        dest,
+        originPoint,
+        null,
+        0
+      );
+    }
+
+    setLocationStatus("requesting");
+
+    let cancelled = false;
+
+    function persistProgress(initialDistance: number, maxProgress: number) {
+      writeStoredTravel(stopId, { initialDistance, maxProgress });
+    }
+
+    function applyPosition(latitude: number, longitude: number) {
+      if (triggeredRef.current || cancelled) return;
+
+      const distance = distanceMeters(
+        latitude,
+        longitude,
+        dest.lat,
+        dest.lng
+      );
+      setDistanceMetersAway(distance);
+      setLocationStatus("watching");
+
+      if (
+        initialDistanceRef.current == null ||
+        initialDistanceRef.current <= 0
+      ) {
         initialDistanceRef.current = resolveInitialDistance(
           dest,
-          origin,
-          null,
-          0
+          originPoint,
+          stored,
+          distance
+        );
+      } else {
+        initialDistanceRef.current = Math.max(
+          initialDistanceRef.current,
+          distance
         );
       }
 
-      setLocationStatus("requesting");
+      const progress = travelProgressToArrival(
+        distance,
+        initialDistanceRef.current
+      );
+      const maxProgress = Math.max(maxProgressRef.current, progress);
+      maxProgressRef.current = maxProgress;
+      setTravelProgress(maxProgress);
+      persistProgress(initialDistanceRef.current, maxProgress);
 
-      function persistProgress(initialDistance: number, maxProgress: number) {
-        writeStoredTravel(stopId, { initialDistance, maxProgress });
-      }
-
-      function applyPosition(latitude: number, longitude: number) {
-        if (triggeredRef.current || cancelled) return;
-
-        const distance = distanceMeters(
+      if (
+        isWithinArrivalRadius(
           latitude,
           longitude,
           dest.lat,
-          dest.lng
-        );
-        setDistanceMetersAway(distance);
-        setLocationStatus("watching");
-
-        if (
-          initialDistanceRef.current == null ||
-          initialDistanceRef.current <= 0
-        ) {
-          initialDistanceRef.current = resolveInitialDistance(
-            dest,
-            origin,
-            stored,
-            distance
-          );
-        } else {
-          initialDistanceRef.current = Math.max(
-            initialDistanceRef.current,
-            distance
-          );
-        }
-
-        const progress = travelProgressToArrival(
-          distance,
-          initialDistanceRef.current
-        );
-        const maxProgress = Math.max(maxProgressRef.current, progress);
-        maxProgressRef.current = maxProgress;
-        setTravelProgress(maxProgress);
-        persistProgress(initialDistanceRef.current, maxProgress);
-
-        if (
-          isWithinArrivalRadius(
-            latitude,
-            longitude,
-            dest.lat,
-            dest.lng,
-            ARRIVAL_RADIUS_METERS
-          )
-        ) {
-          triggeredRef.current = true;
-          maxProgressRef.current = 1;
-          setTravelProgress(1);
-          persistProgress(initialDistanceRef.current, 1);
-          clearStoredTravel(stopId);
-          onArriveRef.current();
-        }
+          dest.lng,
+          ARRIVAL_RADIUS_METERS
+        )
+      ) {
+        triggeredRef.current = true;
+        maxProgressRef.current = 1;
+        setTravelProgress(1);
+        persistProgress(initialDistanceRef.current, 1);
+        clearStoredTravel(stopId);
+        onArriveRef.current();
       }
+    }
 
-      function handleError(error: GeolocationPositionError) {
-        if (cancelled) return;
-        if (error.code === error.PERMISSION_DENIED) {
-          setLocationStatus("denied");
-          return;
-        }
-        if (error.code === error.POSITION_UNAVAILABLE) {
-          setLocationStatus("unavailable");
-        }
+    function handleError(error: GeolocationPositionError) {
+      if (cancelled) return;
+      if (error.code === error.PERMISSION_DENIED) {
+        setLocationStatus("denied");
+        return;
       }
-
-      function requestImmediatePosition() {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
-          handleError,
-          { ...GEO_OPTIONS, maximumAge: 0 }
-        );
+      if (error.code === error.POSITION_UNAVAILABLE) {
+        setLocationStatus("unavailable");
       }
+      // TIMEOUT — keep last reading; poll + watch will retry
+    }
 
-      handleVisibilityChange = () => {
-        if (document.visibilityState === "visible") {
-          requestImmediatePosition();
-        }
-      };
-
-      handlePageShow = (event: PageTransitionEvent) => {
-        if (event.persisted) {
-          requestImmediatePosition();
-        }
-      };
-
-      watchId = navigator.geolocation.watchPosition(
+    function requestImmediatePosition() {
+      navigator.geolocation.getCurrentPosition(
         (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
         handleError,
+        { ...GEO_OPTIONS, maximumAge: 0 }
+      );
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        requestImmediatePosition();
+      }
+    }
+
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) {
+        requestImmediatePosition();
+      }
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
+      handleError,
+      GEO_OPTIONS
+    );
+
+    const pollId = window.setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
+        () => {
+          /* watch handles errors; poll is best-effort */
+        },
         GEO_OPTIONS
       );
+    }, POLL_MS);
 
-      pollId = window.setInterval(() => {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => applyPosition(pos.coords.latitude, pos.coords.longitude),
-          () => {
-            /* watch handles errors; poll is best-effort */
-          },
-          GEO_OPTIONS
-        );
-      }, POLL_MS);
-
-      requestImmediatePosition();
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-      window.addEventListener("pageshow", handlePageShow);
-    });
+    requestImmediatePosition();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pageshow", handlePageShow);
 
     return () => {
       cancelled = true;
-      if (watchId != null) navigator.geolocation.clearWatch(watchId);
-      if (pollId != null) window.clearInterval(pollId);
-      if (handleVisibilityChange) {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
-      }
-      if (handlePageShow) {
-        window.removeEventListener("pageshow", handlePageShow);
-      }
+      navigator.geolocation.clearWatch(watchId);
+      window.clearInterval(pollId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pageshow", handlePageShow);
     };
-  }, [
-    enabled,
-    destination,
-    destination?.lat,
-    destination?.lng,
-    origin,
-    origin?.lat,
-    origin?.lng,
-    stopId,
-  ]);
+  }, [enabled, destLat, destLng, originLat, originLng, stopId]);
 
   useEffect(() => {
     if (!enabled) {
