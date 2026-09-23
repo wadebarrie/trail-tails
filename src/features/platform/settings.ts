@@ -45,6 +45,10 @@ export async function getPlatformSettings(): Promise<PlatformSettings> {
 
 /** Used by signup and invite actions — defaults to enabled if unset. */
 export async function areInvitesEnabled(): Promise<boolean> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
+    return DEFAULT_SETTINGS.invites_enabled;
+  }
+
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
@@ -59,6 +63,11 @@ export async function areInvitesEnabled(): Promise<boolean> {
 
 /** Public self-serve company signup (no invite token). Defaults off. */
 export async function isSelfSignupEnabled(): Promise<boolean> {
+  // Build/CI often lack the service role — fail closed (no public signup CTA).
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
+    return DEFAULT_SETTINGS.self_signup_enabled;
+  }
+
   const supabase = createServiceClient();
 
   const { data, error } = await supabase
