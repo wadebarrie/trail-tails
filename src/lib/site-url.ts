@@ -1,3 +1,5 @@
+import { getAppEnv, isProductionApp } from "@/lib/app-env";
+
 /**
  * Canonical public site URL for SEO, sitemap, Open Graph, and invite links.
  */
@@ -5,8 +7,18 @@ export function getSiteUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   }
+  // Netlify provides URL / DEPLOY_PRIME_URL on hosted deploys.
+  const netlifyUrl =
+    process.env.URL?.replace(/\/$/, "") ||
+    process.env.DEPLOY_PRIME_URL?.replace(/\/$/, "");
+  if (netlifyUrl?.startsWith("http")) {
+    return netlifyUrl;
+  }
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
+  }
+  if (getAppEnv() === "development") {
+    return "http://localhost:3000";
   }
   return "http://localhost:3000";
 }
@@ -34,3 +46,6 @@ export function getAuthCallbackUrl(nextPath: string): string {
   url.searchParams.set("next", nextPath);
   return url.toString();
 }
+
+/** Re-export for callers that need production checks beside URLs. */
+export { isProductionApp };

@@ -62,8 +62,8 @@ Platform-owner only (not visible to tenant admins). Uses service-role queries �
 - Required for **admin** accounts only (drivers skip MFA).
 - Enroll at `/dashboard/mfa` (redirected automatically if not set up).
 - Uses Supabase Auth MFA (`totp` factor type).
-- Enable MFA in **Supabase Dashboard → Authentication → MFA** for production.
-- Set **Site URL** to `https://packroute.app` (Authentication → URL Configuration) so redirects and email links use the correct domain. MFA QR labels use the app hostname via an explicit issuer, but Site URL should still match production.
+- Enable MFA in **Supabase Dashboard → Authentication → MFA** for each environment.
+- Set **Site URL** (and redirect allow-list) to the environment’s origin — `https://packroute.app` for production, plus staging/beta URLs when those deploys exist. See [ENVIRONMENTS.md](./ENVIRONMENTS.md). MFA QR labels use the app hostname via an explicit issuer, but Site URL should still match the deploy the admin is using.
 
 ## Manual user creation (legacy / emergencies)
 

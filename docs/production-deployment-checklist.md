@@ -2,6 +2,8 @@
 
 Use this checklist before a public launch.
 
+Branch / environment model: [ENVIRONMENTS.md](./ENVIRONMENTS.md) (`staging` → `beta` → `main`).
+
 ---
 
 ## Completed in code

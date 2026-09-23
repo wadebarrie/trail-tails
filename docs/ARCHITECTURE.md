@@ -371,19 +371,22 @@ None of these require MVP schema rewrites.
 ## 14. Deployment Architecture
 
 ```
-GitHub repo
-  → Netlify (auto-deploy on push to main)
+GitHub branches
+  staging  → Netlify branch deploy → staging.packroute.app
+  beta     → Netlify branch deploy → beta.packroute.app
+  main     → Netlify production    → packroute.app
       ├── Next.js SSR/SSG
-      ├── Environment variables (Supabase, Twilio, Google Maps)
-      └── Scheduled functions (night-before SMS cron)
+      ├── Environment variables (scoped per context)
+      └── Scheduled functions (night-before SMS cron — production)
 
-Supabase project (hosted)
-  ├── PostgreSQL
-  ├── Auth
-  └── SQL migrations via Supabase CLI
+Supabase
+  ├── Production project (main only)
+  └── Staging/beta project(s) (recommended separate from prod)
 ```
 
-**Environments:** `development` (local + Supabase branch optional), `production`. No staging required for MVP but Netlify preview deploys give PR-level testing.
+**Environments:** `development` (local), `staging`, `beta`, `production`. See [ENVIRONMENTS.md](./ENVIRONMENTS.md).
+
+Promotion: `feature/*` → `staging` → `beta` → `main`.
 
 ---
 
