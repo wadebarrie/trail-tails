@@ -5,7 +5,6 @@ import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import { landingPrimaryButtonClassName } from "@/features/admin/components/button-styles";
 import {
-  PRICING_BETA_LOCK_DATE,
   PRICING_FAQ,
   PRICING_INCLUDED_FEATURES,
   PRICING_TIERS,
@@ -36,8 +35,8 @@ export function PricingPageContent({
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
               {showStartTrial
-                ? "Start a free trial with no card required, or book a short demo if you’d rather walk through it with us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."
-                : "Book a short demo, get set up, and run your first month on us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."}
+                ? "Start a free trial with no card required, or book a short demo if you would rather walk through it with us. When the trial ends, pick the tier that fits — every tier includes the same features; tiers only set how large you can run."
+                : "Book a short demo, get set up, and run your first month on us. When the trial ends, pick the tier that fits — every tier includes the same features; tiers only set how large you can run."}
             </p>
           </div>
         </section>
@@ -46,16 +45,16 @@ export function PricingPageContent({
           <div className="surface-glass rounded-2xl px-5 py-4 text-left text-sm leading-relaxed text-stone-600 sm:px-6">
             <p>
               <strong className="font-semibold text-[var(--color-trail-800)]">
-                We&apos;re in open beta.
+                We are in open beta.
               </strong>{" "}
-              You&apos;ll find the odd rough edge, and you&apos;ll get it fixed
-              the week you tell us about it. In exchange these are beta prices —
-              subscribe before{" "}
+              You may hit an occasional rough edge; tell us and we will
+              prioritize a fix. In return, these are{" "}
               <strong className="font-medium text-stone-800">
-                {PRICING_BETA_LOCK_DATE}
+                limited-time
               </strong>{" "}
-              and your rate stays put for as long as you&apos;re with us. Prices
-              go up when we launch properly next year.
+              beta prices — subscribe during beta and your rate stays locked for
+              as long as you remain a customer. Prices increase when we leave
+              beta.
             </p>
           </div>
         </section>
@@ -131,7 +130,7 @@ export function PricingPageContent({
         <section className="border-t border-[var(--glass-border-subtle)] surface-glass py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-              The bits we get asked
+              Questions
             </h2>
             <dl className="mt-8 space-y-6">
               {PRICING_FAQ.map((item) => (
@@ -152,7 +151,7 @@ export function PricingPageContent({
           <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
             <h2 className="text-3xl font-semibold">See if PackRoute fits</h2>
             <p className="mt-4 text-lg text-white/80">
-              Tell us how your routes run today — we&apos;ll reply within a
+              Tell us how your routes run today — we will reply within a
               business day and get your first month started.
             </p>
             <div className="mt-8">

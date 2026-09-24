@@ -52,7 +52,7 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
       lowPrice: "29",
       highPrice: "79",
       description:
-        "Beta pricing by drivers and dogs — first month free after demo. Rates locked if you subscribe before 31 December 2026.",
+        "Beta pricing by hikers/walkers and dogs — first month free after demo. Limited-time beta rates lock in if you subscribe during beta.",
     },
     featureList: [
       "Dog walking route planning and pickup order",
