@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
+import { trackEvent } from "@/features/landing/analytics";
 import { FORMSPREE_ENDPOINT } from "@/features/landing/constants";
 
 type ContactFormProps = {
@@ -53,6 +54,7 @@ export function ContactForm({ variant = "light", className = "" }: ContactFormPr
       if (response.ok) {
         setSuccess(true);
         form.reset();
+        trackEvent("generate_lead", { method: "contact_form" });
         return;
       }
 

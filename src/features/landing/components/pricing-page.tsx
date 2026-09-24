@@ -9,6 +9,7 @@ import {
   PRICING_INCLUDED_FEATURES,
   PRICING_TIERS,
 } from "@/features/landing/pricing";
+import { TrackedLink } from "@/features/landing/components/tracked-link";
 import { PRICING_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
 
 export function PricingPageContent({
@@ -95,17 +96,21 @@ export function PricingPageContent({
                 </ul>
                 <div className="mt-8">
                   {showStartTrial ? (
-                    <Link
+                    <TrackedLink
                       href="/signup"
                       className={`${landingPrimaryButtonClassName} w-full justify-center`}
+                      eventName="start_trial"
+                      eventLocation={`pricing_${tier.id}`}
                     >
                       Start free trial →
-                    </Link>
+                    </TrackedLink>
                   ) : (
                     <ContactEmailButton
                       subject={`${PRICING_EMAIL_SUBJECT} — ${tier.name}`}
                       label="Book a demo →"
                       className={`${landingPrimaryButtonClassName} w-full justify-center`}
+                      eventName="book_demo"
+                      eventLocation={`pricing_${tier.id}`}
                     />
                   )}
                 </div>
