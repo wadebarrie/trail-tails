@@ -10,6 +10,7 @@ type DriverDailyBriefingProps = {
   dogCount: number;
   estimatedPickupCompletion: string | null;
   notes: DriverBriefingNote[];
+  startLabel: string;
   onStart: () => void;
 };
 
@@ -20,6 +21,7 @@ export function DriverDailyBriefing({
   dogCount,
   estimatedPickupCompletion,
   notes,
+  startLabel,
   onStart,
 }: DriverDailyBriefingProps) {
   return (
@@ -81,7 +83,7 @@ export function DriverDailyBriefing({
         onClick={onStart}
         className={`mt-8 w-full rounded-2xl bg-amber-400 py-5 text-lg font-semibold text-stone-900 ${driverActionButtonClassName}`}
       >
-        Start Morning Route →
+        {startLabel}
       </button>
     </div>
   );

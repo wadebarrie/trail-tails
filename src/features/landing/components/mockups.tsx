@@ -285,13 +285,16 @@ function MockDriverStopCard({
         <div className="mt-3 space-y-2">
           <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-3 py-2.5 text-center">
             <p className="text-[11px] font-medium text-sky-100">
-              Auto-detecting arrival via GPS
+              GPS watching — tap Arrived anytime
             </p>
             <p className="mt-0.5 text-[10px] text-sky-200/70">850 m away · 45% of trip</p>
           </div>
-          <p className="text-center text-[11px] font-medium text-white/70 underline-offset-2">
-            Mark arrived manually
-          </p>
+          <button
+            type="button"
+            className="w-full rounded-xl bg-sky-400 py-3 text-sm font-semibold text-stone-900"
+          >
+            Arrived
+          </button>
         </div>
       ) : null}
     </div>

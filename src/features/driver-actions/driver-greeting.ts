@@ -63,6 +63,23 @@ export function routeSummaryLabel(day: DriverDayView): string {
   return `${day.routes.length} routes`;
 }
 
+/** Primary CTA on the daily briefing — period-aware, never morning-hardcoded. */
+export function startRouteCtaLabel(day: DriverDayView): string {
+  if (day.routes.length === 0) return "Start route →";
+  if (day.routes.length === 1) {
+    return day.routes[0].period === "afternoon"
+      ? "Start afternoon route →"
+      : "Start morning route →";
+  }
+  const periods = new Set(day.routes.map((r) => r.period));
+  if (periods.size === 1) {
+    return periods.has("afternoon")
+      ? "Start afternoon routes →"
+      : "Start morning routes →";
+  }
+  return "Start today's routes →";
+}
+
 export function vehicleSummaryLabel(day: DriverDayView): string | null {
   const labels = [
     ...new Set(
