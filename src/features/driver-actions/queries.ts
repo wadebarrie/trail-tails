@@ -34,6 +34,7 @@ export type DriverStopView = {
 export type DriverRouteView = {
   routeId: string;
   routeName: string;
+  period: "morning" | "afternoon";
   hikeId: string;
   vehicleLabel: string | null;
   pickups: DriverStopView[];
@@ -170,6 +171,7 @@ export async function getDriverDayView(
         return {
           routeId: entry.route.id,
           routeName: `${entry.route.name} — ${hikePeriodWalkLabel(entry.route.period)}`,
+          period: entry.route.period,
           hikeId: entry.hike!.id,
           vehicleLabel: vehicle ? vehicleDisplayLabel(vehicle) : null,
           pickups: sortStops(mapped.filter((s) => s.stopType === "pickup")),

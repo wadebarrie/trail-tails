@@ -388,12 +388,12 @@ function StopCard({
           ) : status === "en_route" ? (
             <div className="flex flex-col gap-3">
               {canAutoDetect ? (
-                <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-4 py-4 text-center">
+                <div className="rounded-xl border border-sky-400/30 bg-sky-400/10 px-4 py-3 text-center">
                   <p className="text-sm font-medium text-sky-100">
                     {submitting
                       ? "Marking arrived…"
                       : locationStatus === "watching"
-                        ? "Auto-detecting arrival via GPS"
+                        ? "GPS watching — tap Arrived anytime"
                         : "Waiting for GPS…"}
                   </p>
                   {distanceMetersAway != null && !submitting ? (
@@ -405,10 +405,9 @@ function StopCard({
                     </p>
                   ) : null}
                   {!submitting && locationStatus === "watching" ? (
-                    <p className="mt-2 text-xs text-sky-200/80">
-                      Screen stays awake while driving. If you lock your phone, open
-                      PackRoute when you pull up — we&apos;ll grab a fresh GPS fix and
-                      mark arrived automatically.
+                    <p className="mt-1.5 text-xs text-sky-200/75">
+                      We&apos;ll auto-mark when you pull up. Keep PackRoute open
+                      if you can — or tap Arrived yourself.
                     </p>
                   ) : null}
                   {locationStatusMessage(locationStatus) && !submitting ? (
@@ -426,13 +425,9 @@ function StopCard({
                 type="button"
                 disabled={submitting}
                 onClick={handleArrived}
-                className={
-                  canAutoDetect
-                    ? "w-full rounded-xl py-3 text-sm font-medium text-white/70 underline-offset-2 hover:text-white hover:underline disabled:opacity-50"
-                    : `w-full rounded-[var(--radius-card)] bg-sky-400 py-5 text-lg font-semibold text-stone-900 ${driverActionButtonClassName}`
-                }
+                className={`w-full rounded-[var(--radius-card)] bg-sky-400 py-5 text-lg font-semibold text-stone-900 ${driverActionButtonClassName}`}
               >
-                {canAutoDetect ? "Mark arrived manually" : "Arrived"}
+                Arrived
               </button>
             </div>
           ) : (

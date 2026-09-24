@@ -22,6 +22,7 @@ import {
   estimatePickupCompletionTime,
   isRouteDayInProgress,
   routeSummaryLabel,
+  startRouteCtaLabel,
   vehicleSummaryLabel,
 } from "@/features/driver-actions/driver-greeting";
 import {
@@ -154,6 +155,7 @@ function DriverDayShellInner({
         dogCount={totalPickups}
         estimatedPickupCompletion={estimatedCompletion}
         notes={briefingNotes}
+        startLabel={startRouteCtaLabel(day)}
         onStart={handleStartRoute}
       />
     );
