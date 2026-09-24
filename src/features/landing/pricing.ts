@@ -1,4 +1,4 @@
-/** Public pricing — capacity by hikers + dogs; all features on every plan. */
+/** Public pricing — capacity by drivers + dogs; all features on every plan. */
 
 export const PRICING_CURRENCY = "USD";
 
@@ -12,6 +12,7 @@ export type PricingTier = {
   badge?: string;
   priceMonthly: number;
   priceLabel: string;
+  /** Capacity line shown under the tier name (drivers on the road). */
   hikers: string;
   dogs: string;
   highlight?: boolean;
@@ -20,28 +21,28 @@ export type PricingTier = {
 export const PRICING_TIERS: readonly PricingTier[] = [
   {
     id: "one_hiker",
-    name: "One hiker",
+    name: "One driver",
     priceMonthly: 29,
     priceLabel: "$29/month",
-    hikers: "1 hiker on the road",
+    hikers: "1 driver on the road",
     dogs: "Up to 40 active dogs a week",
   },
   {
     id: "two_hikers",
-    name: "Two hikers",
+    name: "Two drivers",
     badge: "Most common",
     priceMonthly: 49,
     priceLabel: "$49/month",
-    hikers: "2 hikers",
+    hikers: "2 drivers",
     dogs: "Up to 120 active dogs a week",
     highlight: true,
   },
   {
     id: "three_plus",
-    name: "Three+ hikers",
+    name: "Three+ drivers",
     priceMonthly: 79,
     priceLabel: "$79/month",
-    hikers: "3+ hikers, multi-route mornings",
+    hikers: "3+ drivers, multi-route mornings",
     dogs: "Unlimited dogs",
   },
 ] as const;
@@ -49,7 +50,7 @@ export const PRICING_TIERS: readonly PricingTier[] = [
 /** Shared on every tier — capacity is what changes. */
 export const PRICING_INCLUDED_FEATURES = [
   "Unlimited office logins",
-  "Pickup route planning and hiker Today view",
+  "Pickup route planning and driver Today view",
   "Automated customer SMS — reminders, ETAs, pickup and drop-off updates",
   "Schedule-change texts with office approval",
   "Completed-hike CSV export for QuickBooks or your billing process",
@@ -63,15 +64,15 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's different between tiers?",
-    a: "Capacity only — how many hikers you have on the road and how many active dogs you run in a week. Every feature, unlimited office logins, onboarding screenshare, and support are the same on every tier.",
+    a: "Capacity only — how many drivers you have on the road and how many active dogs you run in a week. Every feature, unlimited office logins, onboarding screenshare, and support are the same on every tier.",
   },
   {
-    q: "What counts as a hiker?",
-    a: "Anyone who runs a pickup route day in PackRoute — your field drivers / handlers. Office-only logins do not count toward the hiker limit.",
+    q: "What counts as a driver?",
+    a: "Anyone who runs a pickup route day in PackRoute — your field drivers / handlers. Office-only logins do not count toward the driver limit.",
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "No. PackRoute is operations software for routes, hikers, and SMS. You export completed hikes as CSV and bill in QuickBooks or your own process. That keeps the product focused on the field day.",
+    a: "No. PackRoute is operations software for routes, drivers, and SMS. You export completed hikes as CSV and bill in QuickBooks or your own process. That keeps the product focused on the field day.",
   },
   {
     q: "Is there a setup fee?",

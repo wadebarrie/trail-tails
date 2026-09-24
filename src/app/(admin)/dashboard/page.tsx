@@ -228,7 +228,7 @@ export default async function DashboardPage() {
       </section>
 
       <div className="mt-10 flex flex-wrap gap-3">
-        <PrimaryLink href="/dashboard/hikes/today">Open today&apos;s routes</PrimaryLink>
+        <PrimaryLink href="/dashboard/hikes/today">Open today&apos;s hikes</PrimaryLink>
         {pending > 0 ? (
           <Link
             href="/dashboard/pending-requests"

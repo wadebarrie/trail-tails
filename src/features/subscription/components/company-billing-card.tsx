@@ -34,7 +34,7 @@ export function CompanyBillingCard({
     <section className="mt-6 rounded-xl border border-stone-200 bg-white p-6">
       <h2 className="text-lg font-semibold text-stone-900">Billing</h2>
       <p className="mt-1 text-sm text-stone-500">
-        Manage your PackRoute plan. Capacity is by hikers and active dogs.
+        Manage your PackRoute plan. Capacity is by drivers and active dogs.
       </p>
 
       {subscription ? (

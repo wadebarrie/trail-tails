@@ -56,7 +56,7 @@ export default async function SignupPage({
           </h1>
           <p className="mt-1 text-sm text-stone-600">
             Create your company account — we&apos;ll guide you through adding your
-            first vehicle, hikers, customers, and dogs.
+            first vehicle, drivers, customers, and dogs.
           </p>
           <SelfSignupForm />
           <Link

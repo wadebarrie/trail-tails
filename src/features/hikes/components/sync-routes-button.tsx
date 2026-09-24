@@ -27,7 +27,11 @@ export function SyncRoutesButton({ offsetDays }: { offsetDays: 0 | 1 }) {
       disabled={pending}
       className={secondaryButtonClassName}
     >
-      {pending ? "Syncing…" : "Refresh routes"}
+      {pending
+        ? "Syncing…"
+        : offsetDays === 0
+          ? "Rebuild today's stops"
+          : "Rebuild tomorrow's stops"}
     </button>
   );
 }

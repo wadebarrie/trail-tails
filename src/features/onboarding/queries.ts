@@ -9,10 +9,11 @@ export const getOnboardingProgress = cache(
     const [
       { data: company },
       vehicles,
-      hikers,
+      drivers,
       customers,
       dogs,
       routes,
+      dogsOnRoute,
     ] = await Promise.all([
       supabase
         .from("companies")
@@ -42,17 +43,39 @@ export const getOnboardingProgress = cache(
         .eq("is_active", true),
       supabase
         .from("routes")
-        .select("id", { count: "exact", head: true })
+        .select("id, route_schedule_days ( day_of_week )")
         .eq("company_id", companyId)
         .eq("is_active", true),
+      supabase
+        .from("dogs")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId)
+        .eq("is_active", true)
+        .not("route_id", "is", null),
     ]);
+
+    const routeRows = routes.data ?? [];
+    const created = routeRows.length > 0;
+    const hasScheduleDays = routeRows.some((route) => {
+      const days = route.route_schedule_days as
+        | { day_of_week: number }[]
+        | null
+        | undefined;
+      return (days?.length ?? 0) > 0;
+    });
+    const hasDogAssigned = (dogsOnRoute.count ?? 0) > 0;
 
     return {
       hasVehicle: (vehicles.count ?? 0) > 0,
-      hasHiker: (hikers.count ?? 0) > 0,
+      hasDriver: (drivers.count ?? 0) > 0,
       hasCustomer: (customers.count ?? 0) > 0,
       hasDog: (dogs.count ?? 0) > 0,
-      hasRoute: (routes.count ?? 0) > 0,
+      hasRoute: created && hasScheduleDays && hasDogAssigned,
+      routeChecklist: {
+        created,
+        hasScheduleDays,
+        hasDogAssigned,
+      },
       hasCompanyInfo: company?.default_hike_rate_cents != null,
       completedAt: company?.onboarding_completed_at ?? null,
     };

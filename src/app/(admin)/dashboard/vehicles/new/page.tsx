@@ -10,7 +10,7 @@ export default async function NewVehiclePage() {
       <BackLink href="/dashboard/vehicles">Back to vehicles</BackLink>
       <PageHeader
         title="Add vehicle"
-        description="Give it a name hikers will recognize in the yard."
+        description="Give it a name drivers will recognize in the yard."
       />
       <VehicleForm />
     </div>

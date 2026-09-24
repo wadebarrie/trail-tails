@@ -15,7 +15,7 @@ const FIT_POINTS = [
   },
   {
     title: "Driver web workflow that answers “what next?”",
-    body: "Hikers open Today in the browser, see their vehicle and stops, tap En Route / Arrived / Picked up / Dropped off, and keep moving — no app-store install required.",
+    body: "Drivers open Today in the browser, see their vehicle and stops, tap En Route / Arrived / Picked up / Dropped off, and keep moving — no app-store install required.",
   },
   {
     title: "SMS-first customer communication",

@@ -5,7 +5,7 @@ export const ONBOARDING_PATH = "/dashboard/onboarding";
 export const ONBOARDING_STEPS = [
   "welcome",
   "vehicle",
-  "hiker",
+  "driver",
   "customer",
   "dog",
   "route",
@@ -15,12 +15,28 @@ export const ONBOARDING_STEPS = [
 
 export type OnboardingStepId = (typeof ONBOARDING_STEPS)[number];
 
+/** Legacy step id from earlier onboarding copy — redirect to `driver`. */
+export const ONBOARDING_LEGACY_STEP_ALIASES: Record<string, OnboardingStepId> = {
+  hiker: "driver",
+};
+
+export type OnboardingRouteChecklist = {
+  /** At least one active route exists. */
+  created: boolean;
+  /** A route has at least one schedule day. */
+  hasScheduleDays: boolean;
+  /** At least one active dog is assigned to a route. */
+  hasDogAssigned: boolean;
+};
+
 export type OnboardingProgress = {
   hasVehicle: boolean;
-  hasHiker: boolean;
+  hasDriver: boolean;
   hasCustomer: boolean;
   hasDog: boolean;
+  /** True when a route can actually run (schedule days + assigned dog). */
   hasRoute: boolean;
+  routeChecklist: OnboardingRouteChecklist;
   hasCompanyInfo: boolean;
   completedAt: string | null;
 };
@@ -29,7 +45,7 @@ export function nextIncompleteStep(
   progress: OnboardingProgress
 ): OnboardingStepId {
   if (!progress.hasVehicle) return "vehicle";
-  if (!progress.hasHiker) return "hiker";
+  if (!progress.hasDriver) return "driver";
   if (!progress.hasCustomer) return "customer";
   if (!progress.hasDog) return "dog";
   if (!progress.hasRoute) return "route";
@@ -40,7 +56,7 @@ export function nextIncompleteStep(
 export function isOnboardingComplete(progress: OnboardingProgress): boolean {
   return (
     progress.hasVehicle &&
-    progress.hasHiker &&
+    progress.hasDriver &&
     progress.hasCustomer &&
     progress.hasDog &&
     progress.hasRoute &&
@@ -54,8 +70,8 @@ export function onboardingStepLabel(step: OnboardingStepId): string {
       return "Welcome";
     case "vehicle":
       return "Vehicle";
-    case "hiker":
-      return "Hiker";
+    case "driver":
+      return "Driver";
     case "customer":
       return "Customer";
     case "dog":

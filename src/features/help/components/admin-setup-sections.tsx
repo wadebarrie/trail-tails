@@ -21,7 +21,7 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
           >
             first-run setup
           </Link>{" "}
-          (vehicle → hiker → customer → dog → route). Prefer a walkthrough with
+          (vehicle → driver → customer → dog → route). Prefer a walkthrough with
           PackRoute? Use the{" "}
           <Link
             href="/contact"

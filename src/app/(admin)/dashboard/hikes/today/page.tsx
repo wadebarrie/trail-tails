@@ -49,7 +49,7 @@ export default async function TodayHikesPage() {
     <div>
       <PageHeader
         title="Today"
-        description={`${formatDateLabel(date, tz)} — build and adjust today's route plan without changing dogs' long-term schedules.`}
+        description={`${formatDateLabel(date, tz)} — build and adjust today's hikes without changing dogs' long-term schedules.`}
         action={<SyncRoutesButton offsetDays={0} />}
       />
 
@@ -72,8 +72,8 @@ export default async function TodayHikesPage() {
 
       {withStops.length === 0 && runningRoutes.length > 0 ? (
         <p className="mt-4 text-sm text-stone-500">
-          No dogs on today&apos;s routes yet. Add as-needed dogs above, or sync
-          routes after schedule changes.
+          No dogs on today&apos;s hikes yet. Add as-needed dogs above, or rebuild
+          stops after schedule changes.
         </p>
       ) : null}
     </div>
