@@ -6,7 +6,16 @@ import { getDateInTimezone } from "@/lib/dates";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { ExceptionType } from "@/types";
 
-const SYNC_HORIZON_DAYS = 14;
+/** Rolling window used only when listing candidate dates for open-ended pauses. */
+const PAUSE_CANDIDATE_DAYS = 14;
+
+export type ExceptionStopSyncOptions = {
+  /**
+   * For open-ended pauses/resumes: also sync every already-materialized hike
+   * date ≥ today on the affected routes (not just a rolling window).
+   */
+  includeAllFutureRouteHikes?: boolean;
+};
 
 export function resolveExceptionEndDate(
   exceptionType: ExceptionType,
@@ -28,7 +37,9 @@ export function datesAffectedByException(
     return dateRangeInclusive(startDate, end);
   }
   if (exceptionType === "pause") {
-    return Array.from({ length: 14 }, (_, i) => addDaysToDate(startDate, i));
+    return Array.from({ length: PAUSE_CANDIDATE_DAYS }, (_, i) =>
+      addDaysToDate(startDate, i)
+    );
   }
   return [startDate];
 }
@@ -43,18 +54,20 @@ function dateRangeInclusive(start: string, end: string): string[] {
   return dates;
 }
 
-/** Limit sync to today, tomorrow, and near-term affected dates. */
-export function datesToSyncNearTerm(
+/**
+ * Drop past dates only — sync the full remaining exception window (vacations
+ * included). Always keeps today + tomorrow so near-term day plans stay fresh.
+ */
+export function datesToSyncFromToday(
   dates: string[],
   timeZone: string
 ): string[] {
   const today = getDateInTimezone(timeZone, 0);
   const tomorrow = getDateInTimezone(timeZone, 1);
-  const horizonEnd = addDaysToDate(today, SYNC_HORIZON_DAYS - 1);
   const result = new Set<string>([today, tomorrow]);
 
   for (const date of dates) {
-    if (date >= today && date <= horizonEnd) {
+    if (date >= today) {
       result.add(date);
     }
   }
@@ -62,11 +75,20 @@ export function datesToSyncNearTerm(
   return [...result].sort();
 }
 
+/** @deprecated Use datesToSyncFromToday — kept for any external imports. */
+export function datesToSyncNearTerm(
+  dates: string[],
+  timeZone: string
+): string[] {
+  return datesToSyncFromToday(dates, timeZone);
+}
+
 /** Sync only routes for the affected dogs — not every company route. */
 export async function syncStopsAfterExceptionChange(
   companyId: string,
   dogIds: string[],
-  dates: string[]
+  dates: string[],
+  options?: ExceptionStopSyncOptions
 ): Promise<void> {
   const uniqueDogIds = [...new Set(dogIds)];
   if (!uniqueDogIds.length) return;
@@ -79,8 +101,8 @@ export async function syncStopsAfterExceptionChange(
     .single();
 
   const timeZone = company?.timezone ?? "America/Los_Angeles";
-  const datesToSync = datesToSyncNearTerm(dates, timeZone);
-  if (!datesToSync.length) return;
+  const today = getDateInTimezone(timeZone, 0);
+  const datesToSync = new Set(datesToSyncFromToday(dates, timeZone));
 
   const { data: dogs } = await supabase
     .from("dogs")
@@ -97,7 +119,23 @@ export async function syncStopsAfterExceptionChange(
 
   if (!routeIds.length) return;
 
-  for (const date of datesToSync) {
+  if (options?.includeAllFutureRouteHikes) {
+    const { data: futureHikes } = await supabase
+      .from("hikes")
+      .select("date")
+      .eq("company_id", companyId)
+      .in("route_id", routeIds)
+      .gte("date", today);
+
+    for (const hike of futureHikes ?? []) {
+      datesToSync.add(hike.date);
+    }
+  }
+
+  const sortedDates = [...datesToSync].sort();
+  if (!sortedDates.length) return;
+
+  for (const date of sortedDates) {
     await Promise.all(
       routeIds.map((routeId) => syncStopsForRouteDate(companyId, routeId, date))
     );
@@ -108,11 +146,12 @@ export async function syncStopsAfterExceptionChange(
 export function scheduleExceptionStopSync(
   companyId: string,
   dogIds: string[],
-  dates: string[]
+  dates: string[],
+  options?: ExceptionStopSyncOptions
 ): void {
   after(async () => {
     try {
-      await syncStopsAfterExceptionChange(companyId, dogIds, dates);
+      await syncStopsAfterExceptionChange(companyId, dogIds, dates, options);
     } catch (err) {
       console.error("[exception-sync] stop sync failed:", err);
     }

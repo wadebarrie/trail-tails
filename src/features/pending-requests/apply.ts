@@ -120,10 +120,14 @@ export async function applyApprovedPendingRequest(
     timeZone
   );
 
+  const openEnded =
+    request.command_type === "pause" || request.command_type === "resume";
+
   scheduleExceptionStopSync(
     request.company_id,
     dogs.map((dog) => dog.id),
-    dates
+    dates,
+    openEnded ? { includeAllFutureRouteHikes: true } : undefined
   );
 }
 

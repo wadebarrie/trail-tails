@@ -2,7 +2,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { getDateInTimezone, getDayOfWeek, routeRunsOnDay } from "@/lib/dates";
 import { perfAsync } from "@/lib/perf";
 import type { HikePeriod } from "@/features/hikes/hike-period";
-import { resyncHikeStopSortOrders, appendNewDogsToDailyPlan } from "@/features/hikes/stop-order";
+import { resyncHikeStopSortOrders, appendNewDogsToDailyPlan, compactDailyPlanAfterRemovals } from "@/features/hikes/stop-order";
 import type { StopType } from "@/types";
 
 type ExceptionRow = {
@@ -331,6 +331,7 @@ async function syncStopsForRouteDateInner(
     sort_order: number;
   }> = [];
   const reactivateIds: string[] = [];
+  /** Only rewrite template sort_order when building a fresh day plan. */
   const sortUpdates: Array<{ id: string; sort_order: number }> = [];
 
   for (const dog of eligibleDogs) {
@@ -345,7 +346,9 @@ async function syncStopsForRouteDateInner(
         if (existing.status === "cancelled") {
           reactivateIds.push(existing.id);
         }
-        sortUpdates.push({ id: existing.id, sort_order: sortOrder });
+        if (!hadDailyPlan) {
+          sortUpdates.push({ id: existing.id, sort_order: sortOrder });
+        }
         continue;
       }
 
@@ -386,9 +389,14 @@ async function syncStopsForRouteDateInner(
     if (error) throw new Error(error.message);
   }
 
+  const removedDogs = stopsToDelete.length > 0;
   const newDogs = sortedEligible.filter((dog) => !existingDogIdsBefore.has(dog.id));
 
   if (hadDailyPlan) {
+    if (removedDogs) {
+      const compactError = await compactDailyPlanAfterRemovals(supabase, hikeId);
+      if (compactError) throw new Error(compactError);
+    }
     const appendError = await appendNewDogsToDailyPlan(
       supabase,
       hikeId,

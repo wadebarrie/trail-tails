@@ -122,6 +122,34 @@ export async function syncDropoffOrderFromPickupStops(
   return applyStopReorder(supabase, hikeId, "dropoff", desiredDropoffIds);
 }
 
+/**
+ * After dogs are removed from an existing day plan, keep remaining pickups in
+ * their current relative order and rebuild drop-offs as the reverse.
+ */
+export async function compactDailyPlanAfterRemovals(
+  supabase: SupabaseClient,
+  hikeId: string
+): Promise<string | null> {
+  const { data: pickupRows } = await supabase
+    .from("stops")
+    .select("id, status")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "pickup")
+    .order("sort_order");
+
+  const orderedPickupStopIds = (pickupRows ?? [])
+    .filter((p) => p.status !== "cancelled" && p.status !== "skipped")
+    .map((p) => p.id);
+
+  if (orderedPickupStopIds.length === 0) return null;
+
+  return applyPickupReorderWithReverseDropoff(
+    supabase,
+    hikeId,
+    orderedPickupStopIds
+  );
+}
+
 /** Append newly added dogs to the end of an existing daily pickup plan. */
 export async function appendNewDogsToDailyPlan(
   supabase: SupabaseClient,
