@@ -1,4 +1,9 @@
-/** Public pricing — capacity by hikers/walkers + dogs; all features on every plan. */
+/**
+ * Public pricing — capacity by hikers/walkers + dogs; all features on every plan.
+ *
+ * Margin note (planning): customer SMS is ~$1 / active dog / month at typical
+ * 2 hike-days/week. Dog caps keep SMS COGS near ~20–25% of list price.
+ */
 
 export const PRICING_CURRENCY = "USD";
 
@@ -20,28 +25,28 @@ export const PRICING_TIERS: readonly PricingTier[] = [
   {
     id: "one_hiker",
     name: "One hiker",
-    priceMonthly: 29,
-    priceLabel: "$29/month",
+    priceMonthly: 99,
+    priceLabel: "$99/month",
     hikers: "1 hiker or walker on the road",
-    dogs: "Up to 40 active dogs a week",
+    dogs: "Up to 20 active dogs a week",
   },
   {
     id: "two_hikers",
     name: "Two hikers",
     badge: "Most common",
-    priceMonthly: 49,
-    priceLabel: "$49/month",
+    priceMonthly: 179,
+    priceLabel: "$179/month",
     hikers: "2 hikers or walkers",
-    dogs: "Up to 120 active dogs a week",
+    dogs: "Up to 40 active dogs a week",
     highlight: true,
   },
   {
     id: "three_plus",
     name: "Three+ hikers",
-    priceMonthly: 79,
-    priceLabel: "$79/month",
+    priceMonthly: 299,
+    priceLabel: "$299/month",
     hikers: "3+ hikers or walkers, multi-route mornings",
-    dogs: "Unlimited dogs",
+    dogs: "Up to 70 active dogs a week",
   },
 ] as const;
 
@@ -62,11 +67,15 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's different between tiers?",
-    a: "Capacity only — how many hikers or walkers you have on the road and how many active dogs you run in a week. Every feature, unlimited office logins, onboarding screenshare, and support are the same on every tier.",
+    a: "Capacity only — how many hikers or walkers you have on the road and how many active dogs you run in a week. Every feature, unlimited office logins, onboarding screenshare, and support are the same on every tier. Customer SMS is included within your dog cap.",
   },
   {
     q: "What counts as a hiker or walker?",
     a: "Anyone who runs a pickup route day — the people your industry calls hikers or walkers. In PackRoute they use the Driver role and Driver Today view. Office-only logins do not count toward the capacity limit.",
+  },
+  {
+    q: "What if we have more than 70 dogs?",
+    a: "Contact us for a custom plan. Larger fleets need a price that still covers automated customer SMS at volume.",
   },
   {
     q: "Do you handle customer invoicing and payments?",
