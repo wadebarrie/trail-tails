@@ -93,7 +93,7 @@ export function SmsPhoneMock() {
   const messages = [
     {
       outbound: true,
-      text: "Hi Sam! Cooper and Daisy are booked for a hike tomorrow and will be picked up between 8:05 AM and 8:35 AM. Alex will be your driver.",
+      text: "Hi Sam! Cooper and Daisy are booked for a hike tomorrow and will be picked up between 8:05 AM and 8:35 AM. Alex will be picking Cooper and Daisy up.",
     },
     {
       outbound: true,

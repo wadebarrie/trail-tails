@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { PricingPageContent } from "@/features/landing/components/pricing-page";
+import { resolvePricingDisplayCurrency } from "@/features/landing/pricing-currency";
 import { buildPricingJsonLdScriptProps } from "@/features/landing/seo";
 import { isSelfSignupEnabled } from "@/features/platform/settings";
 import {
@@ -29,13 +31,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function PricingPage() {
-  const showStartTrial = await isSelfSignupEnabled();
+type PricingPageProps = {
+  searchParams: Promise<{ currency?: string }>;
+};
+
+export default async function PricingPage({ searchParams }: PricingPageProps) {
+  const [showStartTrial, requestHeaders, params] = await Promise.all([
+    isSelfSignupEnabled(),
+    headers(),
+    searchParams,
+  ]);
+  const currency = resolvePricingDisplayCurrency(
+    requestHeaders,
+    params.currency
+  );
 
   return (
     <>
-      <script {...buildPricingJsonLdScriptProps()} />
-      <PricingPageContent showStartTrial={showStartTrial} />
+      <script {...buildPricingJsonLdScriptProps(currency)} />
+      <PricingPageContent
+        showStartTrial={showStartTrial}
+        currency={currency}
+      />
     </>
   );
 }

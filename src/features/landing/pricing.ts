@@ -89,6 +89,10 @@ export const PRICING_FAQ = [
     a: "Yes — pay for 10 months, get 12.",
   },
   {
+    q: "CAD or USD?",
+    a: "Prices are the same list amounts either way. We show CAD by default (we are Canada-first) and USD when we detect a US visitor. You can switch currencies on the pricing page anytime.",
+  },
+  {
     q: "What does “beta pricing” mean?",
     a: "We are in open beta. You may hit an occasional rough edge; tell us and we will prioritize a fix. In return, these are limited-time beta prices — subscribe during beta and your rate stays locked for as long as you remain a customer. Prices increase when we leave beta.",
   },

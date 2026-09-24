@@ -426,7 +426,7 @@ Exceptions block generation when `date BETWEEN start_date AND COALESCE(end_date,
 ```
 FOR each stop WHERE hike.date = tomorrow AND stop_type = 'pickup':
   IF customer.night_before_reminders_enabled = false: SKIP
-  SEND "Hi {owner}! {dogs} booked for a hike tomorrow, pickup between {window}. {driver} will be your driver."
+  SEND "Hi {owner}! {dogs} booked for a hike tomorrow, pickup between {window}. {driver} will be picking {dogs} up."
   LOG notification_log + sms_messages
 ```
 

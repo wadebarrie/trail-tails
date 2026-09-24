@@ -84,7 +84,7 @@ export const BARKBUS_ALTERNATIVE_DESCRIPTION =
 export const PRICING_TITLE = "PackRoute Pricing — First Month Free";
 
 export const PRICING_DESCRIPTION =
-  "Simple pricing by hikers/walkers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month USD — every tier includes routes, driver workflows, and automated customer SMS.";
+  "Simple pricing by hikers/walkers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month CAD or USD — every tier includes routes, driver workflows, and automated customer SMS.";
 
 type FaqItem = { readonly q: string; readonly a: string };
 
