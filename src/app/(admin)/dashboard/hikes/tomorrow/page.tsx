@@ -5,7 +5,7 @@ import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
 import { SyncRoutesButton } from "@/features/hikes/components/sync-routes-button";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
-import { listAddableAsNeededDogsForRouteDate } from "@/features/dogs/queries";
+import { listAddableAsNeededDogsByRouteForDate } from "@/features/dogs/queries";
 import { listAssignableDrivers } from "@/features/drivers/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
@@ -16,25 +16,10 @@ export default async function TomorrowHikesPage() {
   const tz = await getCompanyTimezone(profile.company_id);
   const date = getDateInTimezone(tz, 1);
 
-  const hikes = await getHikesWithStopsForDate(profile.company_id, date, {
-    timeZone: tz,
-  });
-
-  const addableByRouteId = new Map(
-    await Promise.all(
-      hikes.map(async (entry) => [
-        entry.route.id,
-        await listAddableAsNeededDogsForRouteDate(
-          profile.company_id,
-          entry.route.id,
-          date,
-          entry.route.period
-        ),
-      ] as const)
-    )
-  );
-
-  const [drivers, { data: vehicles }] = await Promise.all([
+  const [hikes, drivers, { data: vehicles }] = await Promise.all([
+    getHikesWithStopsForDate(profile.company_id, date, {
+      timeZone: tz,
+    }),
     listAssignableDrivers(profile.company_id, { activeOnly: true }),
     supabase
       .from("vehicles")
@@ -43,6 +28,15 @@ export default async function TomorrowHikesPage() {
       .eq("is_active", true)
       .order("name"),
   ]);
+
+  const addableByRouteId = await listAddableAsNeededDogsByRouteForDate(
+    profile.company_id,
+    date,
+    hikes.map((entry) => ({
+      id: entry.route.id,
+      period: entry.route.period,
+    }))
+  );
 
   return (
     <div>
@@ -80,6 +74,7 @@ export default async function TomorrowHikesPage() {
           No dogs on tomorrow&apos;s hikes yet. Add as-needed dogs above, or
           rebuild stops after schedule changes.
         </p>
-      ) : null}    </div>
+      ) : null}
+    </div>
   );
 }

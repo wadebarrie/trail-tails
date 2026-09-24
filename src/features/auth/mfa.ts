@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { hasValidAdminEmailMfaCookie } from "@/lib/auth/admin-email-mfa";
@@ -17,7 +18,7 @@ export type AdminMfaStatus = {
   totpSatisfied: boolean;
 };
 
-export async function getAdminMfaStatus(): Promise<AdminMfaStatus> {
+export const getAdminMfaStatus = cache(async (): Promise<AdminMfaStatus> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -49,7 +50,7 @@ export async function getAdminMfaStatus(): Promise<AdminMfaStatus> {
     emailSatisfied,
     totpSatisfied,
   };
-}
+});
 
 /** Server-side MFA gate for admin actions and API routes. */
 export async function requireAdminMfa(): Promise<void> {

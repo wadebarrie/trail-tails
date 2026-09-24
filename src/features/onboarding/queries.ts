@@ -82,7 +82,15 @@ export const getOnboardingProgress = cache(
   }
 );
 
-export async function companyNeedsOnboarding(companyId: string): Promise<boolean> {
-  const progress = await getOnboardingProgress(companyId);
-  return progress.completedAt == null;
-}
+/** Cheap gate for redirects — avoids the full onboarding progress fan-out. */
+export const companyNeedsOnboarding = cache(
+  async (companyId: string): Promise<boolean> => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("companies")
+      .select("onboarding_completed_at")
+      .eq("id", companyId)
+      .maybeSingle();
+    return data?.onboarding_completed_at == null;
+  }
+);

@@ -18,26 +18,32 @@ export function PricingPageContent({
   showStartTrial?: boolean;
 }) {
   return (
-    <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
+    <div className="min-h-dvh bg-atmosphere-hero text-stone-900">
       <LandingHeader showStartTrial={showStartTrial} />
 
       <main id="main-content">
-        <section className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
-          <p className="text-sm font-medium uppercase tracking-widest text-[var(--color-trail-600)]">
-            Pricing
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
-            First month free. No card required to start.
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
-            {showStartTrial
-              ? "Start a free trial with no card required, or book a short demo if you’d rather walk through it with us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."
-              : "Book a short demo, get set up, and run your first month on us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."}
-          </p>
+        <section className="relative overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_color-mix(in_srgb,var(--color-sky-200)_40%,transparent)_0%,_transparent_55%)]"
+          />
+          <div className="relative mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
+            <p className="text-sm font-medium uppercase tracking-widest text-[var(--color-trail-600)]">
+              Pricing
+            </p>
+            <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
+              First month free. No card required to start.
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
+              {showStartTrial
+                ? "Start a free trial with no card required, or book a short demo if you’d rather walk through it with us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."
+                : "Book a short demo, get set up, and run your first month on us. When the trial ends, pick the tier that fits — every tier ships the same features; tiers only set how big you can run."}
+            </p>
+          </div>
         </section>
 
         <section className="mx-auto max-w-3xl px-4 pb-10 sm:px-6">
-          <div className="rounded-2xl border border-[var(--color-trail-200)] bg-white px-5 py-4 text-left text-sm leading-relaxed text-stone-600 sm:px-6">
+          <div className="surface-glass rounded-2xl px-5 py-4 text-left text-sm leading-relaxed text-stone-600 sm:px-6">
             <p>
               <strong className="font-semibold text-[var(--color-trail-800)]">
                 We&apos;re in open beta.
@@ -59,10 +65,10 @@ export function PricingPageContent({
             {PRICING_TIERS.map((tier) => (
               <article
                 key={tier.id}
-                className={`relative flex flex-col rounded-2xl border bg-white p-6 shadow-sm ${
+                className={`relative flex flex-col rounded-2xl p-6 surface-glass ${
                   tier.highlight
-                    ? "border-[var(--color-trail-600)] ring-1 ring-[var(--color-trail-600)]"
-                    : "border-stone-200"
+                    ? "ring-1 ring-[var(--color-trail-600)]"
+                    : ""
                 }`}
               >
                 {tier.badge ? (
@@ -122,7 +128,7 @@ export function PricingPageContent({
           </p>
         </section>
 
-        <section className="border-t border-stone-200/80 bg-white py-16 sm:py-20">
+        <section className="border-t border-[var(--glass-border-subtle)] surface-glass py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
               The bits we get asked
