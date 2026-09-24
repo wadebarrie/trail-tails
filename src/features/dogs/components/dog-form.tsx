@@ -194,7 +194,7 @@ export function DogForm({
       ) : null}
 
       <SubmitButton pending={pending}>
-        {dog ? "Update dog" : "Create dog"}
+        {dog ? "Save dog" : "Add dog"}
       </SubmitButton>
     </form>
   );

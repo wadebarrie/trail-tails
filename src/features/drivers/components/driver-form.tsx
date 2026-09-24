@@ -120,7 +120,7 @@ export function DriverForm({ driver, email, returnTo }: DriverFormProps) {
       ) : null}
 
       <SubmitButton pending={pending}>
-        {driver ? "Update driver" : "Create driver"}
+        {driver ? "Save driver" : "Add driver"}
       </SubmitButton>
     </form>
   );

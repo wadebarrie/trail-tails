@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { selectCompactClassName } from "@/features/admin/components/form-styles";
 import { assignRouteDriverAction } from "@/features/routes/actions";
 
@@ -20,11 +20,20 @@ export function RouteDriverSelect({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!saved) return;
+    const t = window.setTimeout(() => setSaved(false), 2000);
+    return () => window.clearTimeout(t);
+  }, [saved]);
 
   function assign(formData: FormData) {
     const driverId = String(formData.get("driver_id") || "") || null;
+    setSaved(false);
     startTransition(async () => {
       await assignRouteDriverAction(routeId, driverId);
+      setSaved(true);
       router.refresh();
     });
   }
@@ -53,6 +62,11 @@ export function RouteDriverSelect({
           </option>
         ))}
       </select>
+      {pending ? (
+        <span className="text-xs text-stone-500">Saving…</span>
+      ) : saved ? (
+        <span className="text-xs font-medium text-emerald-700">Saved</span>
+      ) : null}
     </form>
   );
 }

@@ -203,7 +203,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
       ) : null}
 
       <SubmitButton pending={pending}>
-        {customer ? "Update customer" : "Create customer"}
+        {customer ? "Save customer" : "Add customer"}
       </SubmitButton>
     </form>
   );

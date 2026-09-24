@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import { selectCompactClassName } from "@/features/admin/components/form-styles";
 import { assignRouteVehicleAction } from "@/features/routes/actions";
 import { vehicleDisplayLabel } from "@/features/vehicles/schema";
@@ -25,11 +25,20 @@ export function RouteVehicleSelect({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!saved) return;
+    const t = window.setTimeout(() => setSaved(false), 2000);
+    return () => window.clearTimeout(t);
+  }, [saved]);
 
   function assign(formData: FormData) {
     const vehicleId = String(formData.get("vehicle_id") || "") || null;
+    setSaved(false);
     startTransition(async () => {
       await assignRouteVehicleAction(routeId, vehicleId);
+      setSaved(true);
       router.refresh();
     });
   }
@@ -58,6 +67,11 @@ export function RouteVehicleSelect({
           </option>
         ))}
       </select>
+      {pending ? (
+        <span className="text-xs text-stone-500">Saving…</span>
+      ) : saved ? (
+        <span className="text-xs font-medium text-emerald-700">Saved</span>
+      ) : null}
     </form>
   );
 }
