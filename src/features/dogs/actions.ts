@@ -378,7 +378,10 @@ export async function createScheduleExceptionAction(
   scheduleExceptionStopSync(
     profile.company_id,
     [parsed.dogId],
-    datesAffectedByException(parsed.exceptionType, parsed.startDate, end)
+    datesAffectedByException(parsed.exceptionType, parsed.startDate, end),
+    parsed.exceptionType === "pause"
+      ? { includeAllFutureRouteHikes: true }
+      : undefined
   );
 
   revalidateExceptionPaths();
@@ -446,7 +449,14 @@ export async function updateScheduleExceptionAction(
     ...datesAffectedByException(parsed.exceptionType, parsed.startDate, end),
   ];
 
-  scheduleExceptionStopSync(profile.company_id, [existing.dog_id, parsed.dogId], datesToSync);
+  scheduleExceptionStopSync(
+    profile.company_id,
+    [existing.dog_id, parsed.dogId],
+    datesToSync,
+    parsed.exceptionType === "pause" || existing.exception_type === "pause"
+      ? { includeAllFutureRouteHikes: true }
+      : undefined
+  );
 
   revalidateExceptionPaths();
   redirect(`/dashboard/exceptions?updated=${exceptionId}`);
@@ -483,7 +493,14 @@ export async function deleteScheduleExceptionAction(
     return { error: error.message };
   }
 
-  scheduleExceptionStopSync(profile.company_id, [existing.dog_id], datesToSync);
+  scheduleExceptionStopSync(
+    profile.company_id,
+    [existing.dog_id],
+    datesToSync,
+    existing.exception_type === "pause"
+      ? { includeAllFutureRouteHikes: true }
+      : undefined
+  );
   revalidateExceptionPaths();
 
   return {};
