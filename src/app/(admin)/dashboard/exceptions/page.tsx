@@ -2,6 +2,7 @@ import { PageHeader, EmptyState, TableShell } from "@/features/admin/components/
 import { requireRole } from "@/features/auth/queries";
 import { AddExceptionForm } from "@/features/dogs/components/add-exception-form";
 import { ExceptionAddedBanner } from "@/features/dogs/components/exception-added-banner";
+import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception-sync-failure-banner";
 import {
   ExceptionsTable,
   type ScheduleExceptionRow,
@@ -88,6 +89,8 @@ export default async function ExceptionsPage({
         title="Schedule exceptions"
         description="Skips, vacations, and pauses that remove dogs from the hike schedule."
       />
+
+      <ExceptionSyncFailureBanner companyId={profile.company_id} />
 
       {bannerMessage ? <ExceptionAddedBanner message={bannerMessage} /> : null}
 

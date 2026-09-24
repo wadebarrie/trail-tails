@@ -176,10 +176,11 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
             </li>
           </ol>
           <p className="text-xs opacity-80">
-            Pickup order can be adjusted by dragging on Today if the office enabled
-            reordering for your route. Drop-offs always follow pickup in reverse order.
-            You are not required to follow the listed order — work the route in whatever
-            order is safest and fastest on the road.
+            You can drag to reorder remaining pickups or drop-offs on Today at any
+            time — finished stops stay put. Drop-offs default to the reverse of
+            pickup order, but you can set a custom drop-off sequence when the road
+            calls for it. You are not required to follow the listed order — work
+            the route in whatever order is safest and fastest.
           </p>
         </Section>
 

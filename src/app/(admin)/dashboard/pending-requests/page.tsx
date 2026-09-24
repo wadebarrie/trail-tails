@@ -5,6 +5,7 @@ import {
   PageHeader,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception-sync-failure-banner";
 import { PendingRequestActions } from "@/features/pending-requests/components/pending-request-actions";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
@@ -93,6 +94,8 @@ export default async function PendingRequestsPage() {
         title="Pending requests"
         description="Customer SMS schedule-change requests. Review and approve or decline."
       />
+
+      <ExceptionSyncFailureBanner companyId={profile.company_id} />
 
       {!requests?.length ? (
         <EmptyState message="No requests yet." />

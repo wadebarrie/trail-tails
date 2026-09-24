@@ -1,6 +1,7 @@
 import { PageHeader, EmptyState } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { getCompanyTimezone } from "@/features/company/queries";
+import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception-sync-failure-banner";
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
 import { SyncRoutesButton } from "@/features/hikes/components/sync-routes-button";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
@@ -52,6 +53,8 @@ export default async function TodayHikesPage() {
         description={`${formatDateLabel(date, tz)} — build and adjust today's hikes without changing dogs' long-term schedules.`}
         action={<SyncRoutesButton offsetDays={0} />}
       />
+
+      <ExceptionSyncFailureBanner companyId={profile.company_id} />
 
       {runningRoutes.length > 0 ? (
         <div className="space-y-8">

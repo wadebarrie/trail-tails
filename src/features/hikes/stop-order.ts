@@ -2,6 +2,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getDateInTimezone } from "@/lib/dates";
 import { applyStopReorder } from "@/features/hikes/reorder-stops";
 
+type StopRow = { id: string; dog_id: string; status: string; sort_order: number };
+
+function isOpenStopStatus(status: string) {
+  return status !== "cancelled" && status !== "skipped";
+}
+
+function isIncompleteStopStatus(status: string) {
+  return status === "scheduled" || status === "en_route" || status === "arrived";
+}
+
 export function dropoffSortOrderFromPickupIndex(
   pickupIndex: number,
   pickupCount: number
@@ -74,6 +84,118 @@ export async function applyPickupReorderWithReverseDropoff(
   return applyStopReorder(supabase, hikeId, "dropoff", dropoffStopIds);
 }
 
+/**
+ * Mid-route pickup reorder: completed pickups stay fixed at the front;
+ * only incomplete pickups are reordered. Incomplete drop-offs follow the
+ * reverse of the new pickup order; completed drop-offs stay first.
+ */
+export async function applyMidRoutePickupReorder(
+  supabase: SupabaseClient,
+  hikeId: string,
+  orderedIncompletePickupIds: string[]
+): Promise<string | null> {
+  const { data: pickupRows } = await supabase
+    .from("stops")
+    .select("id, dog_id, status, sort_order")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "pickup")
+    .order("sort_order");
+
+  const pickups = (pickupRows ?? []) as StopRow[];
+  const completed = pickups.filter(
+    (p) => isOpenStopStatus(p.status) && !isIncompleteStopStatus(p.status)
+  );
+  const incomplete = pickups.filter((p) => isIncompleteStopStatus(p.status));
+
+  if (incomplete.length !== orderedIncompletePickupIds.length) {
+    return "Invalid pickup order.";
+  }
+  const incompleteIds = new Set(incomplete.map((p) => p.id));
+  if (!orderedIncompletePickupIds.every((id) => incompleteIds.has(id))) {
+    return "Invalid pickup order.";
+  }
+
+  const newPickupOrder = [
+    ...completed.map((p) => p.id),
+    ...orderedIncompletePickupIds,
+  ];
+
+  const pickupError = await applyStopReorder(
+    supabase,
+    hikeId,
+    "pickup",
+    newPickupOrder
+  );
+  if (pickupError) return pickupError;
+
+  return syncDropoffsPreservingCompleted(supabase, hikeId, newPickupOrder);
+}
+
+/** Reorder incomplete drop-offs only; completed drop-offs stay first. */
+export async function applyMidRouteDropoffReorder(
+  supabase: SupabaseClient,
+  hikeId: string,
+  orderedIncompleteDropoffIds: string[]
+): Promise<string | null> {
+  const { data: dropoffRows } = await supabase
+    .from("stops")
+    .select("id, dog_id, status, sort_order")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "dropoff")
+    .order("sort_order");
+
+  const dropoffs = (dropoffRows ?? []) as StopRow[];
+  const completed = dropoffs.filter(
+    (d) => isOpenStopStatus(d.status) && !isIncompleteStopStatus(d.status)
+  );
+  const incomplete = dropoffs.filter((d) => isIncompleteStopStatus(d.status));
+
+  if (incomplete.length !== orderedIncompleteDropoffIds.length) {
+    return "Invalid drop-off order.";
+  }
+  const incompleteIds = new Set(incomplete.map((d) => d.id));
+  if (!orderedIncompleteDropoffIds.every((id) => incompleteIds.has(id))) {
+    return "Invalid drop-off order.";
+  }
+
+  return applyStopReorder(supabase, hikeId, "dropoff", [
+    ...completed.map((d) => d.id),
+    ...orderedIncompleteDropoffIds,
+  ]);
+}
+
+async function syncDropoffsPreservingCompleted(
+  supabase: SupabaseClient,
+  hikeId: string,
+  orderedPickupStopIds: string[]
+): Promise<string | null> {
+  const desiredAll = await dropoffStopIdsReversedFromPickups(
+    supabase,
+    hikeId,
+    orderedPickupStopIds
+  );
+  if (desiredAll.length === 0) return null;
+
+  const { data: dropoffRows } = await supabase
+    .from("stops")
+    .select("id, dog_id, status, sort_order")
+    .eq("hike_id", hikeId)
+    .eq("stop_type", "dropoff")
+    .order("sort_order");
+
+  const dropoffs = (dropoffRows ?? []) as StopRow[];
+  const completed = dropoffs.filter(
+    (d) => isOpenStopStatus(d.status) && !isIncompleteStopStatus(d.status)
+  );
+  const completedIds = new Set(completed.map((d) => d.id));
+  const remainingDesired = desiredAll.filter((id) => !completedIds.has(id));
+
+  return applyStopReorder(supabase, hikeId, "dropoff", [
+    ...completed.map((d) => d.id),
+    ...remainingDesired,
+  ]);
+}
+
 /** Keep drop-off visit order aligned with pickup order (last pickup → first drop-off). */
 export async function syncDropoffOrderFromPickupStops(
   supabase: SupabaseClient,
@@ -93,33 +215,11 @@ export async function syncDropoffOrderFromPickupStops(
   if (pickups.length === 0) return null;
 
   const orderedPickupStopIds = pickups.map((p) => p.id);
-  const desiredDropoffIds = await dropoffStopIdsReversedFromPickups(
+  return syncDropoffsPreservingCompleted(
     supabase,
     hikeId,
     orderedPickupStopIds
   );
-
-  if (desiredDropoffIds.length === 0) return null;
-
-  const { data: dropoffRows } = await supabase
-    .from("stops")
-    .select("id, status")
-    .eq("hike_id", hikeId)
-    .eq("stop_type", "dropoff")
-    .order("sort_order");
-
-  const dropoffs = (dropoffRows ?? []).filter(
-    (d) => d.status !== "cancelled" && d.status !== "skipped"
-  );
-  const currentIds = dropoffs.map((d) => d.id);
-  if (
-    currentIds.length === desiredDropoffIds.length &&
-    currentIds.every((id, i) => id === desiredDropoffIds[i])
-  ) {
-    return null;
-  }
-
-  return applyStopReorder(supabase, hikeId, "dropoff", desiredDropoffIds);
 }
 
 /**

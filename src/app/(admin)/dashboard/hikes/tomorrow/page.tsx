@@ -1,6 +1,7 @@
 import { PageHeader, EmptyState } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { getCompanyTimezone } from "@/features/company/queries";
+import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception-sync-failure-banner";
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
 import { SyncRoutesButton } from "@/features/hikes/components/sync-routes-button";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
@@ -49,6 +50,11 @@ export default async function TomorrowHikesPage() {
         title="Tomorrow"
         description={`${formatDateLabel(date, tz)} — build and adjust tomorrow's hikes without changing dogs' long-term schedules.`}
         action={<SyncRoutesButton offsetDays={1} />}
+      />
+
+      <ExceptionSyncFailureBanner
+        companyId={profile.company_id}
+        rebuildHref="/dashboard/hikes/tomorrow"
       />
 
       {hikes.length > 0 ? (
