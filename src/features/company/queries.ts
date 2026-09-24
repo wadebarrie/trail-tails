@@ -12,14 +12,16 @@ export const getCompanyTimezone = cache(async (companyId: string): Promise<strin
   return data?.timezone ?? "America/Los_Angeles";
 });
 
-export async function getCompanyName(companyId: string): Promise<string | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("companies")
-    .select("name")
-    .eq("id", companyId)
-    .maybeSingle();
+export const getCompanyName = cache(
+  async (companyId: string): Promise<string | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("companies")
+      .select("name")
+      .eq("id", companyId)
+      .maybeSingle();
 
-  if (error || !data) return null;
-  return data.name;
-}
+    if (error || !data) return null;
+    return data.name;
+  }
+);

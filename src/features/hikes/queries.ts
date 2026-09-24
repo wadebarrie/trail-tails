@@ -71,6 +71,100 @@ export type GetHikesWithStopsOptions = {
   timeZone?: string;
 };
 
+export type HikeDaySummary = {
+  dogs: number;
+  routesScheduled: number;
+  routesWithDogs: number;
+};
+
+const HIKE_DAY_SUMMARY_SELECT = `
+  date,
+  route_id,
+  stops (
+    dog_id,
+    stop_type
+  )
+`;
+
+/**
+ * Light day counts for dashboard cards — skips nested dog/customer payloads.
+ */
+export async function getHikeDaySummaries(
+  companyId: string,
+  dates: string[],
+  options: { timeZone?: string } = {}
+): Promise<Map<string, HikeDaySummary>> {
+  const summaries = new Map<string, HikeDaySummary>();
+  for (const date of dates) {
+    summaries.set(date, { dogs: 0, routesScheduled: 0, routesWithDogs: 0 });
+  }
+  if (dates.length === 0) return summaries;
+
+  const timer = new PerfTimer(`query hike-day-summaries ${dates.join(",")}`);
+  const supabase = await createClient();
+  const timeZone = options.timeZone ?? (await getCompanyTimezone(companyId));
+  const routes = await listRoutes(companyId);
+  timer.mark("routes");
+
+  const { data: hikes, error } = await supabase
+    .from("hikes")
+    .select(HIKE_DAY_SUMMARY_SELECT)
+    .eq("company_id", companyId)
+    .in("date", dates);
+
+  if (error) {
+    logWarn("hike", "Failed to load hike day summaries", {
+      companyId,
+      context: { dates, dbError: error.message },
+    });
+  }
+  timer.mark("hikes");
+
+  type SummaryStop = { dog_id?: string; stop_type?: string };
+  const hikesByDate = new Map<string, typeof hikes>();
+  for (const hike of hikes ?? []) {
+    const date = hike.date as string;
+    const list = hikesByDate.get(date) ?? [];
+    list.push(hike);
+    hikesByDate.set(date, list);
+  }
+
+  for (const date of dates) {
+    const dayOfWeek = getDayOfWeek(date, timeZone);
+    const scheduledRoutes = routes.filter((route) =>
+      routeRunsOnDay(getRouteScheduleDays(route), dayOfWeek)
+    );
+    const hikeByRouteId = new Map(
+      (hikesByDate.get(date) ?? []).map((hike) => [
+        hike.route_id as string,
+        hike,
+      ])
+    );
+
+    const pickupDogIds = new Set<string>();
+    let routesWithDogs = 0;
+
+    for (const route of scheduledRoutes) {
+      const hike = hikeByRouteId.get(route.id);
+      const stops = (hike?.stops ?? []) as SummaryStop[];
+      const pickups = stops.filter((stop) => stop.stop_type === "pickup");
+      if (pickups.length > 0) routesWithDogs += 1;
+      for (const stop of pickups) {
+        if (stop.dog_id) pickupDogIds.add(stop.dog_id);
+      }
+    }
+
+    summaries.set(date, {
+      dogs: pickupDogIds.size,
+      routesScheduled: scheduledRoutes.length,
+      routesWithDogs,
+    });
+  }
+
+  timer.end(`${dates.length} dates`);
+  return summaries;
+}
+
 /** Ensure hikes exist for all routes on a date and sync stops. */
 export async function ensureHikeForDate(companyId: string, date: string) {
   const profile = await getCurrentProfile();

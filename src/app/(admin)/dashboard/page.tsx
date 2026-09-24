@@ -9,8 +9,8 @@ import {
 import { requireRole } from "@/features/auth/queries";
 import { getCompanyTimezone } from "@/features/company/queries";
 import {
-  getHikesWithStopsForDate,
-  type HikeWithRoute,
+  getHikeDaySummaries,
+  type HikeDaySummary,
 } from "@/features/hikes/queries";
 import { companyNeedsOnboarding } from "@/features/onboarding/queries";
 import { ONBOARDING_PATH } from "@/features/onboarding/constants";
@@ -18,32 +18,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import { PerfTimer } from "@/lib/perf";
 
-type StopSummary = {
-  dog_id?: string;
-  stop_type?: string;
-};
-
-function dayOperationalCounts(entries: HikeWithRoute[]) {
-  const pickupDogIds = new Set<string>();
-  let routesWithDogs = 0;
-
-  for (const entry of entries) {
-    const stops = (entry.hike?.stops ?? []) as StopSummary[];
-    const pickups = stops.filter((stop) => stop.stop_type === "pickup");
-    if (pickups.length > 0) routesWithDogs += 1;
-    for (const stop of pickups) {
-      if (stop.dog_id) pickupDogIds.add(stop.dog_id);
-    }
-  }
-
-  return {
-    dogs: pickupDogIds.size,
-    routesScheduled: entries.length,
-    routesWithDogs,
-  };
-}
-
-function daySummaryHint(counts: ReturnType<typeof dayOperationalCounts>) {
+function daySummaryHint(counts: HikeDaySummary) {
   if (counts.routesScheduled === 0) {
     return "No routes scheduled this day";
   }
@@ -73,18 +48,16 @@ export default async function DashboardPage() {
   const today = getDateInTimezone(tz, 0);
   const tomorrow = getDateInTimezone(tz, 1);
 
-  const [todayEntries, tomorrowEntries] = await Promise.all([
-    getHikesWithStopsForDate(profile.company_id, today, { timeZone: tz }),
-    getHikesWithStopsForDate(profile.company_id, tomorrow, { timeZone: tz }),
-  ]);
-  timer.mark("hikes");
-
   const [
+    daySummaries,
     { count: pendingCount },
     { count: customerCount },
     { count: dogCount },
     { count: routeCount },
   ] = await Promise.all([
+    getHikeDaySummaries(profile.company_id, [today, tomorrow], {
+      timeZone: tz,
+    }),
     supabase
       .from("pending_requests")
       .select("*", { count: "exact", head: true })
@@ -108,8 +81,16 @@ export default async function DashboardPage() {
   ]);
   timer.end();
 
-  const todayCounts = dayOperationalCounts(todayEntries);
-  const tomorrowCounts = dayOperationalCounts(tomorrowEntries);
+  const todayCounts = daySummaries.get(today) ?? {
+    dogs: 0,
+    routesScheduled: 0,
+    routesWithDogs: 0,
+  };
+  const tomorrowCounts = daySummaries.get(tomorrow) ?? {
+    dogs: 0,
+    routesScheduled: 0,
+    routesWithDogs: 0,
+  };
   const pending = pendingCount ?? 0;
 
   /** Operations first — what needs attention today; roster second — business size. */
