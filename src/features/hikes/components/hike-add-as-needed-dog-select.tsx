@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { secondaryButtonClassName } from "@/features/admin/components/button-styles";
+import { selectClassName } from "@/features/admin/components/form-styles";
 import { addAsNeededDogToDayAction } from "@/features/hikes/actions";
 
 export type AddableAsNeededDog = {
@@ -55,7 +57,7 @@ export function HikeAddAsNeededDogSelect({
           required
           defaultValue=""
           disabled={pending}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-2 py-1.5 text-sm disabled:opacity-60"
+          className={`mt-1 ${selectClassName}`}
         >
           <option value="" disabled>
             Select a dog…
@@ -71,7 +73,7 @@ export function HikeAddAsNeededDogSelect({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-60"
+        className={secondaryButtonClassName}
       >
         {pending ? "Adding…" : "Add to this day"}
       </button>

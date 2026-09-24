@@ -107,9 +107,9 @@ export default async function RouteOrderPage({
             const scheduleDays = getRouteScheduleDays(route);
 
             return (
-              <section
+              <Card
                 key={route.id}
-                className="surface-elevated rounded-[var(--radius-card)] p-5 motion-interactive hover:shadow-[var(--elevation-3)]"
+                className="motion-interactive hover:shadow-[var(--elevation-3)]"
               >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 pb-4">
                   <div>
@@ -196,7 +196,7 @@ export default async function RouteOrderPage({
                     )}
                   </div>
                 </div>
-              </section>
+              </Card>
             );
           })}
         </div>

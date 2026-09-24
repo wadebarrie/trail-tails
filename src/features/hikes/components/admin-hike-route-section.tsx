@@ -1,3 +1,4 @@
+import { Card } from "@/features/admin/components/ui";
 import { DriverSelect } from "@/features/hikes/components/driver-select";
 import { VehicleSelect } from "@/features/hikes/components/vehicle-select";
 import {
@@ -36,7 +37,7 @@ export function AdminHikeRouteSection({
   >[0]["stops"];
 
   return (
-    <section className="rounded-xl border border-stone-200 bg-stone-50/50 p-4 sm:p-6">
+    <Card className="p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold text-stone-900">
@@ -108,6 +109,6 @@ export function AdminHikeRouteSection({
       ) : (
         <p className="mt-4 text-sm text-stone-500">No dogs scheduled yet.</p>
       )}
-    </section>
+    </Card>
   );
 }

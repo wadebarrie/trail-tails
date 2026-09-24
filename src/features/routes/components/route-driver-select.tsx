@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { selectCompactClassName } from "@/features/admin/components/form-styles";
 import { assignRouteDriverAction } from "@/features/routes/actions";
 
 type Driver = { id: string; full_name: string };
@@ -42,7 +43,7 @@ export function RouteDriverSelect({
         defaultValue={currentDriverId ?? ""}
         key={currentDriverId ?? "none"}
         disabled={pending}
-        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm disabled:opacity-60"
+        className={selectCompactClassName}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
         <option value="">Unassigned</option>
