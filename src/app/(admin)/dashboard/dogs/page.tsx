@@ -36,6 +36,7 @@ export default async function DogsPage({
       pickup_window_end,
       route_sort_order,
       customers ( owner_name ),
+      routes ( name ),
       dog_schedule_days ( day_of_week )
     `
     )
@@ -66,13 +67,13 @@ export default async function DogsPage({
             <thead className="bg-stone-50 text-left text-stone-500">
               <tr>
                 <th scope="col" className="px-4 py-3 font-medium">
-                  #
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
                   Dog
                 </th>
                 <th scope="col" className="px-4 py-3 font-medium">
                   Owner
+                </th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Route
                 </th>
                 <th scope="col" className="px-4 py-3 font-medium">
                   Window
@@ -95,6 +96,9 @@ export default async function DogsPage({
                     | { owner_name: string }
                     | { owner_name: string }[]
                 );
+                const route = one(
+                  dog.routes as { name: string } | { name: string }[] | null
+                );
                 const days = scheduleDays
                   .map(
                     (d) =>
@@ -107,9 +111,6 @@ export default async function DogsPage({
 
                 return (
                   <tr key={dog.id} className={motionTableRowClassName}>
-                    <td className="px-4 py-3 text-stone-400">
-                      {dog.route_sort_order + 1}
-                    </td>
                     <td className="px-4 py-3">
                       <Link
                         href={`/dashboard/dogs/${dog.id}`}
@@ -120,6 +121,11 @@ export default async function DogsPage({
                     </td>
                     <td className="px-4 py-3 text-stone-600">
                       {customer?.owner_name}
+                    </td>
+                    <td className="px-4 py-3 text-stone-600">
+                      {route?.name ?? (
+                        <span className="text-stone-400">Unassigned</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-stone-600">
                       {formatTime(dog.pickup_window_start)}–

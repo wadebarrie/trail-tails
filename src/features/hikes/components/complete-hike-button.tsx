@@ -1,7 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/features/admin/components/ui";
+import { secondaryButtonClassName } from "@/features/admin/components/button-styles";
 import { completeHikeAction } from "@/features/hikes/actions";
 
 export function CompleteHikeButton({
@@ -13,13 +15,10 @@ export function CompleteHikeButton({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   if (status === "completed") {
-    return (
-      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
-        Completed
-      </span>
-    );
+    return <HikeStatusBadge status={status} />;
   }
 
   function handleComplete() {
@@ -31,10 +30,11 @@ export function CompleteHikeButton({
       return;
     }
 
+    setError(null);
     startTransition(async () => {
       const result = await completeHikeAction(hikeId);
       if (result.error) {
-        alert(result.error);
+        setError(result.error);
         return;
       }
       router.refresh();
@@ -45,36 +45,31 @@ export function CompleteHikeButton({
     status === "in_progress" ? "Mark hike complete" : "Close out hike";
 
   return (
-    <button
-      type="button"
-      onClick={handleComplete}
-      disabled={pending}
-      className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:border-stone-400 hover:bg-stone-50 disabled:opacity-50"
-    >
-      {pending ? "Saving…" : label}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        onClick={handleComplete}
+        disabled={pending}
+        className={secondaryButtonClassName}
+      >
+        {pending ? "Saving…" : label}
+      </button>
+      {error ? (
+        <p className="max-w-xs text-right text-xs text-red-600" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
 export function HikeStatusBadge({ status }: { status: string }) {
   switch (status) {
     case "completed":
-      return (
-        <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-          Completed
-        </span>
-      );
+      return <Badge tone="green">Completed</Badge>;
     case "in_progress":
-      return (
-        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900">
-          In progress
-        </span>
-      );
+      return <Badge tone="amber">In progress</Badge>;
     default:
-      return (
-        <span className="rounded-full bg-stone-200 px-2.5 py-0.5 text-xs font-medium text-stone-700">
-          Planned
-        </span>
-      );
+      return <Badge tone="neutral">Planned</Badge>;
   }
 }

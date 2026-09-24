@@ -19,9 +19,11 @@
   /* Legacy trail scale — mapped to PackRoute palette */
   --color-trail-50: var(--color-surface-subtle);
   --color-trail-100: #e4ede7;
+  --color-trail-200: #c5d9cb;
   --color-trail-600: var(--color-forest);
   --color-trail-700: #1a4d3f;
   --color-trail-800: var(--color-ink);
+  --color-trail-900: #122e26;
 
   --color-cta: var(--color-forest);
   --color-cta-hover: #1a4d3f;
