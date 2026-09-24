@@ -8,8 +8,10 @@ import {
 } from "@/features/admin/components/button-styles";
 import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
 import { DEMO_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
+import { GoogleAnalytics } from "@/features/landing/components/google-analytics";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { NAV_LINKS } from "@/features/landing/constants";
+import { trackEvent } from "@/features/landing/analytics";
 
 export function LandingHeader({
   showStartTrial = false,
@@ -19,7 +21,9 @@ export function LandingHeader({
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="surface-header sticky top-0 z-50">
+    <>
+      <GoogleAnalytics />
+      <header className="surface-header sticky top-0 z-50">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <PackRouteLogo
           href="/"
@@ -54,6 +58,9 @@ export function LandingHeader({
             <Link
               href="/signup"
               className={`${landingPrimaryButtonClassName} min-h-11 px-4 py-2 text-sm`}
+              onClick={() =>
+                trackEvent("start_trial", { location: "header" })
+              }
             >
               Start free trial
             </Link>
@@ -62,6 +69,8 @@ export function LandingHeader({
               subject={DEMO_EMAIL_SUBJECT}
               label="Book a demo"
               className={`${landingPrimaryButtonClassName} min-h-11 px-4 py-2 text-sm`}
+              eventName="book_demo"
+              eventLocation="header"
             />
           )}
         </div>
@@ -105,7 +114,10 @@ export function LandingHeader({
               <Link
                 href="/signup"
                 className={`${landingPrimaryButtonClassName} mt-2 min-h-11 w-full px-4 py-2.5 text-sm`}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  trackEvent("start_trial", { location: "header_mobile" });
+                  setOpen(false);
+                }}
               >
                 Start free trial
               </Link>
@@ -114,11 +126,14 @@ export function LandingHeader({
                 subject={DEMO_EMAIL_SUBJECT}
                 label="Book a demo"
                 className={`${landingPrimaryButtonClassName} mt-2 min-h-11 w-full px-4 py-2.5 text-sm`}
+                eventName="book_demo"
+                eventLocation="header_mobile"
               />
             )}
           </nav>
         </div>
       ) : null}
     </header>
+    </>
   );
 }

@@ -12,6 +12,7 @@ import {
   DEMO_EMAIL_SUBJECT,
   WAITLIST_EMAIL_SUBJECT,
 } from "@/features/landing/contact-email-actions";
+import { trackEvent } from "@/features/landing/analytics";
 
 function primaryButtonClasses() {
   return landingPrimaryButtonClassName;
@@ -59,7 +60,11 @@ export function CtaButtons({
     <div>
       <div className={rowClassName}>
         {showStartTrial ? (
-          <Link href="/signup" className={resolvedPrimaryClassName}>
+          <Link
+            href="/signup"
+            className={resolvedPrimaryClassName}
+            onClick={() => trackEvent("start_trial", { location: "cta" })}
+          >
             Start free trial
           </Link>
         ) : (
@@ -67,6 +72,8 @@ export function CtaButtons({
             subject={DEMO_EMAIL_SUBJECT}
             label={primary}
             className={resolvedPrimaryClassName}
+            eventName="book_demo"
+            eventLocation="cta"
           />
         )}
         {showStartTrial ? (
@@ -74,12 +81,16 @@ export function CtaButtons({
             subject={DEMO_EMAIL_SUBJECT}
             label="Book a demo"
             className={resolvedSecondaryClassName}
+            eventName="book_demo"
+            eventLocation="cta_secondary"
           />
         ) : showEarlyAccess ? (
           <ContactEmailButton
             subject={WAITLIST_EMAIL_SUBJECT}
             label="Get early access"
             className={resolvedSecondaryClassName}
+            eventName="early_access"
+            eventLocation="cta"
           />
         ) : showHowItWorks ? (
           <Link href="/#how-it-works" className={resolvedSecondaryClassName}>

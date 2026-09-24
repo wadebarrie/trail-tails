@@ -32,7 +32,7 @@ export const cookiesDocument: LegalDocumentContent = {
           items: [
             "Essential cookies — required for authentication, security, and core platform functionality. The service may not work properly without them.",
             "Functional cookies — remember settings and improve usability.",
-            "Analytics cookies — help us understand traffic, feature usage, and performance in aggregate.",
+            "Analytics cookies — help us understand traffic, feature usage, and performance in aggregate (including Google Analytics on public marketing pages).",
           ],
         },
       ],
