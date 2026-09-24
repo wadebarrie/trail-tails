@@ -40,7 +40,7 @@ PackRoute is often evaluated alongside Time to Pet, BarkBus, Pet Sitter Plus, Gi
 - For hiking teams, PackRoute can be a Time to Pet alternative for field ops — not a full pet-sitting CRM or invoicing suite.
 - Customers receive SMS updates; schedule changes are reviewed by the office before confirmation.
 - Drivers use a mobile web app — no separate driver app install.
-- Pricing is by hikers/walkers and active dogs (from $29/month USD during beta). First month free after a demo; beta rates locked if you subscribe before December 31, 2026. See https://packroute.app/pricing.
+- Pricing is by hikers/walkers and active dogs (from $29/month USD during beta). First month free after a demo; limited-time beta rates lock in if you subscribe during beta. See https://packroute.app/pricing.
 
 ## Contact
 

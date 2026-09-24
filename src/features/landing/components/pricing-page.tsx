@@ -5,7 +5,6 @@ import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import { landingPrimaryButtonClassName } from "@/features/admin/components/button-styles";
 import {
-  PRICING_BETA_LOCK_DATE,
   PRICING_FAQ,
   PRICING_INCLUDED_FEATURES,
   PRICING_TIERS,
@@ -49,13 +48,13 @@ export function PricingPageContent({
                 We are in open beta.
               </strong>{" "}
               You may hit an occasional rough edge; tell us and we will
-              prioritize a fix. In return, these are beta prices — subscribe
-              before{" "}
+              prioritize a fix. In return, these are{" "}
               <strong className="font-medium text-stone-800">
-                {PRICING_BETA_LOCK_DATE}
+                limited-time
               </strong>{" "}
-              and your rate stays locked for as long as you remain a customer.
-              Prices increase when we leave beta next year.
+              beta prices — subscribe during beta and your rate stays locked for
+              as long as you remain a customer. Prices increase when we leave
+              beta.
             </p>
           </div>
         </section>

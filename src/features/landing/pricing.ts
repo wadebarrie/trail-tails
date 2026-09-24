@@ -2,8 +2,6 @@
 
 export const PRICING_CURRENCY = "USD";
 
-export const PRICING_BETA_LOCK_DATE = "December 31, 2026";
-
 export type PricingTierId = "one_hiker" | "two_hikers" | "three_plus";
 
 export type PricingTier = {
@@ -92,6 +90,6 @@ export const PRICING_FAQ = [
   },
   {
     q: "What does “beta pricing” mean?",
-    a: `We are in open beta. You may hit an occasional rough edge; tell us and we will prioritize a fix. In return, these are beta prices — subscribe before ${PRICING_BETA_LOCK_DATE} and your rate stays locked for as long as you remain a customer. Prices increase when we leave beta next year.`,
+    a: "We are in open beta. You may hit an occasional rough edge; tell us and we will prioritize a fix. In return, these are limited-time beta prices — subscribe during beta and your rate stays locked for as long as you remain a customer. Prices increase when we leave beta.",
   },
 ] as const;
