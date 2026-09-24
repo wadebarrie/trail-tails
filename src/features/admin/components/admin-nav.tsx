@@ -6,10 +6,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import {
   isGroupActive,
   isMobileMoreActive,
-  isMobilePeopleActive,
   isNavActive,
   mobileMoreSections,
-  mobilePeopleNav,
   mobilePrimaryNav,
   navGroups,
   primaryNav,
@@ -275,12 +273,8 @@ type AdminNavProps = {
 
 export function AdminNav({ pendingRequestCount }: AdminNavProps) {
   const pathname = usePathname();
-  const [peopleOpenFor, setPeopleOpenFor] = useState<string | null>(null);
   const [moreOpenFor, setMoreOpenFor] = useState<string | null>(null);
-  const peopleOpen = peopleOpenFor === pathname;
   const moreOpen = moreOpenFor === pathname;
-
-  const peopleActive = isMobilePeopleActive(pathname);
   const moreActive = isMobileMoreActive(pathname);
 
   return (
@@ -355,27 +349,6 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
 
           <button
             type="button"
-            onClick={() => setPeopleOpenFor(pathname)}
-            aria-expanded={peopleOpen}
-            aria-haspopup="dialog"
-            className={mobileTabClass(peopleActive)}
-          >
-            <span
-              className={`text-[11px] font-medium leading-tight ${
-                peopleActive ? "text-[var(--color-trail-700)]" : "text-stone-500"
-              }`}
-            >
-              People
-            </span>
-            {peopleActive ? (
-              <span className="h-1 w-8 rounded-full bg-[var(--color-trail-600)]" />
-            ) : (
-              <span className="h-1 w-8" aria-hidden />
-            )}
-          </button>
-
-          <button
-            type="button"
             onClick={() => setMoreOpenFor(pathname)}
             aria-expanded={moreOpen}
             aria-haspopup="dialog"
@@ -396,33 +369,6 @@ export function AdminNav({ pendingRequestCount }: AdminNavProps) {
           </button>
         </div>
       </nav>
-
-      <MobileSheet
-        title="People"
-        open={peopleOpen}
-        onClose={() => setPeopleOpenFor(null)}
-      >
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {mobilePeopleNav.items.map((item) => {
-            const active = isNavActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={sheetLinkClass(active)}
-                onClick={() => setPeopleOpenFor(null)}
-              >
-                <NavLabel
-                  item={item}
-                  active={active}
-                  pendingRequestCount={pendingRequestCount}
-                />
-              </Link>
-            );
-          })}
-        </div>
-      </MobileSheet>
 
       <MobileSheet
         title="More"

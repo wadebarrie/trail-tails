@@ -79,9 +79,13 @@ export function isGroupActive(pathname: string, group: NavGroup) {
   return group.items.some((item) => isNavActive(pathname, item.href));
 }
 
-/** Mobile bottom bar: daily ops + people sheet + requests + more sheet */
+/**
+ * Mobile bottom bar: day planning first (Today + Tomorrow), then Routes,
+ * Requests, and More. People lives in More so Tomorrow stays one tap away.
+ */
 export const mobilePrimaryNav: NavItem[] = [
   { href: "/dashboard/hikes/today", label: "Today" },
+  { href: "/dashboard/hikes/tomorrow", label: "Tomorrow", shortLabel: "Tmrw" },
   { href: "/dashboard/route", label: "Routes" },
   {
     href: "/dashboard/pending-requests",
@@ -92,24 +96,33 @@ export const mobilePrimaryNav: NavItem[] = [
 
 export const mobilePeopleNav = navGroups.find((g) => g.id === "people")!;
 
+const mobileOperationsNav: NavGroup = {
+  id: "operations",
+  label: "Operations",
+  items: [
+    // Pending requests stay on the bottom bar — only Exceptions here.
+    { href: "/dashboard/exceptions", label: "Exceptions" },
+  ],
+};
+
 export const mobileMoreSections: NavGroup[] = [
   {
     id: "schedule",
     label: "Schedule",
-    items: [
-      { href: "/dashboard", label: "Dashboard", shortLabel: "Home" },
-      { href: "/dashboard/hikes/tomorrow", label: "Tomorrow" },
-    ],
+    items: [{ href: "/dashboard", label: "Dashboard", shortLabel: "Home" }],
   },
-  navGroups.find((g) => g.id === "operations")!,
+  mobilePeopleNav,
+  mobileOperationsNav,
   navGroups.find((g) => g.id === "business")!,
   navGroups.find((g) => g.id === "activity")!,
 ];
 
-export function isMobilePeopleActive(pathname: string) {
-  return isGroupActive(pathname, mobilePeopleNav);
-}
-
 export function isMobileMoreActive(pathname: string) {
-  return mobileMoreSections.some((section) => isGroupActive(pathname, section));
+  const primaryHrefs = new Set(mobilePrimaryNav.map((item) => item.href));
+  return mobileMoreSections.some((section) =>
+    section.items.some(
+      (item) =>
+        !primaryHrefs.has(item.href) && isNavActive(pathname, item.href)
+    )
+  );
 }
