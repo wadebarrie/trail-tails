@@ -48,7 +48,7 @@ export const PRICING_TIERS: readonly PricingTier[] = [
 /** Shared on every tier — capacity is what changes. */
 export const PRICING_INCLUDED_FEATURES = [
   "Unlimited office logins",
-  "Pickup route planning and hiker Today view",
+  "Pickup route planning and driver Today view",
   "Automated customer SMS — reminders, ETAs, pickup and drop-off updates",
   "Schedule-change texts with office approval",
   "Completed-hike CSV export for QuickBooks or your billing process",
@@ -66,11 +66,11 @@ export const PRICING_FAQ = [
   },
   {
     q: "What counts as a hiker or walker?",
-    a: "Anyone who runs a pickup route day in PackRoute — your field hikers and walkers. Office-only logins do not count toward the capacity limit.",
+    a: "Anyone who runs a pickup route day — the people your industry calls hikers or walkers. In PackRoute they use the Driver role and Driver Today view. Office-only logins do not count toward the capacity limit.",
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "No. PackRoute is operations software for routes, hikers and walkers, and SMS. You export completed hikes as CSV and bill in QuickBooks or your own process. That keeps the product focused on the field day.",
+    a: "No. PackRoute is operations software for routes, drivers, and SMS. You export completed hikes as CSV and bill in QuickBooks or your own process. That keeps the product focused on the field day.",
   },
   {
     q: "Is there a setup fee?",

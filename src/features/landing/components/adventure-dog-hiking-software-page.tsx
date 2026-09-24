@@ -39,7 +39,7 @@ export function AdventureDogHikingSoftwarePageContent() {
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
             PackRoute is the software adventure dog hiking businesses use to
             manage daily pickup routes — group hikes and pack walks with
-            multiple drivers and dozens to hundreds of active dogs.
+            multiple hikers or walkers and dozens to hundreds of active dogs.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Not a consumer marketplace or in-home pet sitting app. Built for
@@ -58,8 +58,8 @@ export function AdventureDogHikingSoftwarePageContent() {
               Run group dog walking operations without spreadsheet chaos
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
-              For operators with one to ten drivers who need adventure dog
-              hiking software that matches how pickup routes and group hikes
+              For operators with one to ten hikers or walkers who need adventure
+              dog hiking software that matches how pickup routes and group hikes
               actually run — not generic pet care tools.
             </p>
             <ul className="mt-10 grid gap-5 sm:grid-cols-2">

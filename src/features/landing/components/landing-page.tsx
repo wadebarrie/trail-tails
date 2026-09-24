@@ -65,9 +65,10 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                 {HOME_H1}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-stone-600">
-                Growing past one driver? Replace Google Sheets and WhatsApp with
-                multi-driver pickup routes, a simple mobile driver workflow, and
-                automated SMS ETAs — so customers stop calling for updates.
+                Growing past one hiker or walker? Replace Google Sheets and
+                WhatsApp with multi-driver pickup routes, a simple mobile driver
+                workflow, and automated SMS ETAs — so customers stop calling for
+                updates.
               </p>
               <div className="mt-8">
                 <CtaButtons showStartTrial={showStartTrial} />
@@ -95,11 +96,11 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
               Built for adventure dog hiking teams
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
-              Recurring dogs, multiple drivers, pickup routes, and last-minute
-              skip requests — usually spread across spreadsheets and group texts.
-              PackRoute brings routes, drivers, and automated customer SMS
-              together, then exports completed hikes for the billing tool you
-              already use.
+              Recurring dogs, multiple hikers or walkers, pickup routes, and
+              last-minute skip requests — usually spread across spreadsheets and
+              group texts. PackRoute brings routes, drivers, and automated
+              customer SMS together, then exports completed hikes for the
+              billing tool you already use.
             </p>
           </div>
         </section>

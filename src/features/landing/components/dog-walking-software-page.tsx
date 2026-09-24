@@ -60,8 +60,8 @@ export function DogWalkingSoftwarePageContent() {
               businesses
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
-              For operators growing from one driver to a few vans — roughly
-              twenty to three hundred active dogs — who need dog walking
+              For operators growing from one hiker or walker to a few vans —
+              roughly twenty to three hundred active dogs — who need dog walking
               management software that matches how field days actually run.
             </p>
             <ul className="mt-10 grid gap-5 sm:grid-cols-2">
