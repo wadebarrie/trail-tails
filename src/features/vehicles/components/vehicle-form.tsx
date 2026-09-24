@@ -1,5 +1,6 @@
 "use client";
 
+import { inputClassName } from "@/features/admin/components/form-styles";
 import { useActionState } from "react";
 import {
   createVehicleAction,
@@ -95,7 +96,7 @@ function Field({
         required={required}
         defaultValue={defaultValue}
         min={type === "number" ? 1 : undefined}
-        className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+        className={`mt-1 ${inputClassName}`}
       />
       {hint ? <p className="mt-1 text-xs text-stone-500">{hint}</p> : null}
     </div>

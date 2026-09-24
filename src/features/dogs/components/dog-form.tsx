@@ -4,6 +4,11 @@ import { useActionState, useState } from "react";
 import { createDogAction, updateDogAction } from "@/features/dogs/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
+import {
+  inputClassName,
+  selectClassName,
+  textareaClassName,
+} from "@/features/admin/components/form-styles";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { ScheduleTypeField } from "@/features/dogs/components/schedule-type-field";
 import type { Customer, Dog, DogScheduleType, Route } from "@/types";
@@ -50,7 +55,7 @@ export function DogForm({
           name="customer_id"
           defaultValue={dog?.customer_id}
           required
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+          className={`mt-1 ${selectClassName}`}
         >
           <option value="">Select customer</option>
           {customers.map((c) => (
@@ -72,7 +77,7 @@ export function DogForm({
             id="route_id"
             name="route_id"
             defaultValue={dog?.route_id ?? ""}
-            className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+            className={`mt-1 ${selectClassName}`}
           >
             <option value="">Unassigned</option>
             {routes.map((r) => (
@@ -168,7 +173,7 @@ export function DogForm({
           rows={3}
           defaultValue={dog?.notes ?? ""}
           placeholder="Temperament, leash preference, harness tips, medical flags…"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+          className={`mt-1 ${textareaClassName}`}
         />
         <p className="mt-1 text-xs text-stone-500">
           Shown to drivers with the stop details — separate from household pickup
@@ -255,7 +260,7 @@ function Field({
         step={step}
         min={min}
         placeholder={placeholder}
-        className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+        className={`mt-1 ${inputClassName}`}
       />
     </div>
   );
