@@ -59,9 +59,9 @@ Use this checklist before a public launch.
 
 ### Stripe
 - [ ] Live mode keys in production env (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
-- [ ] Products/Prices for one / two / three+ hikers ($29 / $49 / $79 USD monthly)
+- [ ] Products/Prices for one / two / three+ hikers ($99 / $179 / $299 monthly)
 - [ ] Env Price IDs: `STRIPE_PRICE_ONE_HIKER`, `STRIPE_PRICE_TWO_HIKERS`, `STRIPE_PRICE_THREE_PLUS`
-- [ ] Optional yearly Price IDs (`STRIPE_PRICE_*_YEARLY`) if offering annual ($290 / $490 / $790)
+- [ ] Optional yearly Price IDs (`STRIPE_PRICE_*_YEARLY`) if offering annual ($990 / $1790 / $2990)
 - [ ] Webhook endpoint: `https://packroute.app/api/webhooks/stripe`
 - [ ] Events: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`
 - [ ] Checkout sessions include `metadata.company_id` (app sets this automatically)

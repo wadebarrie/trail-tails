@@ -49,8 +49,8 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
       availability: "https://schema.org/InStock",
       url: `${siteUrl}/pricing`,
       priceCurrency: "USD",
-      lowPrice: "29",
-      highPrice: "79",
+      lowPrice: "99",
+      highPrice: "299",
       description:
         "Beta pricing by hikers/walkers and dogs — first month free after demo. Limited-time beta rates lock in if you subscribe during beta.",
     },

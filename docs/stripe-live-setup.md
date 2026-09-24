@@ -19,9 +19,9 @@ Create three products (or one product with three prices). Currency **USD**, recu
 
 | Tier | Env var (monthly) | Amount | Env var (yearly, optional) | Amount |
 |------|-------------------|--------|----------------------------|--------|
-| One hiker | `STRIPE_PRICE_ONE_HIKER` | $29 / month | `STRIPE_PRICE_ONE_HIKER_YEARLY` | $290 / year |
-| Two hikers | `STRIPE_PRICE_TWO_HIKERS` | $49 / month | `STRIPE_PRICE_TWO_HIKERS_YEARLY` | $490 / year |
-| Three+ hikers | `STRIPE_PRICE_THREE_PLUS` | $79 / month | `STRIPE_PRICE_THREE_PLUS_YEARLY` | $790 / year |
+| One hiker | `STRIPE_PRICE_ONE_HIKER` | $99 / month | `STRIPE_PRICE_ONE_HIKER_YEARLY` | $990 / year |
+| Two hikers | `STRIPE_PRICE_TWO_HIKERS` | $179 / month | `STRIPE_PRICE_TWO_HIKERS_YEARLY` | $1790 / year |
+| Three+ hikers | `STRIPE_PRICE_THREE_PLUS` | $299 / month | `STRIPE_PRICE_THREE_PLUS_YEARLY` | $2990 / year |
 
 Yearly = **10× monthly** (pay for 10 months, get 12). Copy each Price ID (`price_…`) into the matching env var.
 
