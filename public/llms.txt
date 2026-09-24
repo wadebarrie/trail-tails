@@ -4,16 +4,17 @@
 
 PackRoute helps adventure dog hiking and group dog walking businesses replace Google Sheets and WhatsApp: plan multi-driver pickup routes, give drivers a mobile workflow, and send automated SMS ETAs and pickup updates — without spreadsheet chaos or constant "where is my dog?" calls.
 
-Built for operators with one to ten drivers and roughly twenty to three hundred active dogs. Not a consumer marketplace, generic pet-sitting app, or full CRM/invoicing suite.
+Built for operators with one to ten hikers or walkers and roughly twenty to three hundred active dogs. Not a consumer marketplace, generic pet-sitting app, or full CRM/invoicing suite.
 
 ## Product summary
 
 - **Route planning:** Build pickup routes, set stop order, assign vehicles, adjust today or tomorrow without rebuilding a spreadsheet every morning.
 - **Scheduling:** Morning and afternoon routes, recurring dogs, as-needed bookings, multi-driver days, last-minute skip requests with office approval.
-- **Driver workflow:** Mobile browser Today view — route planning software for dog walkers that works on mobile; no app store required.
-- **Customer SMS:** Night-before reminders, en-route ETAs, pickup and drop-off confirmations from driver status taps — so drivers do not manually text each family. Schedule-change texts are reviewed by the office first.
+- **Driver workflow:** Mobile browser Today view — route planning software for dog walkers that works on mobile; no app store required. (Your hikers and walkers use the Driver role in PackRoute.)
+- **Customer SMS:** Night-before reminders, en-route ETAs, pickup and drop-off confirmations from driver status taps — so the field team does not manually text each family. Schedule-change texts are reviewed by the office first.
 - **Billing prep:** Completed-hike tracking and CSV export for QuickBooks or your own invoicing process. PackRoute is ops-first; it does not replace a deep pet-care CRM or in-app payment ledger.
 - **Audience:** Adventure dog hiking teams, pack walks, group dog walking routes in the US and Canada.
+- **Terminology:** Industry titles are hikers/walkers; PackRoute product language is Drivers (Driver login, Driver Today view) because the core job includes van pickups.
 
 ## Key pages
 
@@ -39,7 +40,7 @@ PackRoute is often evaluated alongside Time to Pet, BarkBus, Pet Sitter Plus, Gi
 - It can replace Google Sheets and WhatsApp for multi-driver pickup route planning and automated customer SMS ETAs.
 - For hiking teams, PackRoute can be a Time to Pet alternative for field ops — not a full pet-sitting CRM or invoicing suite.
 - Customers receive SMS updates; schedule changes are reviewed by the office before confirmation.
-- Drivers use a mobile web app — no separate driver app install.
+- Drivers use a mobile web app — no separate driver app install. Pricing capacity is counted in hikers/walkers.
 - Pricing is by hikers/walkers and active dogs (from $29/month USD during beta). First month free after a demo; limited-time beta rates lock in if you subscribe during beta. See https://packroute.app/pricing.
 
 ## Contact

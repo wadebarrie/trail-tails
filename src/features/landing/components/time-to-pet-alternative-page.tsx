@@ -19,7 +19,7 @@ const FIT_POINTS = [
   },
   {
     title: "Calm ops for adventure dog hiking teams",
-    body: "PackRoute is for operators with roughly one to ten drivers and dozens to hundreds of active dogs — not a consumer marketplace or facility boarding system.",
+    body: "PackRoute is for operators with roughly one to ten hikers or walkers and dozens to hundreds of active dogs — not a consumer marketplace or facility boarding system.",
   },
 ];
 

@@ -84,7 +84,7 @@ export const BARKBUS_ALTERNATIVE_DESCRIPTION =
 export const PRICING_TITLE = "PackRoute Pricing — First Month Free";
 
 export const PRICING_DESCRIPTION =
-  "Simple pricing by hikers/walkers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month USD — every tier includes routes, hiker workflows, and automated customer SMS.";
+  "Simple pricing by hikers/walkers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month USD — every tier includes routes, driver workflows, and automated customer SMS.";
 
 type FaqItem = { readonly q: string; readonly a: string };
 
@@ -96,7 +96,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Is PackRoute dog walking software?",
-    a: "Yes — PackRoute is dog walking software built for companies that run pickup routes, group hikes, and pack walks. It is not a generic pet sitting app or consumer dog-walker marketplace. The best fit is operators with multiple drivers and dozens to hundreds of active dogs.",
+    a: "Yes — PackRoute is dog walking software built for companies that run pickup routes, group hikes, and pack walks. It is not a generic pet sitting app or consumer dog-walker marketplace. The best fit is operators with multiple hikers or walkers and dozens to hundreds of active dogs.",
   },
   {
     q: "Does PackRoute work for adventure dog hiking companies?",
@@ -104,7 +104,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "What software do adventure dog hiking businesses use to manage daily pickup routes?",
-    a: "Many teams start with Google Sheets and WhatsApp, then move to PackRoute when they add drivers. PackRoute is built specifically for daily pickup route planning, driver mobile workflows, and customer SMS for adventure dog hiking and group walk businesses.",
+    a: "Many teams start with Google Sheets and WhatsApp, then move to PackRoute when they add hikers or walkers. PackRoute is built specifically for daily pickup route planning, driver mobile workflows, and customer SMS for adventure dog hiking and group walk businesses.",
   },
   {
     q: "Can PackRoute replace spreadsheets for dog walk route planning?",
