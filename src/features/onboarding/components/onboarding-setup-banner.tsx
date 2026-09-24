@@ -10,7 +10,7 @@ export function OnboardingSetupBanner() {
 
   return (
     <div className="mb-4 rounded-xl border border-[var(--color-trail-200)] bg-[var(--color-trail-50)] px-4 py-3 text-sm text-[var(--color-trail-900)]">
-      Finish your first-run setup so hikers, customers, and routes are ready.{" "}
+      Finish your first-run setup so drivers, customers, and routes are ready.{" "}
       <Link
         href={ONBOARDING_PATH}
         className="font-medium underline-offset-2 hover:underline"

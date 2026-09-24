@@ -38,7 +38,7 @@ export function VehicleForm({ vehicle }: VehicleFormProps) {
         label="License plate"
         name="plate"
         defaultValue={vehicle?.plate ?? ""}
-        hint="Optional — helps hikers pick the right vehicle"
+        hint="Optional — helps drivers pick the right vehicle"
       />
       <Field
         label="Capacity (dogs)"

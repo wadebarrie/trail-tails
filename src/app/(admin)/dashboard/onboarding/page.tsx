@@ -3,6 +3,8 @@ import { requireRole } from "@/features/auth/queries";
 import { OnboardingWizard } from "@/features/onboarding/components/onboarding-wizard";
 import {
   nextIncompleteStep,
+  ONBOARDING_LEGACY_STEP_ALIASES,
+  ONBOARDING_PATH,
   ONBOARDING_STEPS,
   type OnboardingStepId,
 } from "@/features/onboarding/constants";
@@ -11,6 +13,9 @@ import { createClient } from "@/lib/supabase/server";
 
 function parseStep(raw: string | undefined): OnboardingStepId | null {
   if (!raw) return null;
+  if (ONBOARDING_LEGACY_STEP_ALIASES[raw]) {
+    return ONBOARDING_LEGACY_STEP_ALIASES[raw];
+  }
   return (ONBOARDING_STEPS as readonly string[]).includes(raw)
     ? (raw as OnboardingStepId)
     : null;
@@ -28,6 +33,13 @@ export default async function OnboardingPage({
     redirect("/dashboard");
   }
 
+  const { step: rawStep } = await searchParams;
+  if (rawStep && ONBOARDING_LEGACY_STEP_ALIASES[rawStep]) {
+    redirect(
+      `${ONBOARDING_PATH}?step=${ONBOARDING_LEGACY_STEP_ALIASES[rawStep]}`
+    );
+  }
+
   const supabase = await createClient();
   const { data: company } = await supabase
     .from("companies")
@@ -35,7 +47,6 @@ export default async function OnboardingPage({
     .eq("id", profile.company_id)
     .maybeSingle();
 
-  const { step: rawStep } = await searchParams;
   const requested = parseStep(rawStep);
   const step =
     requested ??

@@ -84,7 +84,7 @@ export const BARKBUS_ALTERNATIVE_DESCRIPTION =
 export const PRICING_TITLE = "PackRoute Pricing — First Month Free";
 
 export const PRICING_DESCRIPTION =
-  "Simple pricing by hikers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month USD — every tier includes routes, hiker workflows, and automated customer SMS.";
+  "Simple pricing by drivers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $29/month USD — every tier includes routes, driver workflows, and automated customer SMS.";
 
 type FaqItem = { readonly q: string; readonly a: string };
 
@@ -132,7 +132,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "How much does PackRoute cost?",
-    a: "Beta pricing starts at $29/month USD for one hiker (up to 40 dogs/week), $49 for two hikers (up to 120 dogs/week), and $79 for three or more hikers with unlimited dogs. First month free after a short demo. Every tier includes the same features — tiers only change capacity. Subscribe during beta and your rate is locked. Details at packroute.app/pricing.",
+    a: "Beta pricing starts at $29/month USD for one driver (up to 40 dogs/week), $49 for two drivers (up to 120 dogs/week), and $79 for three or more drivers with unlimited dogs. First month free after a short demo. Every tier includes the same features — tiers only change capacity. Subscribe during beta and your rate is locked. Details at packroute.app/pricing.",
   },
   {
     q: "Is PackRoute built for pet sitting businesses too?",
@@ -184,7 +184,7 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "How much does PackRoute cost?",
-    a: "From $29/month USD during beta (one hiker). First month free after a demo. See /pricing for tiers.",
+    a: "From $29/month USD during beta (one driver). First month free after a demo. See /pricing for tiers.",
   },
   {
     q: "Is PackRoute a Time to Pet alternative?",

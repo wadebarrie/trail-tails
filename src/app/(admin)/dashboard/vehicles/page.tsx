@@ -41,7 +41,7 @@ export default async function VehiclesPage() {
       {error ? <QueryErrorBanner /> : null}
 
       {!error && !vehicles?.length ? (
-        <EmptyState message="No vehicles yet. Add one so hikers know which van to take." />
+        <EmptyState message="No vehicles yet. Add one so drivers know which van to take." />
       ) : !error && vehicles?.length ? (
         <TableShell>
           <table className="min-w-full text-sm">

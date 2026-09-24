@@ -6,7 +6,7 @@ import {
   completeOnboardingAction,
   dismissOnboardingAction,
   onboardingCreateVehicleAction,
-  onboardingEnableSelfAsHikerAction,
+  onboardingEnableSelfAsDriverAction,
   onboardingSaveCompanyInfoAction,
 } from "@/features/onboarding/actions";
 import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
@@ -26,7 +26,7 @@ import {
 const STEP_ORDER: OnboardingStepId[] = [
   "welcome",
   "vehicle",
-  "hiker",
+  "driver",
   "customer",
   "dog",
   "route",
@@ -92,10 +92,12 @@ export function OnboardingWizard({
     onboardingSaveCompanyInfoAction,
     {}
   );
-  const [hikerError, setHikerError] = useState<string | null>(null);
-  const [hikerPending, startHiker] = useTransition();
+  const [driverError, setDriverError] = useState<string | null>(null);
+  const [driverPending, startDriver] = useTransition();
   const [finishPending, startFinish] = useTransition();
   const [dismissPending, startDismiss] = useTransition();
+
+  const routeReturn = `${ONBOARDING_PATH}?step=route`;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -107,7 +109,7 @@ export function OnboardingWizard({
           Set up {companyName}
         </h1>
         <p className="mt-2 text-sm text-stone-600">
-          We&apos;ll walk through your first vehicle, hiker, customer, dog,
+          We&apos;ll walk through your first vehicle, driver, customer, dog,
           route, and company defaults — enough to run a morning. You can refine
           everything later.
         </p>
@@ -121,9 +123,10 @@ export function OnboardingWizard({
           <h2 className="text-lg font-semibold text-stone-900">Welcome</h2>
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
-            hiker, a customer with an address, their dog, and a weekday route.
-            You can add people one at a time or bulk-import customers and dogs
-            from a CSV. Takes most teams about 10–15 minutes.
+            driver, a customer with an address, their dog, and a weekday route
+            with that dog assigned. You can add people one at a time or
+            bulk-import customers and dogs from a CSV. Takes most teams about
+            10–15 minutes.
           </p>
           <ul className="space-y-2 text-sm text-stone-700">
             <li className="flex justify-between gap-3">
@@ -131,8 +134,8 @@ export function OnboardingWizard({
               <DoneCheck done={progress.hasVehicle} />
             </li>
             <li className="flex justify-between gap-3">
-              <span>Hiker (driver)</span>
-              <DoneCheck done={progress.hasHiker} />
+              <span>Driver</span>
+              <DoneCheck done={progress.hasDriver} />
             </li>
             <li className="flex justify-between gap-3">
               <span>Customer</span>
@@ -143,7 +146,7 @@ export function OnboardingWizard({
               <DoneCheck done={progress.hasDog} />
             </li>
             <li className="flex justify-between gap-3">
-              <span>Route</span>
+              <span>Runnable route</span>
               <DoneCheck done={progress.hasRoute} />
             </li>
             <li className="flex justify-between gap-3">
@@ -180,14 +183,14 @@ export function OnboardingWizard({
             1. Add your first vehicle
           </h2>
           <p className="text-sm text-stone-600">
-            Hikers pick a van or truck for the morning. A nickname is enough —
+            Drivers pick a van or truck for the morning. A nickname is enough —
             plate and capacity are optional.
           </p>
           {progress.hasVehicle ? (
             <p className="text-sm text-emerald-700">
               You already have a vehicle.{" "}
               <Link
-                href={`${ONBOARDING_PATH}?step=hiker`}
+                href={`${ONBOARDING_PATH}?step=driver`}
                 className="font-medium underline-offset-2 hover:underline"
               >
                 Continue
@@ -257,23 +260,23 @@ export function OnboardingWizard({
         </section>
       ) : null}
 
-      {step === "hiker" ? (
+      {step === "driver" ? (
         <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-stone-900">
-            2. Add a hiker
+            2. Add a driver
           </h2>
           <p className="text-sm text-stone-600">
-            Hikers use the mobile Today view. As company admin you can enable
-            yourself, or add a dedicated hiker login later under Drivers.
+            Drivers use the mobile Today view. As company admin you can enable
+            yourself, or add a dedicated driver login under Drivers.
           </p>
-          {hikerError ? (
+          {driverError ? (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-              {hikerError}
+              {driverError}
             </p>
           ) : null}
-          {progress.hasHiker || adminCanDrive ? (
+          {progress.hasDriver || adminCanDrive ? (
             <p className="text-sm text-emerald-700">
-              Hiker access is ready.{" "}
+              Driver access is ready.{" "}
               <Link
                 href={`${ONBOARDING_PATH}?step=customer`}
                 className="font-medium underline-offset-2 hover:underline"
@@ -284,16 +287,16 @@ export function OnboardingWizard({
           ) : (
             <button
               type="button"
-              disabled={hikerPending}
+              disabled={driverPending}
               className={landingPrimaryButtonClassName}
               onClick={() =>
-                startHiker(async () => {
-                  const result = await onboardingEnableSelfAsHikerAction();
-                  if (result?.error) setHikerError(result.error);
+                startDriver(async () => {
+                  const result = await onboardingEnableSelfAsDriverAction();
+                  if (result?.error) setDriverError(result.error);
                 })
               }
             >
-              {hikerPending ? "Enabling…" : "Enable me as a hiker"}
+              {driverPending ? "Enabling…" : "Enable me as a driver"}
             </button>
           )}
           <p className="text-xs text-stone-500">
@@ -347,9 +350,9 @@ export function OnboardingWizard({
             4. Add a dog
           </h2>
           <p className="text-sm text-stone-600">
-            Attach a dog to that customer. You can set a recurring route later —
-            pickup window is enough for now. Or import customers and dogs
-            together from CSV.
+            Attach a dog to that customer. You&apos;ll assign them to a route in
+            the next step — pickup window is enough for now. Or import customers
+            and dogs together from CSV.
           </p>
           {!progress.hasCustomer ? (
             <p className="text-sm text-amber-800">
@@ -386,15 +389,30 @@ export function OnboardingWizard({
       {step === "route" ? (
         <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-stone-900">
-            5. Create a route
+            5. Create a runnable route
           </h2>
           <p className="text-sm text-stone-600">
-            Routes define which weekdays run and stop order. Start with one
-            morning route — you can add more later.
+            A route only shows on Today once it has weekday schedule days and at
+            least one dog assigned. Start with one morning route — you can add
+            more later.
           </p>
+          <ul className="space-y-2 rounded-lg border border-stone-100 bg-stone-50 px-4 py-3 text-sm text-stone-700">
+            <li className="flex justify-between gap-3">
+              <span>Route created</span>
+              <DoneCheck done={progress.routeChecklist.created} />
+            </li>
+            <li className="flex justify-between gap-3">
+              <span>Schedule days set</span>
+              <DoneCheck done={progress.routeChecklist.hasScheduleDays} />
+            </li>
+            <li className="flex justify-between gap-3">
+              <span>Dog assigned to the route</span>
+              <DoneCheck done={progress.routeChecklist.hasDogAssigned} />
+            </li>
+          </ul>
           {progress.hasRoute ? (
             <p className="text-sm text-emerald-700">
-              Route ready.{" "}
+              Route is ready for Today.{" "}
               <Link
                 href={`${ONBOARDING_PATH}?step=company`}
                 className="font-medium underline-offset-2 hover:underline"
@@ -403,12 +421,20 @@ export function OnboardingWizard({
               </Link>
             </p>
           ) : (
-            <Link
-              href={`/dashboard/route?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=company`)}`}
-              className={landingPrimaryButtonClassName}
-            >
-              Set up a route
-            </Link>
+            <div className="space-y-3">
+              <Link
+                href={`/dashboard/route?returnTo=${encodeURIComponent(routeReturn)}`}
+                className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
+              >
+                {progress.routeChecklist.created
+                  ? "Finish route on Routes"
+                  : "Set up a route"}
+              </Link>
+              <p className="text-xs text-stone-500">
+                On Routes: set schedule days, then add your dog under Pickup
+                order. Come back here when the checklist is green.
+              </p>
+            </div>
           )}
         </section>
       ) : null}

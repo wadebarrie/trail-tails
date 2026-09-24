@@ -93,7 +93,7 @@ export default async function SubscriptionInactivePage({
               Choose a plan
             </h2>
             <p className="mt-1 text-sm text-stone-500">
-              Beta pricing by hikers and dogs. Subscribe to restore access.
+              Beta pricing by drivers and dogs. Subscribe to restore access.
             </p>
             <div className="mt-4">
               <SubscribeTierButtons disabledReason={checkoutDisabledReason} />

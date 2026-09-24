@@ -195,10 +195,10 @@ export async function onboardingCreateVehicleAction(
 
   revalidatePath("/dashboard/vehicles");
   revalidatePath(ONBOARDING_PATH);
-  redirect(`${ONBOARDING_PATH}?step=hiker`);
+  redirect(`${ONBOARDING_PATH}?step=driver`);
 }
 
-export async function onboardingEnableSelfAsHikerAction(): Promise<{
+export async function onboardingEnableSelfAsDriverAction(): Promise<{
   error?: string;
 }> {
   const profile = await requireRole("admin", { skipMfaCheck: true });
@@ -216,6 +216,10 @@ export async function onboardingEnableSelfAsHikerAction(): Promise<{
   revalidatePath(ONBOARDING_PATH);
   redirect(`${ONBOARDING_PATH}?step=customer`);
 }
+
+/** @deprecated Use onboardingEnableSelfAsDriverAction */
+export const onboardingEnableSelfAsHikerAction =
+  onboardingEnableSelfAsDriverAction;
 
 const companyInfoSchema = z.object({
   default_hike_rate: z.string().min(1, "Default hike price is required."),

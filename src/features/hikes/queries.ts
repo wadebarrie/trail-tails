@@ -65,7 +65,7 @@ export type HikeWithRoute = {
 };
 
 export type GetHikesWithStopsOptions = {
-  /** Run stop sync before read. Off by default — use mutations or Refresh routes. */
+  /** Run stop sync before read. Off by default — use mutations or Rebuild today's stops. */
   sync?: boolean;
   /** Skip timezone lookup when the caller already resolved it. */
   timeZone?: string;
