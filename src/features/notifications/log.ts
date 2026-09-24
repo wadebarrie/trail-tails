@@ -293,7 +293,7 @@ export function buildNightBeforeMultiWindowMessage(
   const parts = pickups.map((p) => {
     const window = `${formatTime(p.windowStart)}–${formatTime(p.windowEnd)}`;
     if (p.driverFirstName) {
-      return `${p.dogName} with ${p.driverFirstName} (${window})`;
+      return `${p.dogName} — ${p.driverFirstName} picking up (${window})`;
     }
     return `${p.dogName} (${window})`;
   });
@@ -313,11 +313,12 @@ function formatNightBeforeDriverClause(
 
   const uniqueDrivers = new Set(withDriver.map((p) => p.driver));
   if (uniqueDrivers.size === 1 && withDriver.length === dogNames.length) {
-    return ` ${withDriver[0].driver} will be your driver.`;
+    const dogs = formatDogList(withDriver.map((p) => p.dog));
+    return ` ${withDriver[0].driver} will be picking ${dogs} up.`;
   }
 
   const detail = withDriver
-    .map((p) => `${p.driver} will pick up ${p.dog}`)
+    .map((p) => `${p.driver} will be picking ${p.dog} up`)
     .join(" and ");
   return ` ${detail}.`;
 }

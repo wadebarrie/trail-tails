@@ -81,9 +81,6 @@ export function PricingPageContent({
                 <p className="mt-1 text-sm text-stone-500">1 month free</p>
                 <p className="mt-4 text-3xl font-semibold tracking-tight text-[var(--color-trail-800)]">
                   {tier.priceLabel}
-                  <span className="ml-1 text-sm font-normal text-stone-500">
-                    USD
-                  </span>
                 </p>
                 <ul className="mt-6 flex-1 space-y-2.5 text-sm text-stone-600">
                   <li>
