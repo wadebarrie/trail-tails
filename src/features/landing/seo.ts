@@ -283,9 +283,7 @@ export function buildContactPageJsonLdScriptProps() {
   };
 }
 
-export function buildPricingPageJsonLd(
-  currency: "CAD" | "USD" = "CAD"
-): string {
+export function buildPricingPageJsonLd(): string {
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/pricing`;
 
@@ -303,7 +301,7 @@ export function buildPricingPageJsonLd(
     "@type": "Offer",
     name: tier.name,
     price: String(tier.priceMonthly),
-    priceCurrency: currency,
+    priceCurrency: "USD",
     description: `${tier.hikers}; ${tier.dogs}`,
     url: pageUrl,
     availability: "https://schema.org/InStock",
@@ -335,11 +333,9 @@ export function buildPricingPageJsonLd(
   return graph([buildOrganization(siteUrl), webPage, software, faqPage]);
 }
 
-export function buildPricingJsonLdScriptProps(
-  currency: "CAD" | "USD" = "CAD"
-) {
+export function buildPricingJsonLdScriptProps() {
   return {
     type: "application/ld+json" as const,
-    dangerouslySetInnerHTML: { __html: buildPricingPageJsonLd(currency) },
+    dangerouslySetInnerHTML: { __html: buildPricingPageJsonLd() },
   };
 }

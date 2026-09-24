@@ -9,19 +9,13 @@ import {
   PRICING_INCLUDED_FEATURES,
   PRICING_TIERS,
 } from "@/features/landing/pricing";
-import type { PricingDisplayCurrency } from "@/features/landing/pricing-currency";
 import { PRICING_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
 
 export function PricingPageContent({
   showStartTrial = false,
-  currency = "CAD",
 }: {
   showStartTrial?: boolean;
-  currency?: PricingDisplayCurrency;
 }) {
-  const otherCurrency: PricingDisplayCurrency =
-    currency === "CAD" ? "USD" : "CAD";
-
   return (
     <div className="min-h-dvh bg-atmosphere-hero text-stone-900">
       <LandingHeader showStartTrial={showStartTrial} />
@@ -66,15 +60,6 @@ export function PricingPageContent({
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
-          <p className="mb-5 text-center text-sm text-stone-500">
-            Prices shown in {currency}.{" "}
-            <Link
-              href={`/pricing?currency=${otherCurrency}`}
-              className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-            >
-              Show in {otherCurrency}
-            </Link>
-          </p>
           <div className="grid gap-5 lg:grid-cols-3">
             {PRICING_TIERS.map((tier) => (
               <article
@@ -96,9 +81,6 @@ export function PricingPageContent({
                 <p className="mt-1 text-sm text-stone-500">1 month free</p>
                 <p className="mt-4 text-3xl font-semibold tracking-tight text-[var(--color-trail-800)]">
                   {tier.priceLabel}
-                  <span className="ml-1 text-sm font-normal text-stone-500">
-                    {currency}
-                  </span>
                 </p>
                 <ul className="mt-6 flex-1 space-y-2.5 text-sm text-stone-600">
                   <li>
