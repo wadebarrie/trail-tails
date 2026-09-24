@@ -1,5 +1,6 @@
 import {
   Badge,
+  Card,
   EmptyState,
   PageHeader,
 } from "@/features/admin/components/ui";
@@ -7,6 +8,13 @@ import { requireRole } from "@/features/auth/queries";
 import { PendingRequestActions } from "@/features/pending-requests/components/pending-request-actions";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
+
+function statusLabel(status: string) {
+  if (status === "pending") return "Pending";
+  if (status === "approved") return "Approved";
+  if (status === "declined") return "Declined";
+  return status.replace(/_/g, " ");
+}
 
 function RequestCard({
   req,
@@ -21,7 +29,7 @@ function RequestCard({
   };
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-4">
+    <Card className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-medium text-stone-900">
@@ -34,7 +42,7 @@ function RequestCard({
           <p className="mt-1 font-mono text-sm text-stone-700">{req.raw_body}</p>
           <p className="mt-1 text-xs text-stone-500">
             {new Date(req.created_at).toLocaleString()} ·{" "}
-            {req.command_type.replace("_", " ")}
+            {req.command_type.replace(/_/g, " ")}
           </p>
         </div>
         <Badge
@@ -46,13 +54,13 @@ function RequestCard({
                 : "red"
           }
         >
-          {req.status}
+          {statusLabel(req.status)}
         </Badge>
       </div>
       {req.status === "pending" ? (
         <PendingRequestActions requestId={req.id} />
       ) : null}
-    </div>
+    </Card>
   );
 }
 

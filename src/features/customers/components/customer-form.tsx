@@ -2,6 +2,10 @@
 
 import { useActionState, type ComponentProps } from "react";
 import {
+  inputClassName,
+  textareaClassName,
+} from "@/features/admin/components/form-styles";
+import {
   createCustomerAction,
   updateCustomerAction,
 } from "@/features/customers/actions";
@@ -53,7 +57,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         hint="Include country/area code. At least 10 digits."
       />
 
-      <div className="rounded-lg border border-stone-200 bg-stone-50/80 p-4">
+      <div className="surface-card rounded-[var(--radius-surface)] p-4">
         <p className="text-sm font-medium text-stone-700">
           Second contact (optional)
         </p>
@@ -90,7 +94,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         hint="Optional. Must be a valid email if provided."
       />
 
-      <div className="space-y-3 rounded-lg border border-stone-200 bg-stone-50/80 p-4">
+      <div className="surface-card space-y-3 rounded-[var(--radius-surface)] p-4">
         <div>
           <p className="text-sm font-medium text-stone-700">Address</p>
           <p className="mt-0.5 text-xs text-stone-500">
@@ -160,7 +164,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           rows={4}
           defaultValue={customer?.notes ?? ""}
           placeholder="Gate code, buzzer #, key location, parking, which door…"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+          className={`mt-1 ${textareaClassName}`}
         />
         <p className="mt-1 text-xs text-stone-500">
           Shown to drivers on the driver app when they open this stop. Include
@@ -240,7 +244,7 @@ function Field({
         placeholder={placeholder}
         defaultValue={defaultValue}
         required={required}
-        className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2"
+        className={`mt-1 ${inputClassName}`}
       />
       {hint ? <p className="mt-1 text-xs text-stone-500">{hint}</p> : null}
     </div>
