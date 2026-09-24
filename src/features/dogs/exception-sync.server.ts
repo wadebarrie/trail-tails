@@ -153,7 +153,20 @@ export function scheduleExceptionStopSync(
     try {
       await syncStopsAfterExceptionChange(companyId, dogIds, dates, options);
     } catch (err) {
-      console.error("[exception-sync] stop sync failed:", err);
+      const { logErrorFromException } = await import("@/lib/logger");
+      logErrorFromException(
+        "hike",
+        "Failed to update hike stops after a schedule exception.",
+        err,
+        {
+          companyId,
+          context: {
+            kind: "exception_stop_sync",
+            dogIds,
+            dates,
+          },
+        }
+      );
     }
   });
 }

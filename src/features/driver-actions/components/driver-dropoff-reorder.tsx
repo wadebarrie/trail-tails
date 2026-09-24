@@ -1,7 +1,7 @@
 "use client";
 
 import { SortableList } from "@/features/admin/components/sortable-list";
-import { reorderDriverPickupsAction } from "@/features/driver-actions/actions";
+import { reorderDriverDropoffsAction } from "@/features/driver-actions/actions";
 import { formatWindowRange } from "@/lib/dates";
 import type { DriverStopView } from "@/features/driver-actions/queries";
 
@@ -9,20 +9,23 @@ function isIncomplete(status: string) {
   return status === "scheduled" || status === "en_route" || status === "arrived";
 }
 
-type DriverPickupReorderProps = {
+type DriverDropoffReorderProps = {
   hikeId: string;
-  pickups: DriverStopView[];
+  dropoffs: DriverStopView[];
 };
 
-export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProps) {
-  const incomplete = [...pickups]
+export function DriverDropoffReorder({
+  hikeId,
+  dropoffs,
+}: DriverDropoffReorderProps) {
+  const incomplete = [...dropoffs]
     .filter((s) => isIncomplete(s.status))
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const canReorder = hikeId.length > 0 && incomplete.length >= 2;
   if (!canReorder) return null;
 
-  const started = pickups.some((s) => s.status !== "scheduled");
+  const started = dropoffs.some((s) => s.status !== "scheduled");
 
   const items = incomplete.map((s) => ({
     id: s.id,
@@ -33,16 +36,16 @@ export function DriverPickupReorder({ hikeId, pickups }: DriverPickupReorderProp
   }));
 
   async function onReorder(orderedIds: string[]) {
-    return reorderDriverPickupsAction(hikeId, orderedIds);
+    return reorderDriverDropoffsAction(hikeId, orderedIds);
   }
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <h2 className="text-sm font-medium text-white/80">Pickup order</h2>
+      <h2 className="text-sm font-medium text-white/80">Drop-off order</h2>
       <p className="mt-1 text-xs text-white/45">
         {started
-          ? "Drag to reorder remaining pickups. Finished stops stay put; open drop-offs follow the reverse of this list."
-          : "Drag to reorder pickups. Drop-offs follow the reverse order."}
+          ? "Drag to reorder remaining drop-offs. Finished stops stay put."
+          : "Drag to set a custom drop-off order (defaults to reverse of pickups)."}
       </p>
       <div className="mt-4">
         <SortableList variant="dark" items={items} onReorder={onReorder} />

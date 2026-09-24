@@ -3,6 +3,7 @@
 import { DriverDayNav } from "@/features/driver-actions/components/driver-day-nav";
 import { LocationServicesIndicator } from "@/features/driver-actions/components/location-services-indicator";
 import { DriverPickupReorder } from "@/features/driver-actions/components/driver-pickup-reorder";
+import { DriverDropoffReorder } from "@/features/driver-actions/components/driver-dropoff-reorder";
 import { DriverStopList } from "@/features/driver-actions/components/driver-stop-list";
 import { DriverInstallHint } from "@/features/pwa/driver-install-hint";
 import { dayProgressMessage } from "@/features/driver-actions/driver-greeting";
@@ -77,6 +78,10 @@ export function DriverDayView({
                       : "No pickups scheduled today."
                   }
                   readOnly={preview}
+                />
+                <DriverDropoffReorder
+                  hikeId={route.hikeId}
+                  dropoffs={route.dropoffs}
                 />
                 <DriverStopList
                   title="Drop-offs"

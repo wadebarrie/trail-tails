@@ -9,7 +9,10 @@ import {
   scheduleEnRouteSideEffects,
   schedulePickupNotification,
 } from "@/features/driver-actions/driver-action-side-effects";
-import { applyPickupReorderWithReverseDropoff } from "@/features/hikes/stop-order";
+import {
+  applyMidRouteDropoffReorder,
+  applyMidRoutePickupReorder,
+} from "@/features/hikes/stop-order";
 import { PerfTimer } from "@/lib/perf";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
@@ -324,10 +327,10 @@ export async function completeDropoffAction(
   return { success: true, status: "dropped_off" };
 }
 
-/** Reorder today's pickup route before any stops begin. Syncs drop-off order to match. */
+/** Reorder remaining pickups mid-route. Completed stops stay fixed at the front. */
 export async function reorderDriverPickupsAction(
   hikeId: string,
-  orderedPickupStopIds: string[]
+  orderedIncompletePickupIds: string[]
 ) {
   await requireDriverAccess();
   const supabase = await createClient();
@@ -340,30 +343,38 @@ export async function reorderDriverPickupsAction(
 
   if (!hike) return { error: "Hike not found." };
 
-  const { data: pickups } = await supabase
-    .from("stops")
-    .select("id, status")
-    .eq("hike_id", hikeId)
-    .eq("stop_type", "pickup");
-
-  const pickupRows = pickups ?? [];
-  if (pickupRows.length !== orderedPickupStopIds.length) {
-    return { error: "Invalid pickup order." };
-  }
-
-  const pickupIds = new Set(pickupRows.map((p) => p.id));
-  if (!orderedPickupStopIds.every((id) => pickupIds.has(id))) {
-    return { error: "Invalid pickup order." };
-  }
-
-  if (pickupRows.some((p) => p.status !== "scheduled")) {
-    return { error: "Pickup order can only be changed before the route starts." };
-  }
-
-  const error = await applyPickupReorderWithReverseDropoff(
+  const error = await applyMidRoutePickupReorder(
     supabase,
     hikeId,
-    orderedPickupStopIds
+    orderedIncompletePickupIds
+  );
+  if (error) return { error };
+
+  revalidatePath("/today");
+  revalidatePath("/dashboard/hikes/today");
+  return { success: true };
+}
+
+/** Reorder remaining drop-offs mid-route. Completed drop-offs stay fixed at the front. */
+export async function reorderDriverDropoffsAction(
+  hikeId: string,
+  orderedIncompleteDropoffIds: string[]
+) {
+  await requireDriverAccess();
+  const supabase = await createClient();
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id")
+    .eq("id", hikeId)
+    .maybeSingle();
+
+  if (!hike) return { error: "Hike not found." };
+
+  const error = await applyMidRouteDropoffReorder(
+    supabase,
+    hikeId,
+    orderedIncompleteDropoffIds
   );
   if (error) return { error };
 
