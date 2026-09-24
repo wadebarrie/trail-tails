@@ -42,7 +42,7 @@ export function RouteEditPanel({
       </div>
 
       {open ? (
-        <div className="rounded-lg border border-stone-200 bg-stone-50/60 p-4">
+        <div className="surface-card rounded-[var(--radius-surface)] p-4">
           <EditRouteForm
             routeId={routeId}
             defaultName={routeName}

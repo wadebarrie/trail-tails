@@ -22,6 +22,8 @@ import {
   landingPrimaryButtonClassName,
   secondaryButtonClassName,
 } from "@/features/admin/components/button-styles";
+import { inputClassName } from "@/features/admin/components/form-styles";
+import { Card } from "@/features/admin/components/ui";
 
 const STEP_ORDER: OnboardingStepId[] = [
   "welcome",
@@ -119,7 +121,7 @@ export function OnboardingWizard({
       <OnboardingSupportCard />
 
       {step === "welcome" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">Welcome</h2>
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
@@ -174,11 +176,11 @@ export function OnboardingWizard({
               {dismissPending ? "Skipping…" : "Skip for now"}
             </button>
           </div>
-        </section>
+        </Card>
       ) : null}
 
       {step === "vehicle" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
             1. Add your first vehicle
           </h2>
@@ -215,7 +217,7 @@ export function OnboardingWizard({
                   name="name"
                   required
                   placeholder="e.g. Blue van"
-                  className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm"
+                  className={`mt-1 ${inputClassName}`}
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -229,7 +231,7 @@ export function OnboardingWizard({
                   <input
                     id="plate"
                     name="plate"
-                    className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${inputClassName}`}
                   />
                 </div>
                 <div>
@@ -244,7 +246,7 @@ export function OnboardingWizard({
                     name="capacity"
                     type="number"
                     min={1}
-                    className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm"
+                    className={`mt-1 ${inputClassName}`}
                   />
                 </div>
               </div>
@@ -257,11 +259,11 @@ export function OnboardingWizard({
               </button>
             </form>
           )}
-        </section>
+        </Card>
       ) : null}
 
       {step === "driver" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
             2. Add a driver
           </h2>
@@ -309,11 +311,11 @@ export function OnboardingWizard({
             </Link>
             , then come back here.
           </p>
-        </section>
+        </Card>
       ) : null}
 
       {step === "customer" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
             3. Add your first customer
           </h2>
@@ -341,11 +343,11 @@ export function OnboardingWizard({
             </Link>
           )}
           <OnboardingCsvImportCallout returnStep="route" />
-        </section>
+        </Card>
       ) : null}
 
       {step === "dog" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
             4. Add a dog
           </h2>
@@ -383,11 +385,11 @@ export function OnboardingWizard({
             </Link>
           )}
           <OnboardingCsvImportCallout returnStep="route" />
-        </section>
+        </Card>
       ) : null}
 
       {step === "route" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
             5. Create a runnable route
           </h2>
@@ -436,11 +438,11 @@ export function OnboardingWizard({
               </p>
             </div>
           )}
-        </section>
+        </Card>
       ) : null}
 
       {step === "company" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
             6. Company defaults
           </h2>
@@ -488,7 +490,7 @@ export function OnboardingWizard({
                     ? (defaultHikeRateCents / 100).toFixed(2)
                     : ""
                 }
-                className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm"
+                className={`mt-2 ${inputClassName}`}
               />
             </div>
             <div>
@@ -517,11 +519,11 @@ export function OnboardingWizard({
               {companyPending ? "Saving…" : "Save and finish"}
             </button>
           </form>
-        </section>
+        </Card>
       ) : null}
 
       {step === "done" ? (
-        <section className="space-y-4 rounded-xl border border-stone-200 bg-white p-6">
+        <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">You&apos;re set</h2>
           <p className="text-sm text-stone-600">
             Next: open Today / Tomorrow to confirm stops, then try a driver
@@ -541,7 +543,7 @@ export function OnboardingWizard({
           >
             {finishPending ? "Opening dashboard…" : "Go to dashboard"}
           </button>
-        </section>
+        </Card>
       ) : null}
 
       {step !== "welcome" && step !== "done" ? (

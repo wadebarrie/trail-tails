@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { selectCompactClassName } from "@/features/admin/components/form-styles";
 import { assignRouteVehicleAction } from "@/features/routes/actions";
 import { vehicleDisplayLabel } from "@/features/vehicles/schema";
 
@@ -47,7 +48,7 @@ export function RouteVehicleSelect({
         defaultValue={currentVehicleId ?? ""}
         key={currentVehicleId ?? "none"}
         disabled={pending}
-        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm disabled:opacity-60"
+        className={selectCompactClassName}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
         <option value="">Unassigned</option>

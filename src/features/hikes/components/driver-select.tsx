@@ -1,5 +1,6 @@
 "use client";
 
+import { selectCompactClassName } from "@/features/admin/components/form-styles";
 import { assignDriverAction } from "@/features/hikes/actions";
 
 type Driver = { id: string; full_name: string };
@@ -29,7 +30,7 @@ export function DriverSelect({
         id={`driver-${hikeId}`}
         name="driver_id"
         defaultValue={currentDriverId ?? ""}
-        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+        className={selectCompactClassName}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
         <option value="">Unassigned</option>

@@ -7,6 +7,10 @@ import { inputClassName } from "@/features/admin/components/form-styles";
 import { motionCardClassName } from "@/features/admin/components/motion-styles";
 
 export { inputClassName };
+export {
+  selectClassName,
+  selectCompactClassName,
+} from "@/features/admin/components/form-styles";
 export { motionTableRowClassName } from "@/features/admin/components/motion-styles";
 
 export function TableShell({

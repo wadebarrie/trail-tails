@@ -1,5 +1,6 @@
 "use client";
 
+import { selectCompactClassName } from "@/features/admin/components/form-styles";
 import { assignVehicleAction } from "@/features/hikes/actions";
 import { vehicleDisplayLabel } from "@/features/vehicles/schema";
 
@@ -34,7 +35,7 @@ export function VehicleSelect({
         id={`vehicle-${hikeId}`}
         name="vehicle_id"
         defaultValue={currentVehicleId ?? ""}
-        className="rounded-lg border border-stone-300 px-2 py-1.5 text-sm"
+        className={selectCompactClassName}
         onChange={(e) => e.currentTarget.form?.requestSubmit()}
       >
         <option value="">Unassigned</option>
