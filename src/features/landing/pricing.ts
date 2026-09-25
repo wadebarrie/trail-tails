@@ -52,9 +52,9 @@ export const PRICING_TIERS: readonly PricingTier[] = [
 
 /** Shared on every tier — capacity is what changes. */
 export const PRICING_INCLUDED_FEATURES = [
-  "Unlimited office logins",
-  "Pickup route planning and driver Today view",
   "Automated customer SMS — reminders, ETAs, pickup and drop-off updates",
+  "Pickup route planning and driver Today view",
+  "Unlimited office logins",
   "Schedule-change texts with office approval",
   "Completed-hike CSV export for QuickBooks or your billing process",
   "Onboarding screenshare + email support",
@@ -79,7 +79,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "No. PackRoute is operations software for routes, drivers, and SMS. You export completed hikes as CSV and bill in QuickBooks or your own process. That keeps the product focused on the field day.",
+    a: "No. PackRoute is built around proactive customer SMS, with routes and drivers to make those texts accurate. You export completed hikes as CSV and bill in QuickBooks or your own process.",
   },
   {
     q: "Is there a setup fee?",

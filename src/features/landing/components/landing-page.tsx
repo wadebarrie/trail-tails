@@ -17,24 +17,24 @@ const FAQ = LANDING_FAQ_VISIBLE;
 
 const FEATURES = [
   {
-    title: "Routes and schedules",
-    description:
-      "Replace the morning spreadsheet: build daily pickup routes, assign drivers, manage recurring dogs, and adjust today or tomorrow.",
-  },
-  {
-    title: "Driver workflow on mobile",
-    description:
-      "Drivers open Today on their phone, follow stops in order, and tap status updates — route planning software that works on mobile without an app store download.",
-  },
-  {
-    title: "Automated SMS ETAs",
+    title: "Automated SMS for dog owners",
     description:
       "Night-before confirmations, en-route ETAs, and pickup or drop-off updates fire from driver taps — so families get answers without WhatsApp group chats or drivers texting each stop.",
   },
   {
+    title: "Routes that make those texts accurate",
+    description:
+      "Build daily pickup routes, assign drivers, manage recurring dogs, and adjust today or tomorrow — the ops layer so every SMS matches the real van day.",
+  },
+  {
+    title: "Driver workflow on mobile",
+    description:
+      "Drivers open Today on their phone, follow stops in order, and tap status updates. Those taps are what send customer texts — no app store download.",
+  },
+  {
     title: "Billing prep, not a full CRM",
     description:
-      "Track completed hikes and export CSV for QuickBooks or your own invoicing. PackRoute is ops-first — pair with your existing billing tools if you need deep CRM and owner invoices.",
+      "Track completed hikes and export CSV for QuickBooks or your own invoicing. PackRoute stays focused on the field day and customer communication — pair with your existing billing tools for deep CRM and owner invoices.",
   },
 ] as const;
 
@@ -60,15 +60,16 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
           />
           <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
             <div>
-              <SectionLabel>Route planning &amp; automated SMS</SectionLabel>
+              <SectionLabel>Proactive SMS for dog owners</SectionLabel>
               <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
                 {HOME_H1}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-stone-600">
-                Growing past one hiker or walker? Replace Google Sheets and
-                WhatsApp with multi-driver pickup routes, a simple mobile driver
-                workflow, and automated SMS ETAs — so customers stop calling for
-                updates.
+                Growing past one hiker or walker? PackRoute texts customers for
+                you — night-before reminders, ETAs, and pickup updates — so the
+                office stops answering “where are you?” and drivers stop living
+                in WhatsApp. Routes and a simple mobile driver workflow make
+                those messages accurate.
               </p>
               <div className="mt-8">
                 <CtaButtons showStartTrial={showStartTrial} />
@@ -96,10 +97,10 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
               Built for adventure dog hiking teams
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
-              Recurring dogs, multiple hikers or walkers, pickup routes, and
-              last-minute skip requests — usually spread across spreadsheets and
-              group texts. PackRoute brings routes, drivers, and automated
-              customer SMS together, then exports completed hikes for the
+              Recurring dogs, multiple hikers or walkers, and last-minute skip
+              requests usually mean spreadsheet mornings and group-chat ETAs.
+              PackRoute keeps customers updated by automated SMS, with routes and
+              drivers behind the scenes — then exports completed hikes for the
               billing tool you already use.
             </p>
           </div>
@@ -111,22 +112,22 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
             <div className="max-w-2xl">
               <SectionLabel>How it works</SectionLabel>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-                The office plans. The driver runs the route.
+                Customers get the texts. Your team runs the day.
               </h2>
             </div>
             <div className="mt-10 grid gap-6 md:grid-cols-3">
               {[
                 {
-                  role: "Office",
-                  body: "Build routes, assign drivers, approve schedule requests, and export hike CSVs for invoicing.",
+                  role: "Customer",
+                  body: "Automated SMS updates by text — reminders, ETAs, pickups. Schedule requests wait for office approval — no surprise route changes.",
                 },
                 {
                   role: "Driver",
-                  body: "Opens Today on their phone, reviews the route, and adjusts pickup order when needed. At each stop, status taps send SMS ETAs and pickup updates to customers.",
+                  body: "Opens Today on their phone, follows the route, and taps status at each stop. Those taps send the customer texts — no manual messaging.",
                 },
                 {
-                  role: "Customer",
-                  body: "Automated SMS updates by text. Schedule requests wait for office approval — no surprise route changes.",
+                  role: "Office",
+                  body: "Build routes, assign drivers, approve schedule requests, and export hike CSVs for invoicing — the ops that keep SMS accurate.",
                 },
               ].map((item) => (
                 <div
@@ -329,7 +330,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
           <div className="mx-auto max-w-xl px-4 sm:px-6">
             <div className="text-center">
               <h2 className="text-3xl font-semibold sm:text-4xl">
-                Less coordinating. More hiking.
+                Happier dog owners. Fewer manual texts.
               </h2>
               <p className="mt-4 text-lg text-white/80">
                 Book a demo — we&apos;ll reply within a business day.
