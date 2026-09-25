@@ -72,18 +72,24 @@ export default async function SignupPage({
     return (
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-          Invite required
+          Talk to us first
         </h1>
         <p className="mt-2 text-sm text-stone-600">
-          PackRoute is invite-only during beta. Ask for an invite link from the
-          PackRoute team.
+          PackRoute is invite-only while we onboard beta teams. Book a short demo
+          or email us and we&apos;ll set up your company when you&apos;re ready.
         </p>
         <div className="mt-6">
           <OnboardingSupportCard compact />
         </div>
         <Link
+          href="/contact"
+          className="mt-4 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
+        >
+          Go to contact →
+        </Link>
+        <Link
           href="/login"
-          className="mt-6 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
+          className="mt-6 block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
         >
           Already have an account? Sign in
         </Link>
