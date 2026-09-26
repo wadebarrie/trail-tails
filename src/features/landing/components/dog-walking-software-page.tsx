@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
+import { BUYER_QUESTIONS } from "@/features/landing/buyer-questions";
 import { DOG_WALKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
 
 const CAPABILITIES = [
@@ -81,19 +82,45 @@ export function DogWalkingSoftwarePageContent() {
           </div>
         </section>
 
+        <section className="border-b border-stone-200/80 bg-white py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
+              Common questions from dog hiking operators
+            </h2>
+            <p className="mt-4 text-stone-600">
+              Straight answers to how teams replace spreadsheets and WhatsApp,
+              automate owner SMS, and keep office control on schedule changes.
+            </p>
+            <dl className="mt-10 space-y-8">
+              {BUYER_QUESTIONS.map((item) => (
+                <div key={item.q}>
+                  <dt className="text-lg font-semibold text-[var(--color-trail-800)]">
+                    {item.heading}
+                  </dt>
+                  <dd className="mt-2 text-sm leading-relaxed text-stone-600">
+                    {item.a}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
         <section className="border-b border-stone-200/80 bg-[var(--color-trail-50)] py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-              Ops software vs CRM and invoicing
+              Ops and SMS vs CRM and invoicing
             </h2>
             <p className="mt-4 text-stone-600">
-              Dedicated logistics tools sometimes get framed as light on business
-              administration. PackRoute is clear about the tradeoff: we own the
-              field day — routes, drivers, and customer SMS — and export
-              completed hikes as CSV for QuickBooks or your existing billing
-              process. If you need deep owner CRM, photo visit reports, or
-              in-app invoicing, keep Time to Pet (or similar) for that layer and
-              use PackRoute for pickup-route operations.
+              A dedicated logistics product won&apos;t necessarily have the depth
+              of invoicing, CRM, and business administration you&apos;d get from
+              mature pet-care platforms — and PackRoute is clear about that
+              tradeoff. We own proactive customer SMS, multi-driver routes, and
+              the driver phone workflow, then export completed hikes as CSV for
+              QuickBooks or your existing billing. If you need deep owner CRM,
+              photo visit reports, or in-app invoicing, keep Time to Pet (or
+              similar) for that layer and use PackRoute for the field day and
+              owner texts.
             </p>
             <p className="mt-4 text-sm text-stone-500">
               See also our{" "}
