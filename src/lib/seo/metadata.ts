@@ -1,4 +1,6 @@
 /** Shared SEO copy — keep in sync with visible landing page messaging. */
+import { BUYER_QUESTION_FAQ } from "@/features/landing/buyer-questions";
+
 export const SITE_NAME = "PackRoute";
 
 export const SITE_TAGLINE =
@@ -154,6 +156,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
     q: "Who should keep using Time to Pet or similar software?",
     a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or deep in-app CRM and invoicing may be better served by Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, or Scout. PackRoute is for hiking and pack-walk teams that need calmer multi-driver route operations and automated customer SMS.",
   },
+  ...BUYER_QUESTION_FAQ,
 ];
 
 /** Conversion-focused FAQ shown on the homepage. */
@@ -180,7 +183,11 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute include CRM and invoicing like Time to Pet?",
-    a: "No — on purpose. PackRoute focuses on routes, drivers, and SMS. It exports completed hikes as CSV for QuickBooks or your own billing. Keep a pet-care CRM if you need deep invoicing and owner portals.",
+    a: "No — on purpose. A dedicated logistics product won’t match mature pet-care platforms on deep CRM or in-app invoicing. PackRoute focuses on proactive SMS, routes, and drivers, then exports completed hikes as CSV for QuickBooks. Keep a CRM if you need owner portals and payment collection.",
+  },
+  {
+    q: "How do dog hiking companies send automated SMS without drivers texting each family?",
+    a: "Drivers tap status on PackRoute’s mobile Today view; PackRoute sends night-before reminders, ETAs, and pickup texts automatically. Customers reply by text for skip requests that wait for office approval.",
   },
   {
     q: "How much does PackRoute cost?",
@@ -188,7 +195,7 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking teams, yes — a focused alternative for pickup routes, drivers, and customer SMS, not a full pet-sitting or CRM suite.",
+    a: "For adventure dog hiking teams, yes — a focused alternative for proactive customer SMS and pickup-route ops, not a full pet-sitting or CRM suite.",
   },
 ];
 /** Prevent indexing of authenticated / internal app surfaces. */
