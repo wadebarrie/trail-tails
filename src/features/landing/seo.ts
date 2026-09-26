@@ -55,13 +55,13 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
         "Beta pricing by hikers/walkers and dogs — first month free after demo. Limited-time beta rates lock in if you subscribe during beta.",
     },
     featureList: [
-      "Dog walking route planning and pickup order",
-      "Group hike and pack walk scheduling",
-      "Multi-driver and multi-vehicle route assignment",
-      "Driver mobile Today view",
-      "Customer SMS from driver status updates",
-      "Schedule change requests by text",
-      "Billing period CSV export",
+      "Automated customer SMS ETAs and pickup updates",
+      "Night-before confirmations without drivers texting each family",
+      "Driver mobile Today view (browser, no app store)",
+      "Multi-driver pickup route planning",
+      "Schedule change requests by text with office approval",
+      "Replace Google Sheets and WhatsApp for dog hiking ops",
+      "Billing period CSV export for QuickBooks",
     ],
   };
 }

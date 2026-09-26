@@ -61,11 +61,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "Does PackRoute lack invoicing and CRM compared to Time to Pet?",
-    a: "PackRoute does not try to match Time to Pet’s full business-administration depth. That is intentional: hiking teams get calmer route ops and SMS without paying for boarding and pet-sitting workflows. You still get completed-hike tracking and CSV export for invoicing. Keep Time to Pet (or QuickBooks) if you need owner CRM and payment collection in one pet-care suite.",
+    a: "PackRoute does not try to match Time to Pet’s full business-administration depth. A dedicated logistics product won’t necessarily have the invoicing, CRM, and business administration depth of mature pet-care platforms — and for adventure hiking teams that is the point. PackRoute owns proactive SMS, multi-driver routes, and the driver phone workflow; you still get completed-hike CSV export for QuickBooks. Keep Time to Pet (or QuickBooks) if you need owner CRM and payment collection in one pet-care suite.",
   },
   {
     q: "Who should keep using Time to Pet?",
-    a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or deep in-app CRM and invoicing may be better served by Time to Pet. PackRoute is for hiking and pack-walk teams that need calmer multi-driver route operations.",
+    a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or deep in-app CRM and invoicing may be better served by Time to Pet. PackRoute is for hiking and pack-walk teams that need proactive customer SMS and calmer multi-driver route operations.",
   },
 ];
 
