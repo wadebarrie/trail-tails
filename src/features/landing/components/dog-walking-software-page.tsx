@@ -6,7 +6,11 @@ import { DOG_WALKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
 
 const CAPABILITIES = [
   {
-    title: "Replace spreadsheets for route planning",
+    title: "Automated SMS ETAs — not WhatsApp chaos",
+    body: "Reminders, en-route ETAs, and pickup or drop-off confirmations send from driver status taps. Schedule requests go to the office first — so families stay informed without manual texts.",
+  },
+  {
+    title: "Routes that keep those texts accurate",
     body: "Build pickup routes, set stop order, and adjust today or tomorrow without rebuilding a Google Sheet every morning.",
   },
   {
@@ -15,11 +19,7 @@ const CAPABILITIES = [
   },
   {
     title: "Driver workflow on the road",
-    body: "Drivers open Today, see what to do next, and tap through stops. Route planning software for dog walkers that works in the mobile browser — no app store.",
-  },
-  {
-    title: "Automated SMS ETAs — not WhatsApp chaos",
-    body: "Reminders, en-route ETAs, and pickup or drop-off confirmations send from driver status taps. Schedule requests go to the office first.",
+    body: "Drivers open Today, see what to do next, and tap through stops. Those taps trigger customer SMS — works in the mobile browser, no app store.",
   },
 ];
 
@@ -37,11 +37,11 @@ export function DogWalkingSoftwarePageContent() {
             {DOG_WALKING_SOFTWARE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            Best way to replace spreadsheets for dog walk route planning:
-            PackRoute helps small dog hiking teams manage multi-driver pickup
-            routes, driver workflows, and automated customer SMS ETAs — without
-            Google Sheets, WhatsApp group chats, or constant &ldquo;where is my
-            dog?&rdquo; calls.
+            PackRoute keeps adventure dog hiking customers updated with
+            automated SMS — night-before reminders, ETAs, and pickup texts —
+            so families stop asking &ldquo;where is my dog?&rdquo; and drivers
+            stop living in WhatsApp. Routes and a mobile driver workflow make
+            those messages match the real van day.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Built for adventure dog hiking teams, pack walks, and group dog
@@ -56,8 +56,7 @@ export function DogWalkingSoftwarePageContent() {
         <section className="border-y border-stone-200/80 bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
-              Route planning and ETA notifications for adventure dog hiking
-              businesses
+              Customer SMS first — routes and drivers that support it
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
               For operators growing from one hiker or walker to a few vans —
@@ -116,8 +115,8 @@ export function DogWalkingSoftwarePageContent() {
             </h2>
             <p className="mt-4 text-stone-600">
               The office owns the schedule. The driver owns the route. Customers
-              get trustworthy SMS updates — not surveillance-heavy tracking or
-              enterprise fleet software.
+              get trustworthy SMS updates without anyone manually texting each
+              stop — not surveillance-heavy tracking or enterprise fleet software.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
               <Link

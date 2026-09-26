@@ -2,13 +2,13 @@
 export const SITE_NAME = "PackRoute";
 
 export const SITE_TAGLINE =
-  "Dog walking route planning for adventure hike teams";
+  "Proactive SMS for adventure dog hiking teams";
 
 export const SITE_DESCRIPTION =
-  "Replace Google Sheets and WhatsApp for adventure dog hiking teams. Plan multi-driver pickup routes, give drivers a mobile workflow, and send automated SMS ETAs and pickup updates — without spreadsheet chaos.";
+  "Keep dog owners updated without the WhatsApp scramble. PackRoute sends night-before reminders, ETAs, and pickup texts automatically — backed by multi-driver routes and a simple driver phone workflow for adventure dog hiking teams.";
 
 export const SITE_DESCRIPTION_SHORT =
-  "Dog walking route planning software: multi-driver routes, mobile driver workflow, and automated customer SMS ETAs.";
+  "Automated customer SMS ETAs for adventure dog hiking teams — with routes and a mobile driver workflow that make those texts accurate.";
 
 export const SITE_KEYWORDS = [
   "dog walking software",
@@ -55,19 +55,19 @@ export const SITE_CONTACT_EMAIL = "hello@packroute.app";
 export const HOME_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 export const HOME_H1 =
-  "Replace spreadsheets and group chats with dog walking route planning software";
+  "Proactive SMS for dog owners — so your team stops living in group chats";
 
 export const DOG_WALKING_SOFTWARE_TITLE =
-  "Dog Walking Route Planner for Adventure Dog Hiking Teams";
+  "Dog Walking Software with Automated SMS ETAs";
 
 export const DOG_WALKING_SOFTWARE_DESCRIPTION =
-  "Best way to replace spreadsheets for dog walk route planning: PackRoute plans multi-driver pickup routes, guides drivers on mobile, and sends automated SMS ETAs and pickup updates for adventure dog hiking teams.";
+  "PackRoute keeps adventure dog hiking customers updated with automated SMS ETAs and pickup texts. Routes and a mobile driver workflow power those messages — so families stop asking “where are you?” and drivers stop texting every stop.";
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_TITLE =
-  "Adventure Dog Hiking Software for Group Walks & Pickup Routes";
+  "Adventure Dog Hiking Software — SMS Updates + Pickup Routes";
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION =
-  "Software adventure dog hiking businesses use for daily pickup routes: multi-driver mornings, recurring schedules, skip requests with office approval, and automated customer SMS — without Google Sheets and WhatsApp.";
+  "Adventure dog hiking software that texts customers for you: night-before reminders, en-route ETAs, and pickup confirmations — with multi-driver routes and office-approved skip requests behind the scenes.";
 
 export const TIME_TO_PET_ALTERNATIVE_TITLE =
   "Time to Pet Alternative for Adventure Dog Hiking Teams";
@@ -92,7 +92,7 @@ type FaqItem = { readonly q: string; readonly a: string };
 export const LANDING_FAQ: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "PackRoute is operations software for adventure dog hiking teams. Your office plans routes and schedules; drivers run the day from their phone; customers get automated SMS updates — without spreadsheet chaos or endless WhatsApp group chats.",
+    a: "PackRoute is proactive SMS and field ops for adventure dog hiking teams. Customers get automated reminders, ETAs, and pickup texts; drivers tap status on their phone; the office plans routes and approves schedule changes — without spreadsheet chaos or endless WhatsApp group chats.",
   },
   {
     q: "Is PackRoute dog walking software?",
@@ -112,7 +112,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Can drivers use PackRoute on the road?",
-    a: "Yes. Drivers use a mobile Today view in the browser — stops in order, status taps, optional pickup reorder. No app store download required. It is route planning software for dog walkers that works on mobile.",
+    a: "Yes. Drivers use a mobile Today view in the browser — stops in order, status taps, optional pickup reorder. Those taps trigger customer SMS. No app store download required.",
   },
   {
     q: "Does PackRoute send automated SMS ETA and pickup updates?",
@@ -160,11 +160,11 @@ export const LANDING_FAQ: readonly FaqItem[] = [
 export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "Operations software for adventure dog hiking teams — multi-driver pickup routes, mobile driver workflow, automated customer SMS, and CSV billing prep.",
+    a: "Proactive customer SMS for adventure dog hiking teams — reminders, ETAs, and pickup texts — backed by multi-driver routes, a mobile driver workflow, and CSV billing prep.",
   },
   {
     q: "Can PackRoute replace Google Sheets and WhatsApp?",
-    a: "Yes. The office owns routes and schedules; drivers run Today on their phone; customers get SMS ETAs and pickup updates instead of group-chat chaos.",
+    a: "Yes. Customers get SMS ETAs and pickup updates instead of group-chat chaos; drivers run Today on their phone; the office owns routes and schedule approvals.",
   },
   {
     q: "Can drivers use PackRoute on the road?",

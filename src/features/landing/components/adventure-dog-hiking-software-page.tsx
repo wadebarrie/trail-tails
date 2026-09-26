@@ -6,16 +6,16 @@ import { ADVENTURE_DOG_HIKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
 
 const CAPABILITIES = [
   {
+    title: "Proactive customer SMS ETAs",
+    body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire automatically from driver status taps — no manual texts from drivers.",
+  },
+  {
     title: "Group hikes and pack walks",
     body: "Schedule recurring dogs across morning and afternoon routes. Handle as-needed bookings and last-minute skip requests without breaking your long-term plan.",
   },
   {
     title: "Multi-driver pickup coordination",
     body: "Assign drivers, split routes, and adjust stop order for today or tomorrow — built for days when several vans hit the road instead of one WhatsApp group chat.",
-  },
-  {
-    title: "Proactive customer SMS ETAs",
-    body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire automatically from driver status taps — no manual texts from drivers.",
   },
   {
     title: "Schedule changes with office control",
@@ -37,15 +37,15 @@ export function AdventureDogHikingSoftwarePageContent() {
             {ADVENTURE_DOG_HIKING_SOFTWARE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            PackRoute is the software adventure dog hiking businesses use to
-            manage daily pickup routes — group hikes and pack walks with
-            multiple hikers or walkers and dozens to hundreds of active dogs.
+            PackRoute texts adventure dog hiking customers for you —
+            night-before reminders, ETAs, and pickup updates — so families stay
+            informed and your team stops living in WhatsApp. Routes and drivers
+            make those messages match the real van day.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Not a consumer marketplace or in-home pet sitting app. Built for
-            field days where Google Sheets and WhatsApp start falling apart:
-            the office plans the route, drivers execute on mobile, and customers
-            get automated SMS updates.
+            group hikes and pack walks with multiple hikers or walkers where
+            Google Sheets and group chats start falling apart.
           </p>
           <div className="mt-8">
             <CtaButtons />

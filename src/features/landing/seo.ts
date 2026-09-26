@@ -268,7 +268,7 @@ export function buildContactPageJsonLd(): string {
     url: pageUrl,
     name: `Contact — ${SITE_NAME}`,
     description:
-      "Book a demo or ask about PackRoute — dog walking route planning software for adventure dog hiking teams.",
+      "Book a demo or ask about PackRoute — proactive SMS and field ops for adventure dog hiking teams.",
     isPartOf: { "@id": `${siteUrl}/#website` },
     inLanguage: "en-US",
   };
