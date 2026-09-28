@@ -10,6 +10,7 @@ import {
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { requireRole } from "@/features/auth/queries";
 import { BillingDateRangeFilter } from "@/features/billing/components/billing-date-range-filter";
+import { AccountingAddonsCard } from "@/features/billing/components/accounting-addons-card";
 import { billingStatusLabel } from "@/features/billing/status";
 import {
   defaultBillingDateRange,
@@ -66,7 +67,7 @@ export default async function BillingPage({
     <div>
       <PageHeader
         title="Hike report"
-        description="Completed hike days for your own invoicing — export a CSV for QuickBooks or your billing process."
+        description="Completed hike days for your own invoicing — export a CSV for QuickBooks, Xero, or your billing process."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -85,9 +86,13 @@ export default async function BillingPage({
         }
       />
 
-      <BillingDateRangeFilter start={start} end={end} />
+      <AccountingAddonsCard compact />
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6">
+        <BillingDateRangeFilter start={start} end={end} />
+      </div>
+
+      <div className="mb-6 mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <p className="text-sm text-stone-500">Billable hikes</p>
           <p className="mt-1 text-2xl font-semibold text-stone-900">

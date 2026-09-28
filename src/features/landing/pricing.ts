@@ -56,8 +56,33 @@ export const PRICING_INCLUDED_FEATURES = [
   "Pickup route planning and driver Today view",
   "Unlimited office logins",
   "Schedule-change texts with office approval",
-  "Completed-hike CSV export for QuickBooks or your billing process",
+  "Completed-hike CSV export for QuickBooks, Xero, or your billing process",
   "Onboarding screenshare + email support",
+] as const;
+
+export type PricingAddon = {
+  id: "quickbooks" | "xero";
+  name: string;
+  summary: string;
+  feeLabel: string;
+};
+
+/** Paid integrations — offered now; built when a customer requests them. */
+export const PRICING_ADDONS: readonly PricingAddon[] = [
+  {
+    id: "quickbooks",
+    name: "QuickBooks Online",
+    summary:
+      "Push completed hike charges into QuickBooks so you can invoice without re-typing the CSV.",
+    feeLabel: "Paid add-on — quoted when you request it",
+  },
+  {
+    id: "xero",
+    name: "Xero",
+    summary:
+      "Same completed-hike sync for teams that bill in Xero (popular with Canadian operators).",
+    feeLabel: "Paid add-on — quoted when you request it",
+  },
 ] as const;
 
 export const PRICING_FAQ = [
@@ -79,11 +104,15 @@ export const PRICING_FAQ = [
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "No. PackRoute is built around proactive customer SMS, with routes and drivers to make those texts accurate. You export completed hikes as CSV and bill in QuickBooks or your own process.",
+    a: "No. PackRoute is built around proactive customer SMS, with routes and drivers to make those texts accurate. Every plan includes completed-hike CSV export so you can bill in QuickBooks, Xero, or your own process. Live QuickBooks Online and Xero sync are optional paid add-ons — ask us when you are ready and we will enable them for your company.",
+  },
+  {
+    q: "Do you integrate with QuickBooks or Xero?",
+    a: "Yes as paid add-ons. CSV export is included on every plan today. Direct QuickBooks Online and Xero sync are available for a fee when you request them — we build and turn on the connection for your company rather than shipping unused integrations to everyone.",
   },
   {
     q: "Is there a setup fee?",
-    a: "No. Every plan includes an onboarding screenshare so we can import your roster and get a real route day running.",
+    a: "No for the core product. Every plan includes an onboarding screenshare so we can import your roster and get a real route day running. Accounting add-ons are quoted separately when you request them.",
   },
   {
     q: "Can I bring my data in?",

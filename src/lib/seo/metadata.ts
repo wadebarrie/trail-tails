@@ -130,7 +130,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute handle payments or invoicing?",
-    a: "No built-in owner invoices or payment collection. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks, Stripe, or your existing process. If you need a full pet-care CRM and invoicing suite, keep or pair with Time to Pet (or similar) for that layer. See packroute.app/pricing for current plans.",
+    a: "No built-in owner invoices or payment collection. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks, Xero, Stripe, or your existing process. Live QuickBooks Online and Xero sync are optional paid add-ons when you request them. If you need a full pet-care CRM and invoicing suite, keep or pair with Time to Pet (or similar) for that layer. See packroute.app/pricing for current plans.",
   },
   {
     q: "How much does PackRoute cost?",
