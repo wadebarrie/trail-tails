@@ -13,6 +13,9 @@ import {
   applyMidRouteDropoffReorder,
   applyMidRoutePickupReorder,
 } from "@/features/hikes/stop-order";
+import { geocodeAddress, isGeocodingConfigured } from "@/lib/google-maps/geocode";
+import type { LatLng } from "@/lib/google-maps/eta";
+import { logWarn } from "@/lib/logger";
 import { PerfTimer } from "@/lib/perf";
 import { one } from "@/lib/supabase/relations";
 import type { StopStatus } from "@/types";
@@ -21,27 +24,33 @@ export type DriverStopActionResult =
   | { success: true; status: StopStatus; alreadyDone?: boolean }
   | { error: string };
 
+type CustomerCoords = {
+  owner_name: string;
+  address: string;
+  address_lat: number | null;
+  address_lng: number | null;
+};
+
 type StopContext = {
   id: string;
   hike_id: string;
   dog_id: string;
   stop_type: string;
   status: StopStatus;
-  dogs: {
-    name: string;
-    company_id: string;
-    customer_id: string;
-    customers:
-      | { owner_name: string; address_lat: number | null; address_lng: number | null }
-      | { owner_name: string; address_lat: number | null; address_lng: number | null }[];
-  } | {
-    name: string;
-    company_id: string;
-    customer_id: string;
-    customers:
-      | { owner_name: string; address_lat: number | null; address_lng: number | null }
-      | { owner_name: string; address_lat: number | null; address_lng: number | null }[];
-  }[];
+  sort_order: number;
+  dogs:
+    | {
+        name: string;
+        company_id: string;
+        customer_id: string;
+        customers: CustomerCoords | CustomerCoords[];
+      }
+    | {
+        name: string;
+        company_id: string;
+        customer_id: string;
+        customers: CustomerCoords | CustomerCoords[];
+      }[];
 };
 
 async function loadStop(
@@ -57,11 +66,12 @@ async function loadStop(
       dog_id,
       stop_type,
       status,
+      sort_order,
       dogs (
         name,
         company_id,
         customer_id,
-        customers ( owner_name, address_lat, address_lng )
+        customers ( owner_name, address, address_lat, address_lng )
       )
     `
     )
@@ -71,12 +81,121 @@ async function loadStop(
   return data as StopContext | null;
 }
 
+/** Prefer live GPS; else last known driver coords on this hike; else prior stop address. */
+async function resolveEnRouteOrigin(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  hikeId: string,
+  stopId: string,
+  sortOrder: number,
+  stopType: string,
+  lat: number | null,
+  lng: number | null
+): Promise<LatLng | null> {
+  if (lat != null && lng != null) {
+    return { lat, lng };
+  }
+
+  const { data: priorGps } = await supabase
+    .from("stops")
+    .select("driver_lat, driver_lng, en_route_at")
+    .eq("hike_id", hikeId)
+    .neq("id", stopId)
+    .not("driver_lat", "is", null)
+    .not("driver_lng", "is", null)
+    .order("en_route_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (priorGps?.driver_lat != null && priorGps?.driver_lng != null) {
+    return { lat: priorGps.driver_lat, lng: priorGps.driver_lng };
+  }
+
+  const { data: priorStop } = await supabase
+    .from("stops")
+    .select(
+      `
+      id,
+      dogs (
+        customers ( address_lat, address_lng )
+      )
+    `
+    )
+    .eq("hike_id", hikeId)
+    .eq("stop_type", stopType)
+    .lt("sort_order", sortOrder)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const priorDog = one(
+    priorStop?.dogs as
+      | {
+          customers:
+            | { address_lat: number | null; address_lng: number | null }
+            | { address_lat: number | null; address_lng: number | null }[];
+        }
+      | {
+          customers:
+            | { address_lat: number | null; address_lng: number | null }
+            | { address_lat: number | null; address_lng: number | null }[];
+        }[]
+      | null
+      | undefined
+  );
+  const priorCustomer = one(priorDog?.customers);
+  if (
+    priorCustomer?.address_lat != null &&
+    priorCustomer?.address_lng != null
+  ) {
+    return {
+      lat: priorCustomer.address_lat,
+      lng: priorCustomer.address_lng,
+    };
+  }
+
+  return null;
+}
+
+/** Use stored customer coords; geocode once if missing so ETA SMS can still go out. */
+async function resolveEnRouteDestination(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  customerId: string,
+  customer: CustomerCoords | null | undefined
+): Promise<LatLng | null> {
+  if (customer?.address_lat != null && customer?.address_lng != null) {
+    return { lat: customer.address_lat, lng: customer.address_lng };
+  }
+
+  const address = customer?.address?.trim();
+  if (!address || !isGeocodingConfigured()) {
+    return null;
+  }
+
+  const geocoded = await geocodeAddress(address);
+  if (!geocoded.ok) {
+    logWarn("eta", "En Route destination geocode failed", {
+      context: { customerId, error: geocoded.error },
+    });
+    return null;
+  }
+
+  await supabase
+    .from("customers")
+    .update({
+      address_lat: geocoded.result.lat,
+      address_lng: geocoded.result.lng,
+    })
+    .eq("id", customerId);
+
+  return { lat: geocoded.result.lat, lng: geocoded.result.lng };
+}
+
 /** Optimistic status transition — returns true only when exactly one row updated. */
 async function transitionStopStatus(
   supabase: Awaited<ReturnType<typeof createClient>>,
   stopId: string,
   fromStatus: StopStatus,
-  patch: Record<string, unknown>,
+  patch: Record<string, unknown>
 ): Promise<{ transitioned: true } | { transitioned: false; error?: string }> {
   const { data, error } = await supabase
     .from("stops")
@@ -117,17 +236,30 @@ export async function enRouteAction(
 
   const dog = one(stop.dogs);
   const customer = one(dog?.customers);
-  const origin = lat != null && lng != null ? { lat, lng } : null;
-  const destination =
-    customer?.address_lat != null && customer?.address_lng != null
-      ? { lat: customer.address_lat, lng: customer.address_lng }
-      : null;
+  const [origin, destination] = await Promise.all([
+    resolveEnRouteOrigin(
+      supabase,
+      stop.hike_id,
+      stop.id,
+      stop.sort_order,
+      stop.stop_type,
+      lat,
+      lng
+    ),
+    dog
+      ? resolveEnRouteDestination(supabase, dog.customer_id, customer)
+      : Promise.resolve(null),
+  ]);
+  timer.mark("resolve-coords");
+
+  const driverLat = lat ?? origin?.lat ?? null;
+  const driverLng = lng ?? origin?.lng ?? null;
 
   const transition = await transitionStopStatus(supabase, stopId, "scheduled", {
     status: "en_route",
     en_route_at: new Date().toISOString(),
-    driver_lat: lat,
-    driver_lng: lng,
+    driver_lat: driverLat,
+    driver_lng: driverLng,
     eta_minutes: null,
   });
 
@@ -147,6 +279,16 @@ export async function enRouteAction(
     .eq("status", "planned");
 
   if (dog) {
+    if (!origin || !destination) {
+      logWarn("eta", "En Route SMS may omit ETA — missing coordinates", {
+        context: {
+          stopId,
+          hasOrigin: Boolean(origin),
+          hasDestination: Boolean(destination),
+        },
+      });
+    }
+
     await scheduleEnRouteSideEffects({
       stopId,
       hikeId: stop.hike_id,
@@ -167,7 +309,7 @@ export async function enRouteAction(
 export async function arrivedAction(
   stopId: string,
   lat: number | null = null,
-  lng: number | null = null
+  lng: number | null
 ): Promise<DriverStopActionResult> {
   const timer = new PerfTimer("driver-action arrived");
   await requireDriverAccess();
