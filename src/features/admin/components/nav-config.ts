@@ -15,7 +15,7 @@ export type NavGroup = {
 
 /** Daily ops — always visible on desktop */
 export const primaryNav: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", shortLabel: "Home" },
+  { href: "/dashboard", label: "Overview", shortLabel: "Home" },
   { href: "/dashboard/hikes/today", label: "Today" },
   { href: "/dashboard/hikes/tomorrow", label: "Tomorrow" },
   { href: "/dashboard/route", label: "Routes" },
@@ -110,7 +110,7 @@ export const mobileMoreSections: NavGroup[] = [
   {
     id: "schedule",
     label: "Schedule",
-    items: [{ href: "/dashboard", label: "Dashboard", shortLabel: "Home" }],
+    items: [{ href: "/dashboard", label: "Overview", shortLabel: "Home" }],
   },
   mobilePeopleNav,
   mobileOperationsNav,

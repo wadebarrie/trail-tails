@@ -68,7 +68,7 @@ export function AdminGlobalSearch() {
   return (
     <div ref={rootRef} className="relative w-full max-w-xl">
       <label className="sr-only" htmlFor="admin-global-search">
-        Search customers and dogs
+        Search customers, dogs, drivers, vehicles, and routes
       </label>
       <div className="relative">
         <span
@@ -89,7 +89,7 @@ export function AdminGlobalSearch() {
           aria-expanded={showPanel}
           aria-controls={listId}
           aria-autocomplete="list"
-          placeholder="Search customers or dogs"
+          placeholder="Search customers, dogs, drivers…"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
