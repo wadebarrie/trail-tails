@@ -42,7 +42,12 @@ export default async function DriversPage() {
       ) : null}
 
       {!drivers.length ? (
-        <EmptyState message="No drivers yet. Add a driver, or enable yourself as a driver above." />
+        <EmptyState
+          message="No drivers yet. Add a driver, or enable yourself as a driver above."
+          action={
+            <PrimaryLink href="/dashboard/drivers/new">Add driver</PrimaryLink>
+          }
+        />
       ) : (
         <TableShell>
           <table className="min-w-full text-sm">

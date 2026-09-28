@@ -14,7 +14,7 @@ function exceptionActiveOnDate(
   return date >= startDate && date <= end;
 }
 
-/** Day-level notes for the morning briefing — empty array means hide the section. */
+/** Day-level notes for the daily briefing — empty array means hide the section. */
 export async function getDriverBriefingNotes(
   companyId: string,
   date: string,

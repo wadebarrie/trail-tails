@@ -80,6 +80,18 @@ export function startRouteCtaLabel(day: DriverDayView): string {
   return "Start today's routes →";
 }
 
+/** Progress / milestone label when all pickups are done — period-aware. */
+export function pickupsCompleteLabel(day: DriverDayView): string {
+  if (day.routes.length === 0) return "Pickups complete";
+  const periods = new Set(day.routes.map((r) => r.period));
+  if (periods.size === 1) {
+    return periods.has("afternoon")
+      ? "Afternoon pickups complete"
+      : "Morning pickups complete";
+  }
+  return "Pickups complete";
+}
+
 export function vehicleSummaryLabel(day: DriverDayView): string | null {
   const labels = [
     ...new Set(
@@ -108,7 +120,7 @@ export function dayProgressMessage(day: DriverDayView): string | null {
   if (totalPickups > 0 && donePickups === totalPickups && totalDropoffs > 0) {
     if (doneDropoffs < totalDropoffs) {
       if (donePickups === totalPickups && doneDropoffs === 0) {
-        return "Morning pickups complete";
+        return pickupsCompleteLabel(day);
       }
       return `${doneDropoffs} of ${totalDropoffs} dogs home`;
     }
@@ -116,7 +128,7 @@ export function dayProgressMessage(day: DriverDayView): string | null {
   }
 
   if (totalPickups > 0 && donePickups === totalPickups) {
-    return "Morning pickups complete";
+    return pickupsCompleteLabel(day);
   }
 
   return null;
@@ -142,7 +154,7 @@ export function allStopsComplete(day: DriverDayView): boolean {
   );
 }
 
-/** True when the driver has already started today — skip morning briefing on re-login. */
+/** True when the driver has already started today — skip daily briefing on re-login. */
 export function isRouteDayInProgress(day: DriverDayView): boolean {
   const allStops = day.routes.flatMap((route) => [
     ...route.pickups,
