@@ -1,4 +1,5 @@
 import { PageHeader } from "@/features/admin/components/ui";
+import { AccountingAddonsCard } from "@/features/billing/components/accounting-addons-card";
 import { CompanySettingsForm } from "@/features/company/components/company-settings-form";
 import { CompanyBillingCard } from "@/features/subscription/components/company-billing-card";
 import { getSubscriptionForCompany } from "@/features/subscription/queries";
@@ -38,6 +39,8 @@ export default async function SettingsPage() {
       </section>
 
       <CompanyBillingCard subscription={subscription} />
+
+      <AccountingAddonsCard />
     </div>
   );
 }

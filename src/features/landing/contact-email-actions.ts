@@ -3,6 +3,8 @@ import { SITE_CONTACT_EMAIL } from "@/lib/seo/metadata";
 export const DEMO_EMAIL_SUBJECT = "PackRoute demo request";
 export const WAITLIST_EMAIL_SUBJECT = "PackRoute early access";
 export const PRICING_EMAIL_SUBJECT = "PackRoute pricing / demo";
+export const ACCOUNTING_ADDON_EMAIL_SUBJECT =
+  "PackRoute QuickBooks / Xero add-on";
 
 export function gmailComposeUrl(to: string, subject: string) {
   const params = new URLSearchParams({

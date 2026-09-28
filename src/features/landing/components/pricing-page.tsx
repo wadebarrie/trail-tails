@@ -5,12 +5,16 @@ import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import { landingPrimaryButtonClassName } from "@/features/admin/components/button-styles";
 import {
+  PRICING_ADDONS,
   PRICING_FAQ,
   PRICING_INCLUDED_FEATURES,
   PRICING_TIERS,
 } from "@/features/landing/pricing";
 import { TrackedLink } from "@/features/landing/components/tracked-link";
-import { PRICING_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
+import {
+  PRICING_EMAIL_SUBJECT,
+  ACCOUNTING_ADDON_EMAIL_SUBJECT,
+} from "@/features/landing/contact-email-actions";
 
 export function PricingPageContent({
   showStartTrial = false,
@@ -127,6 +131,46 @@ export function PricingPageContent({
             </Link>
             .
           </p>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-20">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
+              Accounting add-ons
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-stone-600">
+              Every plan includes CSV hike export. Live sync into QuickBooks
+              Online or Xero is a paid add-on — we turn it on when you ask for
+              it, so you are not paying for unused plumbing.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-5 sm:grid-cols-2">
+            {PRICING_ADDONS.map((addon) => (
+              <article
+                key={addon.id}
+                className="flex flex-col rounded-2xl p-6 surface-glass"
+              >
+                <h3 className="text-lg font-semibold text-[var(--color-trail-800)]">
+                  {addon.name}
+                </h3>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-[var(--color-trail-600)]">
+                  {addon.feeLabel}
+                </p>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-stone-600">
+                  {addon.summary}
+                </p>
+                <div className="mt-6">
+                  <ContactEmailButton
+                    subject={`${ACCOUNTING_ADDON_EMAIL_SUBJECT} — ${addon.name}`}
+                    label="Request this add-on →"
+                    className={`${landingPrimaryButtonClassName} w-full justify-center`}
+                    eventName="book_demo"
+                    eventLocation={`pricing_addon_${addon.id}`}
+                  />
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="border-t border-[var(--glass-border-subtle)] surface-glass py-16 sm:py-20">

@@ -34,7 +34,7 @@ const FEATURES = [
   {
     title: "Billing prep, not a full CRM",
     description:
-      "Track completed hikes and export CSV for QuickBooks or your own invoicing. PackRoute stays focused on the field day and customer communication — pair with your existing billing tools for deep CRM and owner invoices.",
+      "Track completed hikes and export CSV for QuickBooks, Xero, or your own invoicing. Live QuickBooks Online and Xero sync are paid add-ons when you need them. PackRoute stays focused on the field day and customer communication.",
   },
 ] as const;
 

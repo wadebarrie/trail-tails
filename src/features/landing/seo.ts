@@ -61,7 +61,8 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
       "Multi-driver pickup route planning",
       "Schedule change requests by text with office approval",
       "Replace Google Sheets and WhatsApp for dog hiking ops",
-      "Billing period CSV export for QuickBooks",
+      "Billing period CSV export for QuickBooks or Xero",
+      "Optional paid QuickBooks Online and Xero sync add-ons",
     ],
   };
 }
