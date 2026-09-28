@@ -89,9 +89,10 @@ export function formatDateLabel(dateStr: string, timeZone: string): string {
 export function formatTime(time: string): string {
   const [hour, minute] = time.split(":");
   const h = Number(hour);
+  const m = Number(String(minute).slice(0, 2));
   const ampm = h >= 12 ? "PM" : "AM";
   const h12 = h % 12 || 12;
-  return `${h12}:${minute} ${ampm}`;
+  return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
 export function formatWindowRange(

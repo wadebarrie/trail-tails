@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
+import { toTimeInputValue } from "@/features/admin/components/picker-format";
 import { updateStopWindowAction } from "@/features/hikes/actions";
 import { formatWindowRange } from "@/lib/dates";
 
@@ -10,19 +12,31 @@ export function StopWindowEditor({
   windowStart,
   windowEnd,
   optional = false,
-  label = "Planned window",
+  label = "Today’s planned window",
+  allowSaveAsDogDefault = true,
 }: {
   stopId: string;
   windowStart: string | null;
   windowEnd: string | null;
   optional?: boolean;
   label?: string;
+  /** When true (pickup stops), offer saving onto the dog’s default window. */
+  allowSaveAsDogDefault?: boolean;
 }) {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [start, setStart] = useState(windowStart?.slice(0, 5) ?? "15:00");
-  const [end, setEnd] = useState(windowEnd?.slice(0, 5) ?? "15:30");
+  const [start, setStart] = useState(toTimeInputValue(windowStart, "15:00"));
+  const [end, setEnd] = useState(toTimeInputValue(windowEnd, "15:30"));
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!editing) {
+      setStart(toTimeInputValue(windowStart, "15:00"));
+      setEnd(toTimeInputValue(windowEnd, "15:30"));
+    }
+  }, [windowStart, windowEnd, editing]);
 
   function save() {
     setError(null);
@@ -30,13 +44,16 @@ export function StopWindowEditor({
       const result = await updateStopWindowAction(
         stopId,
         optional && !start.trim() && !end.trim() ? null : start,
-        optional && !start.trim() && !end.trim() ? null : end
+        optional && !start.trim() && !end.trim() ? null : end,
+        { saveAsDogDefault: allowSaveAsDogDefault && saveAsDefault }
       );
       if (result.error) {
         setError(result.error);
         return;
       }
       setEditing(false);
+      setSaveAsDefault(false);
+      router.refresh();
     });
   }
 
@@ -50,6 +67,8 @@ export function StopWindowEditor({
         return;
       }
       setEditing(false);
+      setSaveAsDefault(false);
+      router.refresh();
     });
   }
 
@@ -64,6 +83,10 @@ export function StopWindowEditor({
         >
           {label}: {range ?? (optional ? "None" : "Not set")}
         </button>
+        <p className="text-xs text-stone-400">
+          Day plan only — does not change the dog&apos;s default unless you save
+          as default.
+        </p>
       </div>
     );
   }
@@ -108,14 +131,26 @@ export function StopWindowEditor({
         type="button"
         onClick={() => {
           setEditing(false);
-          setStart(windowStart?.slice(0, 5) ?? "15:00");
-          setEnd(windowEnd?.slice(0, 5) ?? "15:30");
+          setStart(toTimeInputValue(windowStart, "15:00"));
+          setEnd(toTimeInputValue(windowEnd, "15:30"));
+          setSaveAsDefault(false);
           setError(null);
         }}
         className="text-xs text-stone-500 hover:text-stone-700"
       >
         Cancel
       </button>
+      {allowSaveAsDogDefault ? (
+        <label className="flex w-full items-center gap-2 text-xs text-stone-600">
+          <input
+            type="checkbox"
+            checked={saveAsDefault}
+            onChange={(e) => setSaveAsDefault(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-stone-300"
+          />
+          Also save as this dog&apos;s default pickup window
+        </label>
+      ) : null}
       {error ? <p className="w-full text-xs text-red-600">{error}</p> : null}
     </div>
   );

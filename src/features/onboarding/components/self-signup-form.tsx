@@ -15,6 +15,12 @@ export function SelfSignupForm() {
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
+      <p className="rounded-lg border border-[var(--color-trail-100)] bg-[var(--color-trail-50)] px-3 py-2.5 text-sm text-[var(--color-trail-800)]">
+        After signup we&apos;ll walk you through your first vehicle, drivers,
+        customers, and dogs — then you can run a real route day with automated
+        customer SMS.
+      </p>
+
       {!state.ok &&
       "error" in state &&
       typeof state.error === "string" &&

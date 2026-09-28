@@ -9,6 +9,7 @@ import {
   selectClassName,
   textareaClassName,
 } from "@/features/admin/components/form-styles";
+import { toTimeInputValue } from "@/features/admin/components/picker-format";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { ScheduleTypeField } from "@/features/dogs/components/schedule-type-field";
 import type { Customer, Dog, DogScheduleType, Route } from "@/types";
@@ -19,6 +20,7 @@ type DogFormProps = {
   dog?: Dog;
   scheduleDays?: number[];
   returnTo?: string;
+  defaultCustomerId?: string;
 };
 
 export function DogForm({
@@ -27,6 +29,7 @@ export function DogForm({
   dog,
   scheduleDays = [],
   returnTo,
+  defaultCustomerId,
 }: DogFormProps) {
   const action = dog ? updateDogAction.bind(null, dog.id) : createDogAction;
   const [state, formAction, pending] = useActionState(action, {} as { error?: string });
@@ -53,7 +56,7 @@ export function DogForm({
         <select
           id="customer_id"
           name="customer_id"
-          defaultValue={dog?.customer_id}
+          defaultValue={dog?.customer_id ?? defaultCustomerId ?? ""}
           required
           className={`mt-1 ${selectClassName}`}
         >
@@ -96,19 +99,20 @@ export function DogForm({
         <TimeField
           label="Default pickup window start"
           name="pickup_window_start"
-          defaultValue={dog?.pickup_window_start ?? "08:00"}
+          defaultValue={toTimeInputValue(dog?.pickup_window_start, "08:00")}
           required
         />
         <TimeField
           label="Default pickup window end"
           name="pickup_window_end"
-          defaultValue={dog?.pickup_window_end ?? "08:30"}
+          defaultValue={toTimeInputValue(dog?.pickup_window_end, "08:30")}
           required
         />
       </div>
       <p className="-mt-2 text-xs text-stone-500">
-        Starting point when building a daily route plan. Adjust planned ETAs on
-        the Today or Tomorrow pages.
+        Saved on this dog&apos;s profile and used when building new day plans.
+        Tweaking a window on Today/Tomorrow is day-only unless you also save as
+        default there.
       </p>
 
       <label className="flex items-center gap-2 text-sm text-stone-700">
@@ -126,12 +130,12 @@ export function DogForm({
           <TimeField
             label="Drop-off window start"
             name="dropoff_window_start"
-            defaultValue={dog?.dropoff_window_start?.slice(0, 5) ?? "15:00"}
+            defaultValue={toTimeInputValue(dog?.dropoff_window_start, "15:00")}
           />
           <TimeField
             label="Drop-off window end"
             name="dropoff_window_end"
-            defaultValue={dog?.dropoff_window_end?.slice(0, 5) ?? "15:30"}
+            defaultValue={toTimeInputValue(dog?.dropoff_window_end, "15:30")}
           />
         </div>
       ) : null}

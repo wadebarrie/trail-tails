@@ -9,11 +9,12 @@ import { safeAppReturnPath } from "@/lib/safe-return-path";
 export default async function NewDogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ returnTo?: string }>;
+  searchParams: Promise<{ returnTo?: string; customer_id?: string }>;
 }) {
   const profile = await requireRole("admin");
   const supabase = await createClient();
-  const { returnTo: rawReturn } = await searchParams;
+  const { returnTo: rawReturn, customer_id: customerIdPrefill } =
+    await searchParams;
   const returnTo = rawReturn
     ? safeAppReturnPath(rawReturn, ONBOARDING_PATH)
     : undefined;
@@ -28,16 +29,27 @@ export default async function NewDogPage({
     listRoutes(profile.company_id),
   ]);
 
+  const backHref =
+    returnTo ??
+    (customerIdPrefill
+      ? `/dashboard/customers/${customerIdPrefill}`
+      : "/dashboard/dogs");
+
   return (
     <div>
-      <BackLink href={returnTo ?? "/dashboard/dogs"}>
-        {returnTo ? "Back to setup" : "Back to dogs"}
+      <BackLink href={backHref}>
+        {returnTo
+          ? "Back to setup"
+          : customerIdPrefill
+            ? "Back to customer"
+            : "Back to dogs"}
       </BackLink>
       <PageHeader title="Add dog" />
       <DogForm
         customers={customers ?? []}
         routes={routes}
         returnTo={returnTo}
+        defaultCustomerId={customerIdPrefill}
       />
     </div>
   );

@@ -342,14 +342,15 @@ export async function addAsNeededDogToDayAction(
 export async function updateStopWindowAction(
   stopId: string,
   windowStart: string | null,
-  windowEnd: string | null
+  windowEnd: string | null,
+  options?: { saveAsDogDefault?: boolean }
 ): Promise<{ success?: true; error?: string }> {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
   const { data: stop } = await supabase
     .from("stops")
-    .select("id, stop_type, hikes!inner ( company_id )")
+    .select("id, stop_type, dog_id, hikes!inner ( company_id )")
     .eq("id", stopId)
     .maybeSingle();
 
@@ -382,6 +383,30 @@ export async function updateStopWindowAction(
     .eq("id", stopId);
 
   if (error) return { error: error.message };
+
+  if (
+    options?.saveAsDogDefault &&
+    stop.stop_type === "pickup" &&
+    hasStart &&
+    hasEnd &&
+    stop.dog_id
+  ) {
+    const { error: dogError } = await supabase
+      .from("dogs")
+      .update({
+        pickup_window_start: windowStart,
+        pickup_window_end: windowEnd,
+      })
+      .eq("id", stop.dog_id)
+      .eq("company_id", profile.company_id);
+
+    if (dogError) return { error: dogError.message };
+
+    revalidatePath("/dashboard/dogs");
+    revalidatePath(`/dashboard/dogs/${stop.dog_id}`);
+    revalidatePath("/dashboard/customers");
+    revalidatePath("/dashboard/route");
+  }
 
   revalidateHikeDayPaths();
   return { success: true };
