@@ -15,6 +15,7 @@ import {
 import { DriverCustomerInfoSheet } from "@/features/driver-actions/components/driver-customer-info-sheet";
 import { useDriverFeedback } from "@/features/driver-actions/components/driver-feedback";
 import { useDriverDayState } from "@/features/driver-actions/driver-day-state";
+import { getDriverLocationForAction } from "@/features/driver-actions/driver-location";
 import { useAutoArrival, type GeoWatchStatus } from "@/features/driver-actions/use-auto-arrival";
 import { formatWindowRange } from "@/lib/dates";
 import { formatDistanceMeters } from "@/lib/geo";
@@ -187,20 +188,6 @@ function StopProgressSteps({
   );
 }
 
-/** Best-effort GPS — prefers cached position, does not block the UI long. */
-function getLocationFast(): Promise<{ lat: number; lng: number } | null> {
-  if (!navigator.geolocation) return Promise.resolve(null);
-
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => resolve(null),
-      { enableHighAccuracy: false, timeout: 3000, maximumAge: 120_000 }
-    );
-  });
-}
-
 function InfoIconButton({
   onClick,
   label,
@@ -292,7 +279,7 @@ function StopCard({
 
   const handleArrived = useCallback(() => {
     void runOptimistic("arrived", async () => {
-      const coords = await getLocationFast();
+      const coords = await getDriverLocationForAction();
       return arrivedAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
     });
   }, [runOptimistic, stop.id]);
@@ -310,7 +297,7 @@ function StopCard({
     void runOptimistic(
       "en_route",
       async () => {
-        const coords = await getLocationFast();
+        const coords = await getDriverLocationForAction();
         return enRouteAction(stop.id, coords?.lat ?? null, coords?.lng ?? null);
       },
       "En route — customer will be notified."

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { rememberDriverLocation } from "@/features/driver-actions/driver-location";
 
 export type GeolocationServiceStatus =
   | "checking"
@@ -23,7 +24,10 @@ export function useGeolocationStatus(enabled = true) {
     }
 
     navigator.geolocation.getCurrentPosition(
-      () => setLiveStatus("active"),
+      (pos) => {
+        rememberDriverLocation(pos.coords.latitude, pos.coords.longitude);
+        setLiveStatus("active");
+      },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
           setLiveStatus("denied");

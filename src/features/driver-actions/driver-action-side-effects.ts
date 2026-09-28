@@ -8,10 +8,10 @@ import {
   buildPickedUpMessage,
   logNotification,
 } from "@/features/notifications/log";
-import { logErrorFromException } from "@/lib/logger";
+import { logErrorFromException, logWarn } from "@/lib/logger";
 import type { LatLng } from "@/lib/google-maps/eta";
 
-const ETA_BUDGET_MS = 2500;
+const ETA_BUDGET_MS = 4000;
 
 function revalidateDriverPaths() {
   revalidatePath("/today");
@@ -23,6 +23,16 @@ async function resolveEtaWithBudget(
   origin: LatLng | null,
   destination: LatLng | null
 ): Promise<number | null> {
+  if (!origin || !destination) {
+    logWarn("eta", "Skipping ETA — missing origin or destination", {
+      context: {
+        hasOrigin: Boolean(origin),
+        hasDestination: Boolean(destination),
+      },
+    });
+    return null;
+  }
+
   try {
     return await Promise.race([
       resolveDrivingEtaMinutes(origin, destination),

@@ -7,6 +7,7 @@ import {
   isWithinArrivalRadius,
   travelProgressToArrival,
 } from "@/lib/geo";
+import { rememberDriverLocation } from "@/features/driver-actions/driver-location";
 import { useWakeLock } from "@/features/driver-actions/use-wake-lock";
 
 type LatLng = {
@@ -175,6 +176,8 @@ export function useAutoArrival({
 
     function applyPosition(latitude: number, longitude: number) {
       if (triggeredRef.current || cancelled) return;
+
+      rememberDriverLocation(latitude, longitude);
 
       const distance = distanceMeters(
         latitude,
