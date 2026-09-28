@@ -10,6 +10,7 @@ import {
   updateCustomerAction,
 } from "@/features/customers/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
+import { customerAddressFormDefaults } from "@/lib/address";
 import type { Customer } from "@/types";
 
 type CustomerFormProps = {
@@ -26,8 +27,15 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
     error?: string;
   });
 
-  const line1Default =
-    customer?.address_line1?.trim() || customer?.address || "";
+  const addressDefaults = customer
+    ? customerAddressFormDefaults(customer)
+    : {
+        address_line1: "",
+        address_line2: "",
+        city: "",
+        state_province: "",
+        postal_code: "",
+      };
 
   return (
     <form action={formAction} className="max-w-lg space-y-4" noValidate>
@@ -104,7 +112,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         <Field
           label="Address line 1"
           name="address_line1"
-          defaultValue={line1Default}
+          defaultValue={addressDefaults.address_line1}
           required
           autoComplete="address-line1"
           placeholder="123 Main St"
@@ -112,14 +120,14 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         <Field
           label="Address line 2"
           name="address_line2"
-          defaultValue={customer?.address_line2 ?? ""}
+          defaultValue={addressDefaults.address_line2}
           autoComplete="address-line2"
           placeholder="Apt, suite, unit (optional)"
         />
         <Field
           label="City"
           name="city"
-          defaultValue={customer?.city ?? ""}
+          defaultValue={addressDefaults.city}
           required
           autoComplete="address-level2"
         />
@@ -127,7 +135,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           <Field
             label="State / province"
             name="state_province"
-            defaultValue={customer?.state_province ?? ""}
+            defaultValue={addressDefaults.state_province}
             required
             autoComplete="address-level1"
             placeholder="BC"
@@ -135,7 +143,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           <Field
             label="Postal / ZIP"
             name="postal_code"
-            defaultValue={customer?.postal_code ?? ""}
+            defaultValue={addressDefaults.postal_code}
             required
             autoComplete="postal-code"
             placeholder="V3M 1R2"
