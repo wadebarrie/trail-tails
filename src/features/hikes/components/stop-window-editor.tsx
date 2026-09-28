@@ -85,8 +85,9 @@ export function StopWindowEditor({
           {label}: {range ?? (optional ? "None" : "Not set")}
         </button>
         <p className="text-xs text-stone-400">
-          Just for this day — check the box below if you also want to update
-          their usual pickup time.
+          {allowSaveAsDogDefault
+            ? "Just for this day — check the box below if you also want to update their usual pickup time."
+            : "Just for this day."}
         </p>
       </div>
     );
