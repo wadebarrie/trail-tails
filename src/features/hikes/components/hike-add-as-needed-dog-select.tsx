@@ -49,7 +49,7 @@ export function HikeAddAsNeededDogSelect({
           htmlFor={`add-as-needed-${routeId}`}
           className="block text-sm font-medium text-stone-700"
         >
-          Add as-needed dog
+          Add a dog for today only
         </label>
         <select
           id={`add-as-needed-${routeId}`}

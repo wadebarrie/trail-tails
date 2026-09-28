@@ -28,7 +28,7 @@ export default async function SmsHistoryPage() {
   return (
     <div>
       <PageHeader
-        title="SMS history"
+        title="Texts sent"
         description="Inbound and outbound text messages."
       />
 

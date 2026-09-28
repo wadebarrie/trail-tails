@@ -50,8 +50,8 @@ export default async function EditCustomerPage({
           <div>
             <h2 className="text-lg font-semibold text-stone-900">Dogs</h2>
             <p className="mt-1 text-sm text-stone-500">
-              Pickup windows live on each dog — not the household. Edit a dog to
-              change the default window used on new day plans.
+              Usual pickup times live on each dog — not the household. Edit a dog
+              to change the time used on new days.
             </p>
           </div>
           <Link

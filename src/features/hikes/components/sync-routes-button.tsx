@@ -31,11 +31,14 @@ export function SyncRoutesButton({ offsetDays }: { offsetDays: 0 | 1 }) {
         className={secondaryButtonClassName}
       >
         {pending
-          ? "Syncing…"
+          ? "Updating…"
           : offsetDays === 0
-            ? "Rebuild today's stops"
-            : "Rebuild tomorrow's stops"}
+            ? "Refresh today’s list"
+            : "Refresh tomorrow’s list"}
       </button>
+      <p className="max-w-xs text-right text-xs text-stone-400">
+        Pulls in schedule changes and time off
+      </p>
       {error ? (
         <p className="max-w-xs text-right text-xs text-red-600" role="alert">
           {error}

@@ -28,7 +28,6 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard/customers", label: "Customers" },
       { href: "/dashboard/dogs", label: "Dogs" },
-      { href: "/dashboard/import", label: "Import" },
       { href: "/dashboard/drivers", label: "Drivers" },
       { href: "/dashboard/vehicles", label: "Vehicles" },
     ],
@@ -39,17 +38,19 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: "/dashboard/pending-requests",
-        label: "Pending requests",
+        label: "Customer texts",
+        shortLabel: "Texts",
         showRequestBadge: true,
       },
-      { href: "/dashboard/exceptions", label: "Exceptions" },
+      { href: "/dashboard/exceptions", label: "Time off" },
     ],
   },
   {
     id: "business",
     label: "Business",
     items: [
-      { href: "/dashboard/billing", label: "Billing" },
+      { href: "/dashboard/import", label: "Import spreadsheet" },
+      { href: "/dashboard/billing", label: "Hike report" },
       { href: "/dashboard/settings", label: "Settings" },
       { href: "/dashboard/help", label: "Help & guide" },
     ],
@@ -58,9 +59,9 @@ export const navGroups: NavGroup[] = [
     id: "activity",
     label: "Activity",
     items: [
-      { href: "/dashboard/sms", label: "SMS history" },
+      { href: "/dashboard/sms", label: "Texts sent" },
       { href: "/dashboard/notifications", label: "Notifications" },
-      { href: "/dashboard/logs", label: "System logs" },
+      { href: "/dashboard/logs", label: "Problem log" },
     ],
   },
 ];
@@ -81,7 +82,7 @@ export function isGroupActive(pathname: string, group: NavGroup) {
 
 /**
  * Mobile bottom bar: day planning first (Today + Tomorrow), then Routes,
- * Requests, and More. People lives in More so Tomorrow stays one tap away.
+ * Customer texts, and More.
  */
 export const mobilePrimaryNav: NavItem[] = [
   { href: "/dashboard/hikes/today", label: "Today" },
@@ -89,7 +90,7 @@ export const mobilePrimaryNav: NavItem[] = [
   { href: "/dashboard/route", label: "Routes" },
   {
     href: "/dashboard/pending-requests",
-    label: "Requests",
+    label: "Texts",
     showRequestBadge: true,
   },
 ];
@@ -100,8 +101,8 @@ const mobileOperationsNav: NavGroup = {
   id: "operations",
   label: "Operations",
   items: [
-    // Pending requests stay on the bottom bar — only Exceptions here.
-    { href: "/dashboard/exceptions", label: "Exceptions" },
+    // Customer texts stay on the bottom bar — only Time off here.
+    { href: "/dashboard/exceptions", label: "Time off" },
   ],
 };
 

@@ -16,16 +16,17 @@ export async function ExceptionSyncFailureBanner({
       className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
       role="alert"
     >
-      <p className="font-medium">Couldn&apos;t update hike stops after a schedule change.</p>
+      <p className="font-medium">Couldn&apos;t update today&apos;s list after a schedule change.</p>
       <p className="mt-1 text-red-800/90">
-        The skip/vacation was saved, but Today/Tomorrow may still show that dog.{" "}
+        The skip or vacation was saved, but Today/Tomorrow may still show that
+        dog. Open Today and tap{" "}
         <Link
           href={rebuildHref}
           className="font-semibold underline underline-offset-2 hover:text-red-950"
         >
-          Rebuild today&apos;s stops
-        </Link>{" "}
-        (or tomorrow) to sync, or check System logs.
+          Refresh today&apos;s list
+        </Link>
+        , or check the Problem log under More.
       </p>
     </div>
   );

@@ -92,11 +92,18 @@ export function Badge({
   );
 }
 
-export function EmptyState({ message }: { message: string }) {
+export function EmptyState({
+  message,
+  action,
+}: {
+  message: string;
+  action?: React.ReactNode;
+}) {
   return (
-    <p className="surface-card rounded-[var(--radius-card)] border-dashed px-6 py-12 text-center text-stone-500">
-      {message}
-    </p>
+    <div className="surface-card rounded-[var(--radius-card)] border-dashed px-6 py-12 text-center">
+      <p className="text-stone-500">{message}</p>
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
+    </div>
   );
 }
 

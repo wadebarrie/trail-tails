@@ -23,10 +23,9 @@ export function ScheduleTypeField({
             className="mt-0.5"
           />
           <span>
-            <span className="font-medium">Recurring</span>
+            <span className="font-medium">Every week</span>
             <span className="mt-0.5 block text-stone-500">
-              Default route assignment and expected availability. The daily route
-              plan on Today/Tomorrow is adjusted separately.
+              Comes on the same days each week on their route.
             </span>
           </span>
         </label>
@@ -40,9 +39,9 @@ export function ScheduleTypeField({
             className="mt-0.5"
           />
           <span>
-            <span className="font-medium">As-needed</span>
+            <span className="font-medium">Only when booked</span>
             <span className="mt-0.5 block text-stone-500">
-              Add this dog to hike days manually when booked.
+              Add them to Today or Tomorrow when a customer books a day.
             </span>
           </span>
         </label>

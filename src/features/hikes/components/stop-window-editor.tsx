@@ -12,7 +12,7 @@ export function StopWindowEditor({
   windowStart,
   windowEnd,
   optional = false,
-  label = "Today’s planned window",
+  label = "Pickup time today",
   allowSaveAsDogDefault = true,
 }: {
   stopId: string;
@@ -20,7 +20,7 @@ export function StopWindowEditor({
   windowEnd: string | null;
   optional?: boolean;
   label?: string;
-  /** When true (pickup stops), offer saving onto the dog’s default window. */
+  /** When true (pickup stops), offer saving onto the dog’s usual pickup time. */
   allowSaveAsDogDefault?: boolean;
 }) {
   const router = useRouter();
@@ -84,8 +84,8 @@ export function StopWindowEditor({
           {label}: {range ?? (optional ? "None" : "Not set")}
         </button>
         <p className="text-xs text-stone-400">
-          Day plan only — does not change the dog&apos;s default unless you save
-          as default.
+          Just for this day — check the box below if you also want to update
+          their usual pickup time.
         </p>
       </div>
     );
@@ -124,7 +124,7 @@ export function StopWindowEditor({
           disabled={pending}
           className="text-xs text-stone-500 hover:text-stone-700 disabled:opacity-50"
         >
-          Clear window
+          Clear time
         </button>
       ) : null}
       <button
@@ -148,7 +148,7 @@ export function StopWindowEditor({
             onChange={(e) => setSaveAsDefault(e.target.checked)}
             className="h-3.5 w-3.5 rounded border-stone-300"
           />
-          Also save as this dog&apos;s default pickup window
+          Also update their usual pickup time
         </label>
       ) : null}
       {error ? <p className="w-full text-xs text-red-600">{error}</p> : null}

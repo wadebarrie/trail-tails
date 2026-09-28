@@ -8,13 +8,27 @@ import {
   declinePendingRequestAction,
 } from "@/features/pending-requests/actions";
 
-export function PendingRequestActions({ requestId }: { requestId: string }) {
+export function PendingRequestActions({
+  requestId,
+  ownerName,
+}: {
+  requestId: string;
+  ownerName?: string;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [pending, startTransition] = useTransition();
 
   function handleApprove() {
+    const who = ownerName?.trim() || "this customer";
+    if (
+      !window.confirm(
+        `Approve this change for ${who}? Their schedule will update.`
+      )
+    ) {
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const result = await approvePendingRequestAction(requestId);
@@ -37,7 +51,9 @@ export function PendingRequestActions({ requestId }: { requestId: string }) {
 
   if (declineOpen) {
     return (
-      <div className={`mt-3 space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3 ${motionFadeInClassName}`}>
+      <div
+        className={`mt-3 space-y-3 rounded-lg border border-stone-200 bg-stone-50 p-3 ${motionFadeInClassName}`}
+      >
         <label className="block text-sm font-medium text-stone-700">
           Optional note for the customer
           <textarea
@@ -70,7 +86,11 @@ export function PendingRequestActions({ requestId }: { requestId: string }) {
             Cancel
           </SecondaryButton>
         </div>
-        {error ? <p className={`text-sm text-red-600 ${motionFadeInClassName}`}>{error}</p> : null}
+        {error ? (
+          <p className={`text-sm text-red-600 ${motionFadeInClassName}`}>
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -94,7 +114,9 @@ export function PendingRequestActions({ requestId }: { requestId: string }) {
         Decline
       </SecondaryButton>
       {error ? (
-        <p className={`w-full text-sm text-red-600 ${motionFadeInClassName}`}>{error}</p>
+        <p className={`w-full text-sm text-red-600 ${motionFadeInClassName}`}>
+          {error}
+        </p>
       ) : null}
     </div>
   );

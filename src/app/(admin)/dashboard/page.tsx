@@ -105,7 +105,7 @@ export default async function DashboardPage() {
       hint: daySummaryHint(todayCounts),
     },
     {
-      title: "Pending requests",
+      title: "Customer texts",
       value: String(pending),
       href: "/dashboard/pending-requests",
       hint:
@@ -141,10 +141,10 @@ export default async function DashboardPage() {
       hint: "Households you serve",
     },
     {
-      title: "Route templates",
+      title: "Weekly routes",
       value: String(routeCount ?? 0),
       href: "/dashboard/route",
-      hint: "Weekly pickup order & drivers",
+      hint: "Pickup order, drivers & vans",
     },
   ];
 
@@ -215,7 +215,7 @@ export default async function DashboardPage() {
             href="/dashboard/pending-requests"
             className="inline-flex min-h-11 items-center rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-900 motion-interactive hover:border-amber-400"
           >
-            Review pending requests
+            Review customer texts
           </Link>
         ) : null}
         <Link

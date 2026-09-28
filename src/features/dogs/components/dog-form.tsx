@@ -97,22 +97,22 @@ export function DogForm({
 
       <div className="grid grid-cols-2 gap-4">
         <TimeField
-          label="Default pickup window start"
+          label="Usual pickup from"
           name="pickup_window_start"
           defaultValue={toTimeInputValue(dog?.pickup_window_start, "08:00")}
           required
         />
         <TimeField
-          label="Default pickup window end"
+          label="Usual pickup to"
           name="pickup_window_end"
           defaultValue={toTimeInputValue(dog?.pickup_window_end, "08:30")}
           required
         />
       </div>
       <p className="-mt-2 text-xs text-stone-500">
-        Saved on this dog&apos;s profile and used when building new day plans.
-        Tweaking a window on Today/Tomorrow is day-only unless you also save as
-        default there.
+        Saved on this dog&apos;s profile and used when building new days.
+        Changing a time on Today/Tomorrow is for that day only — unless you also
+        update their usual pickup time there.
       </p>
 
       <label className="flex items-center gap-2 text-sm text-stone-700">
@@ -148,8 +148,8 @@ export function DogForm({
 
       {isAsNeeded ? (
         <p className="rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-600">
-          As-needed dogs are booked onto specific days from the Today or Tomorrow
-          pages. That daily route plan does not change their profile.
+          Dogs marked “only when booked” are added from Today or Tomorrow when a
+          customer books a day. That does not change their usual schedule.
         </p>
       ) : null}
 

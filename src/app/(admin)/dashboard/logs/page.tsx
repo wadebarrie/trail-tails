@@ -56,7 +56,7 @@ export default async function SystemLogsPage() {
   return (
     <div>
       <PageHeader
-        title="System logs"
+        title="Problem log"
         description="SMS failures, API errors, and other operational issues. Also visible in Netlify function logs as JSON."
       />
 

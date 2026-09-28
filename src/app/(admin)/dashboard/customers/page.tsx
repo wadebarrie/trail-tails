@@ -43,14 +43,14 @@ export default async function CustomersPage({
     <div>
       <PageHeader
         title="Customers"
-        description="Manage customer contact info and addresses"
+        description="Households you serve — contact info and addresses"
         action={
           <div className="flex flex-wrap gap-2">
             <Link
               href="/dashboard/import"
               className="inline-flex rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
-              Bulk import
+              Import spreadsheet
             </Link>
             <PrimaryLink href="/dashboard/customers/new">Add customer</PrimaryLink>
           </div>
@@ -65,7 +65,20 @@ export default async function CustomersPage({
       {error ? <QueryErrorBanner /> : null}
 
       {!error && !customers?.length ? (
-        <EmptyState message="No customers found." />
+        <EmptyState
+          message={
+            q
+              ? "No customers match that search."
+              : "No customers yet. Add your first household to get started."
+          }
+          action={
+            q ? undefined : (
+              <PrimaryLink href="/dashboard/customers/new">
+                Add customer
+              </PrimaryLink>
+            )
+          }
+        />
       ) : !error && customers?.length ? (
         <TableShell>
           <table className="min-w-full text-sm">

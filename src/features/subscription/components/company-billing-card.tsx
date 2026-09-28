@@ -33,9 +33,10 @@ export function CompanyBillingCard({
 
   return (
     <Card className="mt-6">
-      <h2 className="text-lg font-semibold text-stone-900">Billing</h2>
+      <h2 className="text-lg font-semibold text-stone-900">Your PackRoute plan</h2>
       <p className="mt-1 text-sm text-stone-500">
-        Manage your PackRoute plan. Capacity is by drivers and active dogs.
+        Your subscription for PackRoute — separate from the hike report you use
+        to invoice customers.
       </p>
 
       {subscription ? (

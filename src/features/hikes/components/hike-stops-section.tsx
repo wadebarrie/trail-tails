@@ -2,7 +2,6 @@ import { HikeStopsReorder } from "@/features/hikes/components/hike-stops-reorder
 import { RemoveAsNeededDogButton } from "@/features/hikes/components/remove-as-needed-dog-button";
 import { StopWindowEditor } from "@/features/hikes/components/stop-window-editor";
 import { formatWindowRange } from "@/lib/dates";
-import { Badge } from "@/features/admin/components/ui";
 import type { DogScheduleType, StopType } from "@/types";
 
 type StopRow = {
@@ -51,7 +50,11 @@ export function HikeStopsSection({
     return (
       <section>
         <h2 className="mb-3 text-lg font-medium text-stone-900">{title}</h2>
-        <p className="text-sm text-stone-500">No stops scheduled.</p>
+        <p className="text-sm text-stone-500">
+          {stopType === "pickup"
+            ? "No dogs on this list yet."
+            : "No drop-offs on this list yet."}
+        </p>
       </section>
     );
   }
@@ -68,13 +71,13 @@ export function HikeStopsSection({
         <h2 className="text-lg font-medium text-stone-900">{title}</h2>
         {stopType === "pickup" ? (
           <p className="mt-1 text-sm text-stone-500">
-            Planned order for the day — drivers can still work in whatever order
-            makes sense on the road.
+            Drag to set the planned order. Drivers can still adjust on the road.
+            Edit pickup times below each dog.
           </p>
         ) : (
           <p className="mt-1 text-sm text-stone-500">
-            Reverse of the pickup order. Drop-off windows are optional — leave
-            blank when afternoon timing is flexible.
+            Reverse of the pickup order. Drop-off times are optional — leave blank
+            when afternoon timing is flexible.
           </p>
         )}
       </div>
@@ -110,7 +113,7 @@ export function HikeStopsSection({
                 {stop.dogs?.name ?? "Unknown"}
                 {stop.dogs?.schedule_type === "as_needed" ? (
                   <span className="ml-2 text-xs font-normal text-stone-500">
-                    As-needed
+                    Today only
                   </span>
                 ) : null}
               </p>
@@ -122,8 +125,8 @@ export function HikeStopsSection({
                 allowSaveAsDogDefault={stopType === "pickup"}
                 label={
                   stopType === "dropoff"
-                    ? "Today’s planned drop-off window"
-                    : "Today’s planned pickup window"
+                    ? "Drop-off time today"
+                    : "Pickup time today"
                 }
               />
             </div>
@@ -142,23 +145,6 @@ export function HikeStopsSection({
           </li>
         ))}
       </ul>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {filtered.map((s) => (
-          <Badge
-            key={s.id}
-            tone={
-              s.status === "scheduled"
-                ? "neutral"
-                : s.status === "picked_up" || s.status === "dropped_off"
-                  ? "green"
-                  : "amber"
-            }
-          >
-            {s.dogs?.name}: {s.status.replaceAll("_", " ")}
-          </Badge>
-        ))}
-      </div>
     </section>
   );
 }
