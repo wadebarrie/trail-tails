@@ -145,7 +145,7 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
           {isAdmin ? (
             <p>
               Use <strong>Today / Tomorrow</strong> to build each day&apos;s route plan —
-              add as-needed dogs, assign drivers, reorder pickups, and adjust planned
+              add dogs for today only, assign drivers, reorder pickups, and adjust planned
               windows. Drop-offs follow pickup in reverse. Use <strong>Routes</strong> for
               recurring dogs, weekday schedules, and default pickup order. Mark hikes
               complete from Today when a driver forgets to close out.

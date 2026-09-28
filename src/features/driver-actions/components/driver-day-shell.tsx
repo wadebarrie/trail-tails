@@ -21,6 +21,7 @@ import {
   driverGreeting,
   estimatePickupCompletionTime,
   isRouteDayInProgress,
+  pickupsCompleteLabel,
   routeSummaryLabel,
   startRouteCtaLabel,
   vehicleSummaryLabel,
@@ -95,7 +96,7 @@ function DriverDayContent({
       !milestoneSeen(day.date, "pickups")
     ) {
       markMilestone(day.date, "pickups");
-      showFeedback("Morning pickups complete. Enjoy the hike.");
+      showFeedback(`${pickupsCompleteLabel(mergedDay)}. Enjoy the hike.`);
     }
   }, [
     active,

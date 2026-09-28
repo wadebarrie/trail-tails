@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import { toTimeInputValue } from "@/features/admin/components/picker-format";
@@ -31,12 +31,13 @@ export function StopWindowEditor({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (!editing) {
-      setStart(toTimeInputValue(windowStart, "15:00"));
-      setEnd(toTimeInputValue(windowEnd, "15:30"));
-    }
-  }, [windowStart, windowEnd, editing]);
+  function beginEditing() {
+    setStart(toTimeInputValue(windowStart, "15:00"));
+    setEnd(toTimeInputValue(windowEnd, "15:30"));
+    setSaveAsDefault(false);
+    setError(null);
+    setEditing(true);
+  }
 
   function save() {
     setError(null);
@@ -78,7 +79,7 @@ export function StopWindowEditor({
       <div className="space-y-1">
         <button
           type="button"
-          onClick={() => setEditing(true)}
+          onClick={beginEditing}
           className="text-left text-sm text-stone-500 underline decoration-stone-300 underline-offset-2 hover:text-stone-700"
         >
           {label}: {range ?? (optional ? "None" : "Not set")}
@@ -131,8 +132,6 @@ export function StopWindowEditor({
         type="button"
         onClick={() => {
           setEditing(false);
-          setStart(toTimeInputValue(windowStart, "15:00"));
-          setEnd(toTimeInputValue(windowEnd, "15:30"));
           setSaveAsDefault(false);
           setError(null);
         }}

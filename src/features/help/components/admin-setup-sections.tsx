@@ -276,8 +276,9 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             planned pickup order, and planned windows for that day only.
           </li>
           <li>
-            Add <strong>as-needed</strong> dogs to a route for that specific day.
-            Removing them from the day does not change their long-term profile.
+            Add dogs as <strong>Today only</strong> (or tomorrow only) to a route for that
+            specific day. Removing them from the day does not change their long-term
+            profile.
           </li>
           <li>
             Morning and afternoon walks appear as separate routes on Today and
