@@ -31,12 +31,12 @@ export function CompanySettingsForm({
       ) : null}
 
       <div>
-        <h2 className="text-sm font-semibold text-stone-900">Billing</h2>
+        <h2 className="text-sm font-semibold text-stone-900">Hike prices</h2>
         <label
           htmlFor="default_hike_rate"
           className="mt-3 block text-sm font-medium text-stone-700"
         >
-          Default hike price ($)
+          Default price per hike ($)
         </label>
         <p className="mt-0.5 text-xs text-stone-500">
           Used for billing unless a dog has its own rate.
@@ -66,8 +66,7 @@ export function CompanySettingsForm({
           Night-before reminder time
         </label>
         <p className="mt-0.5 text-xs text-stone-500">
-          Local time to text customers about tomorrow&apos;s pickup. Runs on the
-          next hourly check at or after this time.
+          What time should we text customers the night before a hike?
         </p>
         <TimePickerField
           id="night_before_reminder_time"

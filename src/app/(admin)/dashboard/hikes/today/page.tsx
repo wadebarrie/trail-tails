@@ -44,7 +44,7 @@ export default async function TodayHikesPage() {
     <div>
       <PageHeader
         title="Today"
-        description={`${formatDateLabel(date, tz)} — build and adjust today's hikes without changing dogs' long-term schedules.`}
+        description={`${formatDateLabel(date, tz)} — who’s on the vans today. Changing times or order here is for today only.`}
         action={<SyncRoutesButton offsetDays={0} />}
       />
 
@@ -64,13 +64,23 @@ export default async function TodayHikesPage() {
           ))}
         </div>
       ) : (
-        <EmptyState message="No hikes scheduled for today." />
+        <EmptyState
+          message="Nothing scheduled today. Set which days each route runs on Routes, or check Time off."
+          action={
+            <a
+              href="/dashboard/route"
+              className="text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+            >
+              Go to Routes →
+            </a>
+          }
+        />
       )}
 
       {withStops.length === 0 && runningRoutes.length > 0 ? (
         <p className="mt-4 text-sm text-stone-500">
-          No dogs on today&apos;s hikes yet. Add as-needed dogs above, or rebuild
-          stops after schedule changes.
+          No dogs on today&apos;s list yet. Add a dog for today only above, or tap
+          Refresh today&apos;s list after schedule changes.
         </p>
       ) : null}
     </div>

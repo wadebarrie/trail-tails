@@ -17,6 +17,25 @@ function statusLabel(status: string) {
   return status.replace(/_/g, " ");
 }
 
+function commandLabel(commandType: string) {
+  switch (commandType) {
+    case "skip_tomorrow":
+      return "Skip tomorrow";
+    case "skip_weekday":
+      return "Skip a weekday";
+    case "skip_date":
+      return "Skip a day";
+    case "vacation":
+      return "Vacation / time off";
+    case "pause":
+      return "Pause service";
+    case "resume":
+      return "Resume service";
+    default:
+      return commandType.replace(/_/g, " ");
+  }
+}
+
 function RequestCard({
   req,
 }: {
@@ -29,21 +48,22 @@ function RequestCard({
     customers: unknown;
   };
 }) {
+  const ownerName =
+    one(
+      req.customers as { owner_name: string } | { owner_name: string }[]
+    )?.owner_name ?? "Unknown customer";
+
   return (
     <Card className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-medium text-stone-900">
-            {one(
-              req.customers as
-                | { owner_name: string }
-                | { owner_name: string }[]
-            )?.owner_name ?? "Unknown customer"}
+          <p className="font-medium text-stone-900">{ownerName}</p>
+          <p className="mt-1 text-sm font-medium text-stone-800">
+            {commandLabel(req.command_type)}
           </p>
-          <p className="mt-1 font-mono text-sm text-stone-700">{req.raw_body}</p>
+          <p className="mt-1 text-sm text-stone-600">“{req.raw_body}”</p>
           <p className="mt-1 text-xs text-stone-500">
-            {new Date(req.created_at).toLocaleString()} ·{" "}
-            {req.command_type.replace(/_/g, " ")}
+            {new Date(req.created_at).toLocaleString()}
           </p>
         </div>
         <Badge
@@ -59,7 +79,7 @@ function RequestCard({
         </Badge>
       </div>
       {req.status === "pending" ? (
-        <PendingRequestActions requestId={req.id} />
+        <PendingRequestActions requestId={req.id} ownerName={ownerName} />
       ) : null}
     </Card>
   );
@@ -91,14 +111,14 @@ export default async function PendingRequestsPage() {
   return (
     <div>
       <PageHeader
-        title="Pending requests"
-        description="Customer SMS schedule-change requests. Review and approve or decline."
+        title="Customer texts"
+        description="When a customer texts to change their schedule, approve or decline here before anything changes on the route."
       />
 
       <ExceptionSyncFailureBanner companyId={profile.company_id} />
 
       {!requests?.length ? (
-        <EmptyState message="No requests yet." />
+        <EmptyState message="When customers text schedule changes, they’ll show up here for you to approve." />
       ) : (
         <div className="space-y-10">
           <section>
@@ -112,7 +132,7 @@ export default async function PendingRequestsPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState message="No requests waiting for review." />
+              <EmptyState message="Nothing waiting right now." />
             )}
           </section>
 

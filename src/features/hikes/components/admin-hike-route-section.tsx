@@ -75,9 +75,9 @@ export function AdminHikeRouteSection({
       {date && addableAsNeededDogs.length > 0 ? (
         <div className={hike ? "mb-6" : "mt-4"}>
           <p className="mb-2 text-sm text-stone-600">
-            Book an as-needed dog onto this day&apos;s{" "}
-            {hikePeriodWalkLabel(route.period)}. This does not change their
-            long-term schedule.
+            Add a dog for today only on this{" "}
+            {hikePeriodWalkLabel(route.period)}. This does not change their usual
+            weekly schedule.
           </p>
           <HikeAddAsNeededDogSelect
             routeId={route.id}

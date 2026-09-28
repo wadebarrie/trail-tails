@@ -65,15 +65,15 @@ export default async function BillingPage({
   return (
     <div>
       <PageHeader
-        title="Billing"
-        description="Hike-day report for invoicing. One row per dog per day (pickup stop)."
+        title="Hike report"
+        description="Completed hike days for your own invoicing — export a CSV for QuickBooks or your billing process."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
               href="/dashboard/settings"
               className="inline-flex rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
-              Hike price
+              Hike prices
             </Link>
             <a
               href={exportUrl}

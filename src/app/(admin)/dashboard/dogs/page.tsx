@@ -51,7 +51,7 @@ export default async function DogsPage({
     <div>
       <PageHeader
         title="Dogs"
-        description="Manage dogs, schedules, and pickup windows"
+        description="Dogs on your roster — usual pickup times and which days they hike"
         action={<PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>}
       />
 
@@ -60,7 +60,18 @@ export default async function DogsPage({
       {error ? <QueryErrorBanner /> : null}
 
       {!error && !dogs?.length ? (
-        <EmptyState message="No dogs found." />
+        <EmptyState
+          message={
+            q
+              ? "No dogs match that search."
+              : "No dogs yet. Add your first dog to start building routes."
+          }
+          action={
+            q ? undefined : (
+              <PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>
+            )
+          }
+        />
       ) : !error && dogs?.length ? (
         <TableShell minWidth="42rem">
           <table className="min-w-full text-sm">
@@ -76,7 +87,7 @@ export default async function DogsPage({
                   Route
                 </th>
                 <th scope="col" className="px-4 py-3 font-medium">
-                  Window
+                  Pickup
                 </th>
                 <th scope="col" className="px-4 py-3 font-medium">
                   Days
@@ -107,7 +118,9 @@ export default async function DogsPage({
                   .filter(Boolean)
                   .join(", ");
                 const scheduleLabel =
-                  dog.schedule_type === "as_needed" ? "As-needed" : days || "—";
+                  dog.schedule_type === "as_needed"
+                    ? "Only when booked"
+                    : days || "—";
 
                 return (
                   <tr key={dog.id} className={motionTableRowClassName}>

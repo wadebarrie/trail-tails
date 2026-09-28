@@ -35,6 +35,15 @@ export function RouteDogsList({
   }
 
   async function onRemove(dogId: string) {
+    const dog = items.find((item) => item.id === dogId);
+    const name = dog?.label ?? "this dog";
+    if (
+      !window.confirm(
+        `Remove ${name} from this route? They won’t appear on future days until you add them again.`
+      )
+    ) {
+      return { error: "Cancelled" };
+    }
     const result = await removeDogFromRouteAction(routeId, dogId);
     if (!("error" in result && result.error)) {
       startTransition(() => {

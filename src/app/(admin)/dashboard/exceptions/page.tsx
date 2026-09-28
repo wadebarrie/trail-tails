@@ -86,8 +86,8 @@ export default async function ExceptionsPage({
   return (
     <div>
       <PageHeader
-        title="Schedule exceptions"
-        description="Skips, vacations, and pauses that remove dogs from the hike schedule."
+        title="Time off"
+        description="When a dog should skip a day or be away on vacation — they won’t appear on Today or Tomorrow."
       />
 
       <ExceptionSyncFailureBanner companyId={profile.company_id} />
@@ -97,11 +97,11 @@ export default async function ExceptionsPage({
       <AddExceptionForm dogs={dogs ?? []} />
 
       {!companyExceptions.length ? (
-        <EmptyState message="No schedule exceptions." />
+        <EmptyState message="No one is on time off. Add a skip or vacation above when a customer is away." />
       ) : (
         <section id="schedule-exceptions-list">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
-            Current exceptions
+            Current time off
           </h2>
           <TableShell minWidth="48rem">
             <ExceptionsTable
