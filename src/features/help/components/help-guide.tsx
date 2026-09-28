@@ -125,9 +125,10 @@ export function HelpGuide({ variant, backHref, backLabel }: HelpGuideProps) {
         <Section id="overview" title="How PackRoute works" variant={variant}>
           <p>
             <strong>Admin (office)</strong> sets up customers, dogs, and routes.
-            Recurring dogs auto-sync to routes on scheduled days. As-needed dogs are
-            booked onto specific days from Today or Tomorrow. Each morning, stops
-            refresh for today and tomorrow.
+            Dogs on an <strong>Every week</strong> schedule auto-sync to routes on
+            their days. Dogs marked <strong>Only when booked</strong> are added onto
+            specific days from Today or Tomorrow. Each morning, stops refresh for
+            today and tomorrow.
           </p>
           <p>
             <strong>Drivers</strong> use the mobile Today view to run pickups and

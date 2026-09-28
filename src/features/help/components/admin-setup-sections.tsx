@@ -63,8 +63,8 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/dogs" className="font-medium text-[var(--color-trail-700)] hover:underline">
               dogs
             </Link>
-            . Choose <strong>Recurring</strong> (regular route + expected days) or{" "}
-            <strong>As-needed</strong> (booked onto specific days from Today/Tomorrow).
+            . Choose <strong>Every week</strong> (same days on their route) or{" "}
+            <strong>Only when booked</strong> (add them from Today or Tomorrow).
           </li>
           <li>
             Configure{" "}
@@ -93,9 +93,9 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
           </li>
         </ol>
         <p className="text-xs text-stone-500">
-          Recurring dogs sync automatically from routes. As-needed dogs are added to
-          specific days from Today or Tomorrow. Stops for today and tomorrow refresh
-          when routes or schedules change.
+          Every-week dogs sync automatically from routes. Only-when-booked dogs are
+          added to specific days from Today or Tomorrow. Stops for today and tomorrow
+          refresh when routes or schedules change.
         </p>
       </Section>
 
@@ -210,11 +210,11 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             starting point when building a daily route plan, not a fixed ETA.
           </li>
           <li>
-            <strong>Recurring</strong> dogs are assigned to a route with expected
+            <strong>Every week</strong> dogs are assigned to a route with expected
             availability days. They appear automatically when that route runs.
           </li>
           <li>
-            <strong>As-needed</strong> dogs are known customers booked manually onto a
+            <strong>Only when booked</strong> dogs are known customers you add onto a
             specific day from{" "}
             <Link href="/dashboard/hikes/today" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Today
@@ -223,7 +223,7 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             <Link href="/dashboard/hikes/tomorrow" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Tomorrow
             </Link>
-            . They do not auto-generate on recurring schedules.
+            . They do not auto-generate on a weekly schedule.
           </li>
           <li>
             Optional <strong>drop-off window</strong> on the dog profile. Most
