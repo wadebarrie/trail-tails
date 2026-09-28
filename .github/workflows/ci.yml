@@ -37,6 +37,9 @@ jobs:
       - name: SMS parser
         run: npm run test:sms-parser
 
+      - name: Address parse
+        run: npm run test:address-parse
+
       - name: Production build
         run: npm run build
         env:
