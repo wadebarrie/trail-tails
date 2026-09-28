@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { SignOutButton } from "@/features/auth/components/sign-out-button";
-import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { AdminMfaGate } from "@/features/auth/components/admin-mfa-gate";
 import { AdminNav } from "@/features/admin/components/admin-nav";
+import { AdminSidebar } from "@/features/admin/components/admin-sidebar";
+import { AdminTopbar } from "@/features/admin/components/admin-topbar";
 import { getCompanyName } from "@/features/company/queries";
 import { requireRole } from "@/features/auth/queries";
 import { getAdminMfaStatus } from "@/features/auth/mfa";
@@ -17,7 +16,6 @@ import {
 import { TrialExpiringBanner } from "@/features/subscription/components/trial-expiring-banner";
 import { createClient } from "@/lib/supabase/server";
 import { PerfTimer } from "@/lib/perf";
-import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { SkipLink } from "@/features/shared/components/skip-link";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
@@ -61,68 +59,29 @@ export default async function AdminLayout({
       ? daysRemainingInTrial(subscription)
       : null;
 
+  const pending = pendingRequestCount ?? 0;
+
   return (
-    <div className="min-h-dvh bg-atmosphere">
+    <div className="min-h-dvh bg-atmosphere md:flex">
       <SkipLink />
-      <header className="surface-header sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto max-w-6xl px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <PackRouteLogo href="/dashboard" className="shrink-0" />
-                {companyName ? (
-                  <>
-                    <span
-                      className="hidden h-4 w-px shrink-0 bg-stone-200 sm:block"
-                      aria-hidden
-                    />
-                    <span
-                      className="truncate text-sm font-medium text-stone-600"
-                      title={companyName}
-                    >
-                      {companyName}
-                    </span>
-                  </>
-                ) : null}
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-              {profile.is_platform_owner ? (
-                <Link
-                  href="/owner"
-                  className="hidden text-sm text-stone-600 hover:text-[var(--color-trail-700)] hover:underline sm:inline"
-                >
-                  Owner
-                </Link>
-              ) : null}
-              <Link
-                href="/dashboard/help"
-                className="hidden text-sm text-stone-600 hover:text-[var(--color-trail-700)] hover:underline sm:inline"
-              >
-                Help
-              </Link>
-              <RoleSwitchLink profile={profile} variant="admin" />
-              <span className="max-w-[7rem] truncate text-sm text-stone-600 sm:max-w-none">
-                {profile.full_name}
-              </span>
-              <SignOutButton />
-            </div>
-          </div>
-          <div className="md:mt-3">
-            <AdminNav pendingRequestCount={pendingRequestCount ?? 0} />
-          </div>
-        </div>
-      </header>
-      <main
-        id="main-content"
-        className="mx-auto max-w-6xl px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8"
-      >
-        {needsOnboarding ? <OnboardingSetupBanner /> : null}
-        {trialDaysRemaining != null ? (
-          <TrialExpiringBanner daysRemaining={trialDaysRemaining} />
-        ) : null}
-        <AdminMfaGate status={mfaStatus}>{children}</AdminMfaGate>
-      </main>
+      <AdminSidebar companyName={companyName} pendingRequestCount={pending} />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminTopbar profile={profile} companyName={companyName} />
+
+        <main
+          id="main-content"
+          className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:px-6 md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8"
+        >
+          {needsOnboarding ? <OnboardingSetupBanner /> : null}
+          {trialDaysRemaining != null ? (
+            <TrialExpiringBanner daysRemaining={trialDaysRemaining} />
+          ) : null}
+          <AdminMfaGate status={mfaStatus}>{children}</AdminMfaGate>
+        </main>
+      </div>
+
+      <AdminNav pendingRequestCount={pending} />
     </div>
   );
 }
