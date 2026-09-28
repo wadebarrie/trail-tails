@@ -296,7 +296,10 @@ export async function addAsNeededDogToDayAction(
 
   if (!dog || !dog.is_active) return { error: "Dog not found." };
   if (dog.schedule_type !== "as_needed") {
-    return { error: "Only as-needed dogs can be added this way. Assign recurring dogs on the Routes page." };
+    return {
+      error:
+        "Only dogs set to Only when booked can be added this way. Assign every-week dogs on the Routes page.",
+    };
   }
 
   const { data: existingAssignment } = await supabase
@@ -447,7 +450,7 @@ export async function removeAsNeededDogFromDayAction(
   if (dog.schedule_type !== "as_needed") {
     return {
       error:
-        "Only as-needed dogs can be removed from a daily plan this way. Use schedule exceptions for recurring dogs.",
+        "Only dogs set to Only when booked can be removed from a daily plan this way. Use schedule exceptions for every-week dogs.",
     };
   }
 

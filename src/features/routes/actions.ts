@@ -217,7 +217,7 @@ export async function addDogToRouteAction(routeId: string, dogId: string) {
   if (dog.schedule_type === "as_needed") {
     return {
       error:
-        "As-needed dogs are added from the Today or Tomorrow pages, not assigned to a route permanently.",
+        "Only-when-booked dogs are added from the Today or Tomorrow pages, not assigned to a route permanently.",
     };
   }
   if (dog.route_id === routeId) return { success: true };
