@@ -84,8 +84,8 @@ export function CompanyBillingCard({
             {subscription?.status === "active" ? "Change plan" : "Subscribe"}
           </h3>
           <p className="mt-1 text-xs text-stone-500">
-            Opens Stripe Checkout. Existing subscribers can also manage payment
-            methods in the billing portal.
+            Continue to secure checkout. Existing subscribers can also manage
+            payment methods in the billing portal.
           </p>
           <div className="mt-3">
             <SubscribeTierButtons disabledReason={disabledReason} />
