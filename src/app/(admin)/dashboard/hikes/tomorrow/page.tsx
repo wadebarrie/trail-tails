@@ -16,7 +16,7 @@ export default async function TomorrowHikesPage() {
   const tz = await getCompanyTimezone(profile.company_id);
   const date = getDateInTimezone(tz, 1);
 
-  const [hikes, drivers, { data: vehicles }] = await Promise.all([
+  const [initialHikes, drivers, { data: vehicles }] = await Promise.all([
     getHikesWithStopsForDate(profile.company_id, date, {
       timeZone: tz,
     }),
@@ -28,6 +28,18 @@ export default async function TomorrowHikesPage() {
       .eq("is_active", true)
       .order("name"),
   ]);
+
+  // Routes are scheduled but hike rows/stops missing (cron hasn't built tomorrow yet).
+  const needsPopulate =
+    initialHikes.length > 0 &&
+    initialHikes.every((entry) => (entry.hike?.stops?.length ?? 0) === 0);
+
+  const hikes = needsPopulate
+    ? await getHikesWithStopsForDate(profile.company_id, date, {
+        timeZone: tz,
+        sync: true,
+      })
+    : initialHikes;
 
   const addableByRouteId = await listAddableAsNeededDogsByRouteForDate(
     profile.company_id,

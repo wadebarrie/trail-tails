@@ -196,7 +196,9 @@ async function sendNotificationToContact(
       to_number: delivery.to,
       body: smsBody,
       twilio_sid: result.sid,
-      status: "queued",
+      // Twilio accepted the message — align with notification_log "sent".
+      // Delivery receipts would need StatusCallback (not wired yet).
+      status: "sent",
     })
     .select("id")
     .single();
@@ -234,7 +236,8 @@ export function buildEnRouteMessage(
       : `to drop off ${dogName}`;
 
   if (etaMinutes != null && etaMinutes > 0) {
-    return `${greeting} We're on the way ${action}. ETA is approximately ${etaMinutes} minutes.`;
+    const unit = etaMinutes === 1 ? "minute" : "minutes";
+    return `${greeting} We're on the way ${action}. ETA is approximately ${etaMinutes} ${unit}.`;
   }
   return `${greeting} We're on the way ${action}.`;
 }
