@@ -9,7 +9,7 @@ export const getCompanyTimezone = cache(async (companyId: string): Promise<strin
     .eq("id", companyId)
     .single();
 
-  return data?.timezone ?? "America/Los_Angeles";
+  return data?.timezone ?? "America/Vancouver";
 });
 
 export const getCompanyName = cache(

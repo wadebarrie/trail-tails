@@ -4,8 +4,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
+import { COMMON_TIMEZONES } from "@/features/platform/timezones";
 
-const settingsSchema = z.object({
+const baseSettingsSchema = z.object({
+  company_name: z
+    .string()
+    .trim()
+    .min(1, "Company name is required")
+    .max(80, "Company name is too long"),
+  timezone: z.string().min(1, "Timezone is required"),
   default_hike_rate: z.string().optional(),
   night_before_reminder_time: z.string().min(1, "Reminder time is required"),
 });
@@ -22,7 +29,7 @@ export async function updateCompanySettingsAction(
   formData: FormData
 ): Promise<{ error?: string; ok?: boolean }> {
   const profile = await requireRole("admin");
-  const parsed = settingsSchema.safeParse(Object.fromEntries(formData));
+  const parsed = baseSettingsSchema.safeParse(Object.fromEntries(formData));
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -34,9 +41,26 @@ export async function updateCompanySettingsAction(
   }
 
   const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", profile.company_id)
+    .maybeSingle();
+
+  const allowedTimezones = new Set<string>(
+    COMMON_TIMEZONES.map((tz) => tz.value)
+  );
+  if (existing?.timezone) allowedTimezones.add(existing.timezone);
+
+  if (!allowedTimezones.has(parsed.data.timezone)) {
+    return { error: "Choose a timezone from the list" };
+  }
+
   const { error } = await supabase
     .from("companies")
     .update({
+      name: parsed.data.company_name,
+      timezone: parsed.data.timezone,
       default_hike_rate_cents: rateCents,
       night_before_reminder_time: parsed.data.night_before_reminder_time,
     })
@@ -44,8 +68,11 @@ export async function updateCompanySettingsAction(
 
   if (error) return { error: error.message };
 
+  revalidatePath("/dashboard");
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard/billing");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
 
   return { ok: true };
 }

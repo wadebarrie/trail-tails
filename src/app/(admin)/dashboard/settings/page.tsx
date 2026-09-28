@@ -15,7 +15,9 @@ export default async function SettingsPage() {
   const [{ data: company }, subscription] = await Promise.all([
     supabase
       .from("companies")
-      .select("name, default_hike_rate_cents, night_before_reminder_time")
+      .select(
+        "name, timezone, default_hike_rate_cents, night_before_reminder_time"
+      )
       .eq("id", profile.company_id)
       .single(),
     getSubscriptionForCompany(profile.company_id),
@@ -30,6 +32,8 @@ export default async function SettingsPage() {
 
       <section className="rounded-xl border border-stone-200 bg-white p-6">
         <CompanySettingsForm
+          companyName={company?.name ?? ""}
+          timezone={company?.timezone ?? "America/Vancouver"}
           defaultRateCents={company?.default_hike_rate_cents ?? null}
           defaultNightBeforeReminderTime={
             company?.night_before_reminder_time ??
