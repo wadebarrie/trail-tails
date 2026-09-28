@@ -24,6 +24,123 @@ export function legacyAddressToLine1(address: string): string {
   return address.trim();
 }
 
+export type CustomerAddressFields = {
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state_province: string;
+  postal_code: string;
+};
+
+function hasStructuredLocality(parts: {
+  city?: string | null;
+  state_province?: string | null;
+  postal_code?: string | null;
+}): boolean {
+  return Boolean(
+    parts.city?.trim() ||
+      parts.state_province?.trim() ||
+      parts.postal_code?.trim()
+  );
+}
+
+/**
+ * Prefill structured address fields for the customer edit form.
+ * Legacy rows often store the full freeform string in `address` / line1 with
+ * empty city / province / postal — split those so office staff can save.
+ */
+export function customerAddressFormDefaults(customer: {
+  address?: string | null;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  state_province?: string | null;
+  postal_code?: string | null;
+}): CustomerAddressFields {
+  if (hasStructuredLocality(customer)) {
+    return {
+      address_line1:
+        customer.address_line1?.trim() || customer.address?.trim() || "",
+      address_line2: customer.address_line2?.trim() || "",
+      city: customer.city?.trim() || "",
+      state_province: customer.state_province?.trim() || "",
+      postal_code: customer.postal_code?.trim() || "",
+    };
+  }
+
+  const freeform =
+    customer.address?.trim() ||
+    customer.address_line1?.trim() ||
+    "";
+  const parsed = parseFreeformAddress(freeform);
+  // Require province or postal so we don't treat unit numbers as a city
+  // (e.g. "225 Mowat Street, 301").
+  const confident = Boolean(
+    parsed.state_province?.trim() || parsed.postal_code?.trim()
+  );
+
+  if (!confident) {
+    return {
+      address_line1:
+        customer.address_line1?.trim() || freeform || "",
+      address_line2: customer.address_line2?.trim() || "",
+      city: "",
+      state_province: "",
+      postal_code: "",
+    };
+  }
+
+  return {
+    address_line1: parsed.address_line1,
+    address_line2:
+      parsed.address_line2?.trim() || customer.address_line2?.trim() || "",
+    city: parsed.city?.trim() || "",
+    state_province: parsed.state_province?.trim() || "",
+    postal_code: parsed.postal_code?.trim() || "",
+  };
+}
+
+/**
+ * When city / province / postal are blank but line1 still holds a freeform
+ * address (common on legacy saves), split before schema validation.
+ */
+export function coerceStructuredCustomerAddress(parts: {
+  address_line1: string;
+  address_line2?: string | null;
+  city?: string | null;
+  state_province?: string | null;
+  postal_code?: string | null;
+}): CustomerAddressFields {
+  const line1 = parts.address_line1?.trim() || "";
+  const line2 = parts.address_line2?.trim() || "";
+  const city = parts.city?.trim() || "";
+  const state_province = parts.state_province?.trim() || "";
+  const postal_code = parts.postal_code?.trim() || "";
+
+  if (city && state_province && postal_code) {
+    return {
+      address_line1: line1,
+      address_line2: line2,
+      city,
+      state_province,
+      postal_code,
+    };
+  }
+
+  const freeform = [line1, line2, city, state_province, postal_code]
+    .filter(Boolean)
+    .join(", ");
+  const parsed = parseFreeformAddress(freeform);
+
+  return {
+    address_line1: parsed.address_line1 || line1,
+    address_line2: parsed.address_line2?.trim() || line2,
+    city: city || parsed.city?.trim() || "",
+    state_province: state_province || parsed.state_province?.trim() || "",
+    postal_code: postal_code || parsed.postal_code?.trim() || "",
+  };
+}
+
 export type ParsedCustomerAddress = {
   address_line1: string;
   address_line2: string | null;

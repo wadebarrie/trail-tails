@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
-import { formatCustomerAddress } from "@/lib/address";
+import {
+  coerceStructuredCustomerAddress,
+  formatCustomerAddress,
+} from "@/lib/address";
 import { resolveCustomerCoordinates } from "@/lib/google-maps/geocode";
 import {
   customerSchema,
@@ -23,6 +26,15 @@ function parseCustomerForm(formData: FormData, mode: "create" | "update") {
   if (mode === "update") {
     withFlags.is_active = formData.get("is_active") === "true";
   }
+
+  const coerced = coerceStructuredCustomerAddress({
+    address_line1: String(withFlags.address_line1 ?? ""),
+    address_line2: String(withFlags.address_line2 ?? ""),
+    city: String(withFlags.city ?? ""),
+    state_province: String(withFlags.state_province ?? ""),
+    postal_code: String(withFlags.postal_code ?? ""),
+  });
+  Object.assign(withFlags, coerced);
 
   return customerSchema.safeParse(withFlags);
 }
