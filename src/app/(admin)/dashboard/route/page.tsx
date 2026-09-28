@@ -32,7 +32,7 @@ export default async function RouteOrderPage({
     supabase
       .from("dogs")
       .select(
-        "id, name, route_id, route_sort_order, schedule_type, customers(owner_name), routes(name)"
+        "id, name, route_id, route_sort_order, schedule_type, pickup_window_start, pickup_window_end, customers(owner_name, address, address_line1, city), routes(name)"
       )
       .eq("company_id", profile.company_id)
       .eq("is_active", true)
@@ -52,7 +52,7 @@ export default async function RouteOrderPage({
     <div>
       <PageHeader
         title="Routes"
-        description="Each route is a morning or afternoon walk with its own dogs, driver, vehicle, and schedule. Create separate routes when you run twice daily."
+        description="Each route is a morning or afternoon walk with its own dogs, driver, vehicle, and schedule. Create a separate route per bus — assign different drivers and vehicles so both vans run cleanly."
       />
 
       <Card className="mb-10">
@@ -94,15 +94,37 @@ export default async function RouteOrderPage({
               }))
               .sort((a, b) => a.name.localeCompare(b.name));
 
-            const items = routeDogs.map((dog) => ({
-              id: dog.id,
-              label: dog.name,
-              sublabel: one(
+            const items = routeDogs.map((dog) => {
+              const customer = one(
                 dog.customers as
-                  | { owner_name: string }
-                  | { owner_name: string }[]
-              )?.owner_name,
-            }));
+                  | {
+                      owner_name: string;
+                      address: string | null;
+                      address_line1: string | null;
+                      city: string | null;
+                    }
+                  | {
+                      owner_name: string;
+                      address: string | null;
+                      address_line1: string | null;
+                      city: string | null;
+                    }[]
+              );
+              const address =
+                customer?.address_line1?.trim() ||
+                customer?.address?.trim() ||
+                null;
+              const addressWithCity = [address, customer?.city?.trim()]
+                .filter(Boolean)
+                .join(", ");
+
+              return {
+                id: dog.id,
+                label: dog.name,
+                sublabel: customer?.owner_name,
+                address: addressWithCity || null,
+              };
+            });
 
             const scheduleDays = getRouteScheduleDays(route);
 
@@ -158,7 +180,9 @@ export default async function RouteOrderPage({
                       Pickup order
                     </h4>
                     <p className="mb-3 text-xs text-stone-500">
-                      Drop-offs run in reverse order automatically.
+                      Drop-offs run in reverse order automatically. Use Sort by
+                      address for a street-order starting point, then drag to
+                      fine-tune.
                     </p>
                     {items.length > 0 ? (
                       <>
@@ -181,7 +205,13 @@ export default async function RouteOrderPage({
                                 </p>
                                 {item.sublabel ? (
                                   <p className="mt-0.5 text-sm text-stone-500">
-                                    {item.sublabel}
+                                    {[item.sublabel, item.address]
+                                      .filter(Boolean)
+                                      .join(" · ")}
+                                  </p>
+                                ) : item.address ? (
+                                  <p className="mt-0.5 text-sm text-stone-500">
+                                    {item.address}
                                   </p>
                                 ) : null}
                               </li>

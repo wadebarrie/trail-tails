@@ -352,9 +352,12 @@ export function OnboardingWizard({
             4. Add a dog
           </h2>
           <p className="text-sm text-stone-600">
-            Attach a dog to that customer. You&apos;ll assign them to a route in
-            the next step — pickup window is enough for now. Or import customers
-            and dogs together from CSV.
+            Attach a dog to that customer and set their{" "}
+            <strong className="font-medium text-stone-800">
+              default pickup window
+            </strong>{" "}
+            — that&apos;s what shows on day plans and SMS. You&apos;ll put them
+            on a route next. Or import customers and dogs together from CSV.
           </p>
           {!progress.hasCustomer ? (
             <p className="text-sm text-amber-800">

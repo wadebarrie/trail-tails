@@ -119,8 +119,11 @@ export function HikeStopsSection({
                 windowStart={stop.window_start}
                 windowEnd={stop.window_end}
                 optional={stopType === "dropoff"}
+                allowSaveAsDogDefault={stopType === "pickup"}
                 label={
-                  stopType === "dropoff" ? "Planned drop-off window" : "Planned window"
+                  stopType === "dropoff"
+                    ? "Today’s planned drop-off window"
+                    : "Today’s planned pickup window"
                 }
               />
             </div>
