@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { syncStopsForTodayAndTomorrow } from "@/features/hikes/sync-stops";
 import { createClient } from "@/lib/supabase/server";
 import { resolveCustomerCoordinates } from "@/lib/google-maps/geocode";
+import { formatCustomerAddress, parseFreeformAddress } from "@/lib/address";
 import { csvToRecords, parseCsv } from "@/lib/csv";
 import { phoneMatchKey } from "@/lib/phone";
 import type { ImportResult } from "@/features/import/validate";
@@ -128,6 +129,7 @@ export async function runBulkImport(
         }
 
         const addressLine1 = record.customer_address.trim();
+        const parsedAddress = parseFreeformAddress(addressLine1);
         const customerPayload = {
           owner_name: record.customer_owner_name.trim(),
           phone: record.customer_phone.trim(),
@@ -136,12 +138,12 @@ export async function runBulkImport(
             secondary_phone: record.customer_secondary_phone || undefined,
           }),
           email: record.customer_email?.trim() || null,
-          address_line1: addressLine1,
-          address_line2: null,
-          city: null,
-          state_province: null,
-          postal_code: null,
-          address: addressLine1,
+          address_line1: parsedAddress.address_line1,
+          address_line2: parsedAddress.address_line2,
+          city: parsedAddress.city,
+          state_province: parsedAddress.state_province,
+          postal_code: parsedAddress.postal_code,
+          address: formatCustomerAddress(parsedAddress),
           address_lat: coords.lat,
           address_lng: coords.lng,
           notes: record.customer_notes?.trim() || null,
