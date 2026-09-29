@@ -217,6 +217,33 @@ export async function onboardingEnableSelfAsDriverAction(): Promise<{
   redirect(`${ONBOARDING_PATH}?step=customer`);
 }
 
+/** Persist once-vs-twice PackRoute cadence from onboarding. */
+export async function onboardingSaveRouteCadenceAction(
+  cadence: "once" | "twice"
+): Promise<{ error?: string }> {
+  const profile = await requireRole("admin", { skipMfaCheck: true });
+  if (cadence !== "once" && cadence !== "twice") {
+    return { error: "Choose once or twice per day." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("companies")
+    .update({ route_cadence: cadence })
+    .eq("id", profile.company_id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(ONBOARDING_PATH);
+  revalidatePath("/dashboard/route");
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/dashboard/hikes/today");
+  revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
+  return {};
+}
+
 /** @deprecated Use onboardingEnableSelfAsDriverAction */
 export const onboardingEnableSelfAsHikerAction =
   onboardingEnableSelfAsDriverAction;

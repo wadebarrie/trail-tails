@@ -16,7 +16,7 @@ export default async function SettingsPage() {
     supabase
       .from("companies")
       .select(
-        "name, timezone, default_hike_rate_cents, night_before_reminder_time"
+        "name, timezone, route_cadence, default_hike_rate_cents, night_before_reminder_time"
       )
       .eq("id", profile.company_id)
       .single(),
@@ -34,6 +34,11 @@ export default async function SettingsPage() {
         <CompanySettingsForm
           companyName={company?.name ?? ""}
           timezone={company?.timezone ?? "America/Vancouver"}
+          routeCadence={
+            company?.route_cadence === "once" || company?.route_cadence === "twice"
+              ? company.route_cadence
+              : "twice"
+          }
           defaultRateCents={company?.default_hike_rate_cents ?? null}
           defaultNightBeforeReminderTime={
             company?.night_before_reminder_time ??

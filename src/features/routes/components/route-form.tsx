@@ -6,6 +6,7 @@ import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-fiel
 import { createRouteAction, updateRouteAction } from "@/features/routes/actions";
 import type { AddableDog } from "@/features/routes/components/route-add-dog-select";
 import { RouteCreateDogPicker } from "@/features/routes/components/route-create-dog-picker";
+import type { RouteCadence } from "@/features/company/route-cadence";
 import { SubmitButton } from "@/features/admin/components/ui";
 import {
   inputClassName,
@@ -21,6 +22,7 @@ function RouteFormFields({
   submitLabel,
   pending,
   dogs,
+  routeCadence = "twice",
 }: {
   formKey: string;
   defaultName?: string;
@@ -29,7 +31,10 @@ function RouteFormFields({
   submitLabel: string;
   pending: boolean;
   dogs?: AddableDog[];
+  routeCadence?: RouteCadence;
 }) {
+  const onceDaily = routeCadence === "once";
+
   return (
     <div key={formKey} className="space-y-4">
       <div>
@@ -45,7 +50,7 @@ function RouteFormFields({
           type="text"
           required
           defaultValue={defaultName}
-          placeholder="e.g. North Shore Morning"
+          placeholder={onceDaily ? "e.g. North Shore" : "e.g. North Shore Morning"}
           className={`mt-1 max-w-md ${inputClassName}`}
         />
         <p className="mt-1 text-xs text-stone-500">
@@ -53,27 +58,31 @@ function RouteFormFields({
         </p>
       </div>
 
-      <div>
-        <label
-          htmlFor="route-period"
-          className="block text-sm font-medium text-stone-700"
-        >
-          Time of day
-        </label>
-        <select
-          id="route-period"
-          name="period"
-          defaultValue={defaultPeriod}
-          className={`mt-1 max-w-md ${selectClassName}`}
-        >
-          <option value="morning">Morning</option>
-          <option value="afternoon">Afternoon</option>
-        </select>
-        <p className="mt-1 text-xs text-stone-500">
-          Same zone in the afternoon is a separate PackRoute — different dogs,
-          driver, and order.
-        </p>
-      </div>
+      {onceDaily ? (
+        <input type="hidden" name="period" value="morning" />
+      ) : (
+        <div>
+          <label
+            htmlFor="route-period"
+            className="block text-sm font-medium text-stone-700"
+          >
+            Time of day
+          </label>
+          <select
+            id="route-period"
+            name="period"
+            defaultValue={defaultPeriod}
+            className={`mt-1 max-w-md ${selectClassName}`}
+          >
+            <option value="morning">Morning</option>
+            <option value="afternoon">Afternoon</option>
+          </select>
+          <p className="mt-1 text-xs text-stone-500">
+            Same zone in the afternoon is a separate PackRoute — different dogs,
+            driver, and order.
+          </p>
+        </div>
+      )}
 
       <ScheduleDaysField
         defaultDays={defaultDays}
@@ -119,7 +128,13 @@ function useRefreshOnOk(ok: boolean | undefined) {
   }, [ok, router]);
 }
 
-export function CreateRouteForm({ dogs = [] }: { dogs?: AddableDog[] }) {
+export function CreateRouteForm({
+  dogs = [],
+  routeCadence = "twice",
+}: {
+  dogs?: AddableDog[];
+  routeCadence?: RouteCadence;
+}) {
   const [state, formAction, pending] = useActionState(
     createRouteAction,
     {} as { error?: string; ok?: boolean }
@@ -134,6 +149,7 @@ export function CreateRouteForm({ dogs = [] }: { dogs?: AddableDog[] }) {
         submitLabel="Create PackRoute"
         pending={pending}
         dogs={dogs}
+        routeCadence={routeCadence}
       />
     </form>
   );
@@ -144,11 +160,13 @@ export function EditRouteForm({
   defaultName,
   defaultDays,
   defaultPeriod,
+  routeCadence = "twice",
 }: {
   routeId: string;
   defaultName: string;
   defaultDays: number[];
   defaultPeriod: HikePeriod;
+  routeCadence?: RouteCadence;
 }) {
   const boundUpdate = updateRouteAction.bind(null, routeId);
   const [state, formAction, pending] = useActionState(
@@ -169,6 +187,7 @@ export function EditRouteForm({
         defaultPeriod={defaultPeriod}
         submitLabel="Save PackRoute"
         pending={pending}
+        routeCadence={routeCadence}
       />
     </form>
   );

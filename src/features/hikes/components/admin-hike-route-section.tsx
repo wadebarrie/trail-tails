@@ -10,7 +10,11 @@ import {
   HikeStatusBadge,
 } from "@/features/hikes/components/complete-hike-button";
 import { HikeStopsSection } from "@/features/hikes/components/hike-stops-section";
-import { hikePeriodWalkLabel } from "@/features/hikes/hike-period";
+import {
+  cadenceRouteTitleSuffix,
+  cadenceWalkLabel,
+  type RouteCadence,
+} from "@/features/company/route-cadence";
 import type { HikeWithRoute } from "@/features/hikes/queries";
 
 type Driver = { id: string; full_name: string };
@@ -23,6 +27,7 @@ export function AdminHikeRouteSection({
   dateLabel,
   date,
   addableAsNeededDogs = [],
+  routeCadence = "twice",
 }: {
   entry: HikeWithRoute;
   drivers: Driver[];
@@ -30,11 +35,13 @@ export function AdminHikeRouteSection({
   dateLabel?: string;
   date?: string;
   addableAsNeededDogs?: AddableAsNeededDog[];
+  routeCadence?: RouteCadence;
 }) {
   const { route, hike } = entry;
   const stops = (hike?.stops ?? []) as Parameters<
     typeof HikeStopsSection
   >[0]["stops"];
+  const titleSuffix = cadenceRouteTitleSuffix(route.period, routeCadence);
 
   return (
     <Card className="p-4 sm:p-6">
@@ -42,10 +49,9 @@ export function AdminHikeRouteSection({
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-lg font-semibold text-stone-900">
             {route.name}
-            <span className="font-normal text-stone-500">
-              {" "}
-              — {hikePeriodWalkLabel(route.period)}
-            </span>
+            {titleSuffix ? (
+              <span className="font-normal text-stone-500">{titleSuffix}</span>
+            ) : null}
           </h2>
           {dateLabel ? (
             <span className="text-sm text-stone-500">{dateLabel}</span>
@@ -76,8 +82,8 @@ export function AdminHikeRouteSection({
         <div className={hike ? "mb-6" : "mt-4"}>
           <p className="mb-2 text-sm text-stone-600">
             Add a dog for today only on this{" "}
-            {hikePeriodWalkLabel(route.period)}. This does not change their usual
-            weekly schedule.
+            {cadenceWalkLabel(route.period, routeCadence)}. This does not change
+            their usual weekly schedule.
           </p>
           <HikeAddAsNeededDogSelect
             routeId={route.id}

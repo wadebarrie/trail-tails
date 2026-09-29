@@ -4,6 +4,7 @@ import { useState } from "react";
 import { secondaryButtonClassName } from "@/features/admin/components/button-styles";
 import { DeleteRouteButton } from "@/features/routes/components/delete-route-button";
 import { EditRouteForm } from "@/features/routes/components/route-form";
+import type { RouteCadence } from "@/features/company/route-cadence";
 import type { HikePeriod } from "@/features/hikes/hike-period";
 
 export function RouteEditPanel({
@@ -12,12 +13,14 @@ export function RouteEditPanel({
   defaultDays,
   defaultPeriod,
   dogCount,
+  routeCadence = "twice",
 }: {
   routeId: string;
   routeName: string;
   defaultDays: number[];
   defaultPeriod: HikePeriod;
   dogCount: number;
+  routeCadence?: RouteCadence;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -48,6 +51,7 @@ export function RouteEditPanel({
             defaultName={routeName}
             defaultDays={defaultDays}
             defaultPeriod={defaultPeriod}
+            routeCadence={routeCadence}
           />
         </div>
       ) : null}

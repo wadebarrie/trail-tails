@@ -1,5 +1,9 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import {
+  parseRouteCadence,
+  type RouteCadence,
+} from "@/features/company/route-cadence";
 
 export const getCompanyTimezone = cache(async (companyId: string): Promise<string> => {
   const supabase = await createClient();
@@ -23,5 +27,18 @@ export const getCompanyName = cache(
 
     if (error || !data) return null;
     return data.name;
+  }
+);
+
+export const getCompanyRouteCadence = cache(
+  async (companyId: string): Promise<RouteCadence> => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("companies")
+      .select("route_cadence")
+      .eq("id", companyId)
+      .maybeSingle();
+
+    return parseRouteCadence(data?.route_cadence);
   }
 );

@@ -1,10 +1,16 @@
 import type { Profile } from "@/types";
-import { getCompanyTimezone } from "@/features/company/queries";
+import {
+  getCompanyRouteCadence,
+  getCompanyTimezone,
+} from "@/features/company/queries";
+import {
+  cadenceRouteTitleSuffix,
+  type RouteCadence,
+} from "@/features/company/route-cadence";
 import { getHikesWithStopsForDate } from "@/features/hikes/queries";
 import { one } from "@/lib/supabase/relations";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import { perfAsync } from "@/lib/perf";
-import { hikePeriodWalkLabel } from "@/features/hikes/hike-period";
 import { vehicleDisplayLabel } from "@/features/vehicles/schema";
 import type { StopStatus, StopType } from "@/types";
 
@@ -44,6 +50,7 @@ export type DriverRouteView = {
 export type DriverDayView = {
   date: string;
   dateLabel: string;
+  routeCadence: RouteCadence;
   routes: DriverRouteView[];
 };
 
@@ -151,9 +158,12 @@ export async function getDriverDayView(
 ): Promise<DriverDayView> {
   return perfAsync(`query driver-day-view offset=${offsetDays}`, async () => {
     const date = getDateInTimezone(timeZone, offsetDays);
-    const hikes = await getHikesWithStopsForDate(companyId, date, {
-      timeZone,
-    });
+    const [hikes, routeCadence] = await Promise.all([
+      getHikesWithStopsForDate(companyId, date, {
+        timeZone,
+      }),
+      getCompanyRouteCadence(companyId),
+    ]);
 
     const routes: DriverRouteView[] = hikes
       .filter((entry) => driverSeesRoute(entry, profile))
@@ -168,9 +178,13 @@ export async function getDriverDayView(
             | null
             | undefined
         );
+        const periodSuffix = cadenceRouteTitleSuffix(
+          entry.route.period,
+          routeCadence
+        );
         return {
           routeId: entry.route.id,
-          routeName: `${entry.route.name} — ${hikePeriodWalkLabel(entry.route.period)}`,
+          routeName: `${entry.route.name}${periodSuffix}`,
           period: entry.route.period,
           hikeId: entry.hike!.id,
           vehicleLabel: vehicle ? vehicleDisplayLabel(vehicle) : null,
@@ -183,6 +197,7 @@ export async function getDriverDayView(
     return {
       date,
       dateLabel: formatDateLabel(date, timeZone),
+      routeCadence,
       routes,
     };
   });

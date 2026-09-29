@@ -6,7 +6,8 @@ import { RouteDriverSelect } from "@/features/routes/components/route-driver-sel
 import { RouteVehicleSelect } from "@/features/routes/components/route-vehicle-select";
 import { CreateRouteForm } from "@/features/routes/components/route-form";
 import { RouteEditPanel } from "@/features/routes/components/route-edit-panel";
-import { hikePeriodLabel } from "@/features/hikes/hike-period";
+import { cadencePeriodLabel } from "@/features/company/route-cadence";
+import { getCompanyRouteCadence } from "@/features/company/queries";
 import { getRouteScheduleDays, listRoutes } from "@/features/routes/queries";
 import { requireRole } from "@/features/auth/queries";
 import { listAssignableDrivers } from "@/features/drivers/queries";
@@ -28,7 +29,11 @@ export default async function RouteOrderPage({
   const returnTo = rawReturn
     ? safeAppReturnPath(rawReturn, ONBOARDING_PATH)
     : undefined;
-  const routes = await listRoutes(profile.company_id);
+  const [routes, routeCadence] = await Promise.all([
+    listRoutes(profile.company_id),
+    getCompanyRouteCadence(profile.company_id),
+  ]);
+  const onceDaily = routeCadence === "once";
 
   const [{ data: dogs }, drivers, { data: vehicles }] = await Promise.all([
     supabase
@@ -55,7 +60,11 @@ export default async function RouteOrderPage({
     <div>
       <PageHeader
         title="PackRoutes"
-        description="A PackRoute is a service zone you cover — usually a neighbourhood or area — for morning or afternoon. Each one has its own dogs, driver, van, and weekdays."
+        description={
+          onceDaily
+            ? "A PackRoute is a service zone you cover — usually a neighbourhood or area. Each one has its own dogs, driver, van, and weekdays."
+            : "A PackRoute is a service zone you cover — usually a neighbourhood or area — for morning or afternoon. Each one has its own dogs, driver, van, and weekdays."
+        }
       />
 
       {returnTo ? (
@@ -64,8 +73,9 @@ export default async function RouteOrderPage({
             Onboarding: set your PackRoute
           </p>
           <p className="mt-1 text-sm text-stone-600">
-            Name the zone, pick morning or afternoon, set weekdays, and check
-            the dogs that ride this run — all in the form below.
+            {onceDaily
+              ? "Name the zone, set weekdays, and check the dogs that ride this run — all in the form below."
+              : "Name the zone, pick morning or afternoon, set weekdays, and check the dogs that ride this run — all in the form below."}
           </p>
           <Link
             href={returnTo}
@@ -79,11 +89,13 @@ export default async function RouteOrderPage({
       <Card className="mb-10">
         <h2 className="text-lg font-semibold text-stone-900">Add PackRoute</h2>
         <p className="mt-1 text-sm text-stone-500">
-          A PackRoute is a service zone (neighbourhood or area) for morning or
-          afternoon. Add dogs while you create it.
+          {onceDaily
+            ? "A PackRoute is a service zone (neighbourhood or area). Add dogs while you create it."
+            : "A PackRoute is a service zone (neighbourhood or area) for morning or afternoon. Add dogs while you create it."}
         </p>
         <div className="mt-4">
           <CreateRouteForm
+            routeCadence={routeCadence}
             dogs={recurringDogs
               .map((dog) => ({
                 id: dog.id,
@@ -181,8 +193,12 @@ export default async function RouteOrderPage({
                       {route.name}
                     </p>
                     <p className="text-sm text-stone-500">
-                      {hikePeriodLabel(route.period)} ·{" "}
-                      {formatScheduleDayLabels(scheduleDays)}
+                      {[
+                        cadencePeriodLabel(route.period, routeCadence),
+                        formatScheduleDayLabels(scheduleDays),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </p>
                     <p className="mt-0.5 text-sm text-stone-500">
                       {routeDogs.length} dog{routeDogs.length === 1 ? "" : "s"}
@@ -209,6 +225,7 @@ export default async function RouteOrderPage({
                     defaultDays={scheduleDays}
                     defaultPeriod={route.period}
                     dogCount={routeDogs.length}
+                    routeCadence={routeCadence}
                   />
                 </div>
 

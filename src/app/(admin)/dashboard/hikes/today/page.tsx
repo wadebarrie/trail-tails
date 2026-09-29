@@ -1,6 +1,9 @@
 import { PageHeader, EmptyState } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
-import { getCompanyTimezone } from "@/features/company/queries";
+import {
+  getCompanyRouteCadence,
+  getCompanyTimezone,
+} from "@/features/company/queries";
 import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception-sync-failure-banner";
 import { AdminHikeRouteSection } from "@/features/hikes/components/admin-hike-route-section";
 import { SyncRoutesButton } from "@/features/hikes/components/sync-routes-button";
@@ -13,7 +16,10 @@ import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 export default async function TodayHikesPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
-  const tz = await getCompanyTimezone(profile.company_id);
+  const [tz, routeCadence] = await Promise.all([
+    getCompanyTimezone(profile.company_id),
+    getCompanyRouteCadence(profile.company_id),
+  ]);
   const date = getDateInTimezone(tz, 0);
 
   const [hikes, drivers, { data: vehicles }] = await Promise.all([
@@ -60,6 +66,7 @@ export default async function TodayHikesPage() {
               vehicles={vehicles ?? []}
               date={date}
               addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}
+              routeCadence={routeCadence}
             />
           ))}
         </div>
