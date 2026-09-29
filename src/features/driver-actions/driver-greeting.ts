@@ -63,9 +63,12 @@ export function routeSummaryLabel(day: DriverDayView): string {
   return `${day.routes.length} routes`;
 }
 
-/** Primary CTA on the daily briefing — period-aware, never morning-hardcoded. */
+/** Primary CTA on the daily briefing — period-aware unless company runs once/day. */
 export function startRouteCtaLabel(day: DriverDayView): string {
   if (day.routes.length === 0) return "Start route →";
+  if (day.routeCadence === "once") {
+    return day.routes.length === 1 ? "Start route →" : "Start today's routes →";
+  }
   if (day.routes.length === 1) {
     return day.routes[0].period === "afternoon"
       ? "Start afternoon route →"
@@ -82,7 +85,9 @@ export function startRouteCtaLabel(day: DriverDayView): string {
 
 /** Progress / milestone label when all pickups are done — period-aware. */
 export function pickupsCompleteLabel(day: DriverDayView): string {
-  if (day.routes.length === 0) return "Pickups complete";
+  if (day.routes.length === 0 || day.routeCadence === "once") {
+    return "Pickups complete";
+  }
   const periods = new Set(day.routes.map((r) => r.period));
   if (periods.size === 1) {
     return periods.has("afternoon")

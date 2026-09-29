@@ -13,6 +13,7 @@ const baseSettingsSchema = z.object({
     .min(1, "Company name is required")
     .max(80, "Company name is too long"),
   timezone: z.string().min(1, "Timezone is required"),
+  route_cadence: z.enum(["once", "twice"]),
   default_hike_rate: z.string().optional(),
   night_before_reminder_time: z.string().min(1, "Reminder time is required"),
 });
@@ -61,6 +62,7 @@ export async function updateCompanySettingsAction(
     .update({
       name: parsed.data.company_name,
       timezone: parsed.data.timezone,
+      route_cadence: parsed.data.route_cadence,
       default_hike_rate_cents: rateCents,
       night_before_reminder_time: parsed.data.night_before_reminder_time,
     })
@@ -71,8 +73,12 @@ export async function updateCompanySettingsAction(
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/settings");
   revalidatePath("/dashboard/billing");
+  revalidatePath("/dashboard/route");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
+  revalidatePath("/dashboard/onboarding");
+  revalidatePath("/today");
+  revalidatePath("/tomorrow");
 
   return { ok: true };
 }

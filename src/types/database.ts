@@ -71,6 +71,8 @@ export interface Company {
   night_before_reminder_time: string;
   twilio_phone_number: string | null;
   onboarding_completed_at: string | null;
+  /** once = one PackRoute period/day; twice = morning + afternoon. */
+  route_cadence: "once" | "twice";
   created_at: string;
   updated_at: string;
 }

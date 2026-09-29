@@ -4,14 +4,29 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
+import { parseRouteCadence } from "@/features/company/route-cadence";
 import { getDateInTimezone, parseScheduleDays } from "@/lib/dates";
 import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
+import type { HikePeriod } from "@/features/hikes/hike-period";
 
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
   schedule_days: z.string().min(1, "Select at least one day"),
   period: z.enum(["morning", "afternoon"]).default("morning"),
 });
+
+async function resolveRoutePeriod(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  companyId: string,
+  requested: HikePeriod
+): Promise<HikePeriod> {
+  const { data } = await supabase
+    .from("companies")
+    .select("route_cadence")
+    .eq("id", companyId)
+    .maybeSingle();
+  return parseRouteCadence(data?.route_cadence) === "once" ? "morning" : requested;
+}
 
 async function saveRouteScheduleDays(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -69,6 +84,11 @@ export async function createRouteAction(
   }
 
   const supabase = await createClient();
+  const period = await resolveRoutePeriod(
+    supabase,
+    profile.company_id,
+    parsed.data.period
+  );
 
   const { data: lastRoute } = await supabase
     .from("routes")
@@ -83,7 +103,7 @@ export async function createRouteAction(
     .insert({
       company_id: profile.company_id,
       name: parsed.data.name.trim(),
-      period: parsed.data.period,
+      period,
       sort_order: (lastRoute?.sort_order ?? -1) + 1,
     })
     .select("id")
@@ -173,12 +193,17 @@ export async function updateRouteAction(
   }
 
   const supabase = await createClient();
+  const period = await resolveRoutePeriod(
+    supabase,
+    profile.company_id,
+    parsed.data.period
+  );
 
   const { error } = await supabase
     .from("routes")
     .update({
       name: parsed.data.name.trim(),
-      period: parsed.data.period,
+      period,
     })
     .eq("id", routeId)
     .eq("company_id", profile.company_id)

@@ -140,7 +140,7 @@ export function DogForm({
         </div>
       ) : null}
       <p className="-mt-2 text-xs text-stone-500">
-        Optional. Most companies leave afternoon drop-offs flexible with no
+        Optional. Most companies leave drop-offs flexible with no
         planned window.
       </p>
 

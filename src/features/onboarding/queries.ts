@@ -6,15 +6,6 @@ import type {
 } from "@/features/onboarding/constants";
 import type { HikePeriod } from "@/features/hikes/hike-period";
 
-function emptyPeriodChecklist(): OnboardingPeriodChecklist {
-  return {
-    created: false,
-    hasScheduleDays: false,
-    hasDogAssigned: false,
-    ready: false,
-  };
-}
-
 function periodChecklist(
   routes: {
     id: string;

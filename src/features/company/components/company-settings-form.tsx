@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateCompanySettingsAction } from "@/features/company/actions";
+import type { RouteCadence } from "@/features/company/route-cadence";
 import { SubmitButton } from "@/features/admin/components/ui";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import { COMMON_TIMEZONES } from "@/features/platform/timezones";
@@ -9,11 +10,13 @@ import { COMMON_TIMEZONES } from "@/features/platform/timezones";
 export function CompanySettingsForm({
   companyName,
   timezone,
+  routeCadence,
   defaultRateCents,
   defaultNightBeforeReminderTime,
 }: {
   companyName: string;
   timezone: string;
+  routeCadence: RouteCadence;
   defaultRateCents: number | null;
   defaultNightBeforeReminderTime: string;
 }) {
@@ -87,6 +90,47 @@ export function CompanySettingsForm({
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold text-stone-900">PackRoutes</h2>
+        <p className="mt-1 text-xs text-stone-500">
+          Controls whether the app asks for morning vs afternoon, or treats each
+          PackRoute as a once-a-day zone.
+        </p>
+        <fieldset className="mt-3 space-y-2">
+          <legend className="sr-only">How many runs per day</legend>
+          <label className="flex cursor-pointer items-start gap-2 text-sm text-stone-800">
+            <input
+              type="radio"
+              name="route_cadence"
+              value="once"
+              defaultChecked={routeCadence === "once"}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="font-medium">One PackRoute per day</span>
+              <span className="mt-0.5 block text-xs text-stone-500">
+                Pick up and drop off once — no morning/afternoon split.
+              </span>
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-2 text-sm text-stone-800">
+            <input
+              type="radio"
+              name="route_cadence"
+              value="twice"
+              defaultChecked={routeCadence === "twice"}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="font-medium">Morning and afternoon</span>
+              <span className="mt-0.5 block text-xs text-stone-500">
+                Separate PackRoutes for each period (different dogs and order).
+              </span>
+            </span>
+          </label>
+        </fieldset>
       </div>
 
       <div>

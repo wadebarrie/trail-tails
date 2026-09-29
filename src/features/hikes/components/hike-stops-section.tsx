@@ -77,7 +77,7 @@ export function HikeStopsSection({
         ) : (
           <p className="mt-1 text-sm text-stone-500">
             Reverse of the pickup order. Drop-off times are optional — leave blank
-            when afternoon timing is flexible.
+            when drop-off timing is flexible.
           </p>
         )}
       </div>

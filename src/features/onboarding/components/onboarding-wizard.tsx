@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   completeOnboardingAction,
@@ -8,6 +8,7 @@ import {
   onboardingCreateVehicleAction,
   onboardingEnableSelfAsDriverAction,
   onboardingSaveCompanyInfoAction,
+  onboardingSaveRouteCadenceAction,
 } from "@/features/onboarding/actions";
 import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
 import { OnboardingCsvImportCallout } from "@/features/onboarding/components/onboarding-csv-import-callout";
@@ -73,29 +74,21 @@ function DoneCheck({ done }: { done: boolean }) {
   );
 }
 
-function useRouteCadence() {
-  const [cadence, setCadenceState] = useState<OnboardingRouteCadence | null>(
-    null
-  );
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(ONBOARDING_ROUTE_CADENCE_KEY);
-      if (stored === "once" || stored === "twice") {
-        setCadenceState(stored);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+function useRouteCadence(initial: OnboardingRouteCadence | null) {
+  const [override, setOverride] = useState<OnboardingRouteCadence | null>(null);
+  const [, startSave] = useTransition();
+  const cadence = override ?? initial;
 
   function setCadence(next: OnboardingRouteCadence) {
-    setCadenceState(next);
+    setOverride(next);
     try {
       window.localStorage.setItem(ONBOARDING_ROUTE_CADENCE_KEY, next);
     } catch {
       // ignore
     }
+    startSave(async () => {
+      await onboardingSaveRouteCadenceAction(next);
+    });
   }
 
   return [cadence, setCadence] as const;
@@ -108,6 +101,7 @@ export function OnboardingWizard({
   adminCanDrive,
   defaultHikeRateCents,
   nightBeforeReminderTime,
+  initialRouteCadence = null,
 }: {
   step: OnboardingStepId;
   progress: OnboardingProgress;
@@ -115,6 +109,7 @@ export function OnboardingWizard({
   adminCanDrive: boolean;
   defaultHikeRateCents: number | null;
   nightBeforeReminderTime: string;
+  initialRouteCadence?: OnboardingRouteCadence | null;
 }) {
   const [vehicleState, vehicleAction, vehiclePending] = useActionState(
     onboardingCreateVehicleAction,
@@ -128,7 +123,7 @@ export function OnboardingWizard({
   const [driverPending, startDriver] = useTransition();
   const [finishPending, startFinish] = useTransition();
   const [dismissPending, startDismiss] = useTransition();
-  const [routeCadence, setRouteCadence] = useRouteCadence();
+  const [routeCadence, setRouteCadence] = useRouteCadence(initialRouteCadence);
 
   const routeReturn = `${ONBOARDING_PATH}?step=route`;
   const packRouteReady =
