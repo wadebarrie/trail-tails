@@ -16,6 +16,73 @@ import {
 } from "@/features/customers/schema";
 import { safeAppReturnPath } from "@/lib/safe-return-path";
 
+export type CustomerFormValues = {
+  owner_name: string;
+  phone: string;
+  secondary_owner_name: string;
+  secondary_phone: string;
+  email: string;
+  address_line1: string;
+  address_line2: string;
+  city: string;
+  state_province: string;
+  postal_code: string;
+  notes: string;
+  night_before_reminders_enabled: boolean;
+  is_active: boolean;
+};
+
+export type CustomerFormState = {
+  error?: string;
+  /** Form field name to focus after an error (e.g. state_province). */
+  field?: string;
+  values?: CustomerFormValues;
+  /** Bumps so the client remounts inputs with preserved values after an error. */
+  revision?: number;
+};
+
+function fieldString(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "");
+}
+
+function extractCustomerFormValues(formData: FormData): CustomerFormValues {
+  return {
+    owner_name: fieldString(formData, "owner_name"),
+    phone: fieldString(formData, "phone"),
+    secondary_owner_name: fieldString(formData, "secondary_owner_name"),
+    secondary_phone: fieldString(formData, "secondary_phone"),
+    email: fieldString(formData, "email"),
+    address_line1: fieldString(formData, "address_line1"),
+    address_line2: fieldString(formData, "address_line2"),
+    city: fieldString(formData, "city"),
+    state_province: fieldString(formData, "state_province"),
+    postal_code: fieldString(formData, "postal_code"),
+    notes: fieldString(formData, "notes"),
+    night_before_reminders_enabled:
+      formData.get("night_before_reminders_enabled") === "true",
+    is_active: formData.get("is_active") === "true",
+  };
+}
+
+function formError(
+  prev: CustomerFormState,
+  formData: FormData,
+  error: string,
+  field?: string
+): CustomerFormState {
+  return {
+    error,
+    field,
+    values: extractCustomerFormValues(formData),
+    revision: (prev.revision ?? 0) + 1,
+  };
+}
+
+function firstIssueField(issues: { path: PropertyKey[] }[]): string | undefined {
+  const name = issues[0]?.path[0];
+  return typeof name === "string" ? name : undefined;
+}
+
 function parseCustomerForm(formData: FormData, mode: "create" | "update") {
   const raw = Object.fromEntries(formData);
   const withFlags: Record<string, unknown> = { ...raw };
@@ -59,19 +126,26 @@ function customerInsertPayload(data: CustomerFormData) {
 }
 
 export async function createCustomerAction(
-  _prev: { error?: string },
+  prev: CustomerFormState,
   formData: FormData
-) {
+): Promise<CustomerFormState> {
   const profile = await requireRole("admin");
   const parsed = parseCustomerForm(formData, "create");
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return formError(
+      prev,
+      formData,
+      parsed.error.issues[0]?.message ?? "Invalid input",
+      firstIssueField(parsed.error.issues)
+    );
   }
 
   const composed = formatCustomerAddress(parsed.data);
   const coords = await resolveCustomerCoordinates(composed);
-  if (!coords.ok) return { error: coords.error };
+  if (!coords.ok) {
+    return formError(prev, formData, coords.error, "address_line1");
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("customers").insert({
@@ -81,7 +155,7 @@ export async function createCustomerAction(
     address_lng: coords.lng,
   });
 
-  if (error) return { error: error.message };
+  if (error) return formError(prev, formData, error.message);
 
   revalidatePath("/dashboard/customers");
   redirect(
@@ -94,14 +168,19 @@ export async function createCustomerAction(
 
 export async function updateCustomerAction(
   id: string,
-  _prev: { error?: string },
+  prev: CustomerFormState,
   formData: FormData
-) {
+): Promise<CustomerFormState> {
   await requireRole("admin");
   const parsed = parseCustomerForm(formData, "update");
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return formError(
+      prev,
+      formData,
+      parsed.error.issues[0]?.message ?? "Invalid input",
+      firstIssueField(parsed.error.issues)
+    );
   }
 
   const supabase = await createClient();
@@ -113,7 +192,9 @@ export async function updateCustomerAction(
 
   const composed = formatCustomerAddress(parsed.data);
   const coords = await resolveCustomerCoordinates(composed, existing);
-  if (!coords.ok) return { error: coords.error };
+  if (!coords.ok) {
+    return formError(prev, formData, coords.error, "address_line1");
+  }
 
   const { error } = await supabase
     .from("customers")
@@ -125,7 +206,7 @@ export async function updateCustomerAction(
     })
     .eq("id", id);
 
-  if (error) return { error: error.message };
+  if (error) return formError(prev, formData, error.message);
 
   revalidatePath("/dashboard/customers");
   revalidatePath(`/dashboard/customers/${id}`);
