@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   completeOnboardingAction,
@@ -75,28 +75,12 @@ function DoneCheck({ done }: { done: boolean }) {
 }
 
 function useRouteCadence(initial: OnboardingRouteCadence | null) {
-  const [cadence, setCadenceState] = useState<OnboardingRouteCadence | null>(
-    initial
-  );
+  const [override, setOverride] = useState<OnboardingRouteCadence | null>(null);
   const [, startSave] = useTransition();
-
-  useEffect(() => {
-    if (initial) {
-      setCadenceState(initial);
-      return;
-    }
-    try {
-      const stored = window.localStorage.getItem(ONBOARDING_ROUTE_CADENCE_KEY);
-      if (stored === "once" || stored === "twice") {
-        setCadenceState(stored);
-      }
-    } catch {
-      // ignore
-    }
-  }, [initial]);
+  const cadence = override ?? initial;
 
   function setCadence(next: OnboardingRouteCadence) {
-    setCadenceState(next);
+    setOverride(next);
     try {
       window.localStorage.setItem(ONBOARDING_ROUTE_CADENCE_KEY, next);
     } catch {
