@@ -1,13 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { getDateInTimezone, parseScheduleDays } from "@/lib/dates";
 import { syncStopsForDate, syncStopsForRouteDate } from "@/features/hikes/sync-stops";
-import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 const routeSchema = z.object({
   name: z.string().min(1, "Route name is required"),
@@ -97,21 +95,63 @@ export async function createRouteAction(
 
   try {
     await saveRouteScheduleDays(supabase, route.id, days);
-    await revalidateRoutesAndSync(supabase, profile.company_id);
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "Failed to save schedule",
     };
   }
 
-  const returnTo = safeAppReturnPath(
-    formData.get("returnTo")?.toString(),
-    ""
-  );
-  if (returnTo) {
-    redirect(returnTo);
+  const requestedDogIds = [
+    ...new Set(
+      formData
+        .getAll("dog_ids")
+        .map((value) => String(value).trim())
+        .filter(Boolean)
+    ),
+  ];
+
+  if (requestedDogIds.length > 0) {
+    const { data: assignableDogs, error: dogsError } = await supabase
+      .from("dogs")
+      .select("id, route_id")
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .eq("schedule_type", "recurring")
+      .in("id", requestedDogIds);
+
+    if (dogsError) {
+      return { error: dogsError.message };
+    }
+
+    const byId = new Map((assignableDogs ?? []).map((dog) => [dog.id, dog]));
+    const ordered = requestedDogIds.filter((id) => byId.has(id));
+    const previousRouteIds = ordered
+      .map((id) => byId.get(id)?.route_id)
+      .filter((id): id is string => Boolean(id));
+
+    for (let index = 0; index < ordered.length; index++) {
+      const { error: assignError } = await supabase
+        .from("dogs")
+        .update({
+          route_id: route.id,
+          route_sort_order: index,
+        })
+        .eq("id", ordered[index])
+        .eq("company_id", profile.company_id);
+
+      if (assignError) {
+        return { error: assignError.message };
+      }
+    }
+
+    await syncAffectedRoutes(profile.company_id, [
+      ...previousRouteIds,
+      route.id,
+    ]);
+    revalidateRouteDogPaths();
   }
 
+  await revalidateRoutesAndSync(supabase, profile.company_id);
   return { ok: true };
 }
 

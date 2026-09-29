@@ -4,6 +4,8 @@ import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ScheduleDaysField } from "@/features/dogs/components/schedule-days-field";
 import { createRouteAction, updateRouteAction } from "@/features/routes/actions";
+import type { AddableDog } from "@/features/routes/components/route-add-dog-select";
+import { RouteCreateDogPicker } from "@/features/routes/components/route-create-dog-picker";
 import { SubmitButton } from "@/features/admin/components/ui";
 import {
   inputClassName,
@@ -18,6 +20,7 @@ function RouteFormFields({
   defaultPeriod = "morning" as HikePeriod,
   submitLabel,
   pending,
+  dogs,
 }: {
   formKey: string;
   defaultName?: string;
@@ -25,6 +28,7 @@ function RouteFormFields({
   defaultPeriod?: HikePeriod;
   submitLabel: string;
   pending: boolean;
+  dogs?: AddableDog[];
 }) {
   return (
     <div key={formKey} className="space-y-4">
@@ -33,7 +37,7 @@ function RouteFormFields({
           htmlFor="route-name"
           className="block text-sm font-medium text-stone-700"
         >
-          Route name
+          Zone name
         </label>
         <input
           id="route-name"
@@ -41,9 +45,12 @@ function RouteFormFields({
           type="text"
           required
           defaultValue={defaultName}
-          placeholder="e.g. North Van Morning"
+          placeholder="e.g. North Shore Morning"
           className={`mt-1 max-w-md ${inputClassName}`}
         />
+        <p className="mt-1 text-xs text-stone-500">
+          Name the area you service — neighbourhood, side of town, or van run.
+        </p>
       </div>
 
       <div>
@@ -63,16 +70,18 @@ function RouteFormFields({
           <option value="afternoon">Afternoon</option>
         </select>
         <p className="mt-1 text-xs text-stone-500">
-          Morning and afternoon walks are separate routes — different dogs,
-          drivers, and schedules.
+          Same zone in the afternoon is a separate PackRoute — different dogs,
+          driver, and order.
         </p>
       </div>
 
       <ScheduleDaysField
         defaultDays={defaultDays}
         label="Schedule days"
-        hint="Weekdays this route runs."
+        hint="Weekdays this PackRoute runs."
       />
+
+      {dogs ? <RouteCreateDogPicker dogs={dogs} /> : null}
 
       <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
     </div>
@@ -89,7 +98,7 @@ function FormMessages({ state }: { state: { error?: string; ok?: boolean } }) {
       ) : null}
       {state.ok ? (
         <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-          Saved.
+          PackRoute saved.
         </p>
       ) : null}
     </>
@@ -110,7 +119,7 @@ function useRefreshOnOk(ok: boolean | undefined) {
   }, [ok, router]);
 }
 
-export function CreateRouteForm({ returnTo }: { returnTo?: string }) {
+export function CreateRouteForm({ dogs = [] }: { dogs?: AddableDog[] }) {
   const [state, formAction, pending] = useActionState(
     createRouteAction,
     {} as { error?: string; ok?: boolean }
@@ -119,12 +128,12 @@ export function CreateRouteForm({ returnTo }: { returnTo?: string }) {
 
   return (
     <form action={formAction} className="space-y-4">
-      {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       <FormMessages state={state} />
       <RouteFormFields
         formKey={`create-${state.ok ? "saved" : "new"}`}
-        submitLabel="Add route"
+        submitLabel="Create PackRoute"
         pending={pending}
+        dogs={dogs}
       />
     </form>
   );
@@ -158,7 +167,7 @@ export function EditRouteForm({
         defaultName={defaultName}
         defaultDays={defaultDays}
         defaultPeriod={defaultPeriod}
-        submitLabel="Save route"
+        submitLabel="Save PackRoute"
         pending={pending}
       />
     </form>
