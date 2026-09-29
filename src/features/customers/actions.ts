@@ -78,12 +78,8 @@ function formError(
   };
 }
 
-function firstIssueField(
-  issues: { path: (string | number)[] }[]
-): string | undefined {
-  const path = issues[0]?.path;
-  if (!path?.length) return undefined;
-  const name = path[0];
+function firstIssueField(issues: { path: PropertyKey[] }[]): string | undefined {
+  const name = issues[0]?.path[0];
   return typeof name === "string" ? name : undefined;
 }
 
