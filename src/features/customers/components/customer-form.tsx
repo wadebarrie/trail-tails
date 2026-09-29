@@ -8,6 +8,8 @@ import {
 import {
   createCustomerAction,
   updateCustomerAction,
+  type CustomerFormState,
+  type CustomerFormValues,
 } from "@/features/customers/actions";
 import { SubmitButton } from "@/features/admin/components/ui";
 import { customerAddressFormDefaults } from "@/lib/address";
@@ -18,15 +20,7 @@ type CustomerFormProps = {
   returnTo?: string;
 };
 
-export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
-  const action = customer
-    ? updateCustomerAction.bind(null, customer.id)
-    : createCustomerAction;
-
-  const [state, formAction, pending] = useActionState(action, {} as {
-    error?: string;
-  });
-
+function initialValues(customer?: Customer): CustomerFormValues {
   const addressDefaults = customer
     ? customerAddressFormDefaults(customer)
     : {
@@ -37,8 +31,43 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         postal_code: "",
       };
 
+  return {
+    owner_name: customer?.owner_name ?? "",
+    phone: customer?.phone ?? "",
+    secondary_owner_name: customer?.secondary_owner_name ?? "",
+    secondary_phone: customer?.secondary_phone ?? "",
+    email: customer?.email ?? "",
+    address_line1: addressDefaults.address_line1,
+    address_line2: addressDefaults.address_line2,
+    city: addressDefaults.city,
+    state_province: addressDefaults.state_province,
+    postal_code: addressDefaults.postal_code,
+    notes: customer?.notes ?? "",
+    night_before_reminders_enabled:
+      customer?.night_before_reminders_enabled ?? true,
+    is_active: customer?.is_active ?? true,
+  };
+}
+
+export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
+  const action = customer
+    ? updateCustomerAction.bind(null, customer.id)
+    : createCustomerAction;
+
+  const [state, formAction, pending] = useActionState(
+    action,
+    {} as CustomerFormState
+  );
+
+  const values = state.values ?? initialValues(customer);
+
   return (
-    <form action={formAction} className="max-w-lg space-y-4" noValidate>
+    <form
+      key={state.revision ?? 0}
+      action={formAction}
+      className="max-w-lg space-y-4"
+      noValidate
+    >
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       {state.error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -49,7 +78,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
       <Field
         label="Owner name"
         name="owner_name"
-        defaultValue={customer?.owner_name}
+        defaultValue={values.owner_name}
         required
         autoComplete="name"
       />
@@ -58,7 +87,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         name="phone"
         type="tel"
         inputMode="tel"
-        defaultValue={customer?.phone}
+        defaultValue={values.phone}
         required
         autoComplete="tel"
         placeholder="+1 604 555 0100"
@@ -76,7 +105,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           <Field
             label="Name"
             name="secondary_owner_name"
-            defaultValue={customer?.secondary_owner_name ?? ""}
+            defaultValue={values.secondary_owner_name}
             autoComplete="off"
           />
           <Field
@@ -84,7 +113,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
             name="secondary_phone"
             type="tel"
             inputMode="tel"
-            defaultValue={customer?.secondary_phone ?? ""}
+            defaultValue={values.secondary_phone}
             autoComplete="tel"
             placeholder="+1 604 555 0101"
           />
@@ -96,7 +125,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         name="email"
         type="email"
         inputMode="email"
-        defaultValue={customer?.email ?? ""}
+        defaultValue={values.email}
         autoComplete="email"
         placeholder="name@example.com"
         hint="Optional. Must be a valid email if provided."
@@ -112,7 +141,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         <Field
           label="Address line 1"
           name="address_line1"
-          defaultValue={addressDefaults.address_line1}
+          defaultValue={values.address_line1}
           required
           autoComplete="address-line1"
           placeholder="123 Main St"
@@ -120,14 +149,14 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         <Field
           label="Address line 2"
           name="address_line2"
-          defaultValue={addressDefaults.address_line2}
+          defaultValue={values.address_line2}
           autoComplete="address-line2"
           placeholder="Apt, suite, unit (optional)"
         />
         <Field
           label="City"
           name="city"
-          defaultValue={addressDefaults.city}
+          defaultValue={values.city}
           required
           autoComplete="address-level2"
         />
@@ -135,7 +164,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           <Field
             label="State / province"
             name="state_province"
-            defaultValue={addressDefaults.state_province}
+            defaultValue={values.state_province}
             required
             autoComplete="address-level1"
             placeholder="BC"
@@ -143,7 +172,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           <Field
             label="Postal / ZIP"
             name="postal_code"
-            defaultValue={addressDefaults.postal_code}
+            defaultValue={values.postal_code}
             required
             autoComplete="postal-code"
             placeholder="V3M 1R2"
@@ -170,7 +199,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           id="notes"
           name="notes"
           rows={4}
-          defaultValue={customer?.notes ?? ""}
+          defaultValue={values.notes}
           placeholder="Gate code, buzzer #, key location, parking, which door…"
           className={`mt-1 ${textareaClassName}`}
         />
@@ -185,7 +214,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
           type="checkbox"
           name="night_before_reminders_enabled"
           value="true"
-          defaultChecked={customer?.night_before_reminders_enabled ?? true}
+          defaultChecked={values.night_before_reminders_enabled}
           className="mt-0.5"
         />
         <span>
@@ -204,7 +233,7 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
             type="checkbox"
             name="is_active"
             value="true"
-            defaultChecked={customer.is_active}
+            defaultChecked={values.is_active}
           />
           Active
         </label>
