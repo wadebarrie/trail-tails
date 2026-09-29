@@ -34,6 +34,8 @@ export type CustomerFormValues = {
 
 export type CustomerFormState = {
   error?: string;
+  /** Form field name to focus after an error (e.g. state_province). */
+  field?: string;
   values?: CustomerFormValues;
   /** Bumps so the client remounts inputs with preserved values after an error. */
   revision?: number;
@@ -65,13 +67,24 @@ function extractCustomerFormValues(formData: FormData): CustomerFormValues {
 function formError(
   prev: CustomerFormState,
   formData: FormData,
-  error: string
+  error: string,
+  field?: string
 ): CustomerFormState {
   return {
     error,
+    field,
     values: extractCustomerFormValues(formData),
     revision: (prev.revision ?? 0) + 1,
   };
+}
+
+function firstIssueField(
+  issues: { path: (string | number)[] }[]
+): string | undefined {
+  const path = issues[0]?.path;
+  if (!path?.length) return undefined;
+  const name = path[0];
+  return typeof name === "string" ? name : undefined;
 }
 
 function parseCustomerForm(formData: FormData, mode: "create" | "update") {
@@ -127,13 +140,16 @@ export async function createCustomerAction(
     return formError(
       prev,
       formData,
-      parsed.error.issues[0]?.message ?? "Invalid input"
+      parsed.error.issues[0]?.message ?? "Invalid input",
+      firstIssueField(parsed.error.issues)
     );
   }
 
   const composed = formatCustomerAddress(parsed.data);
   const coords = await resolveCustomerCoordinates(composed);
-  if (!coords.ok) return formError(prev, formData, coords.error);
+  if (!coords.ok) {
+    return formError(prev, formData, coords.error, "address_line1");
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from("customers").insert({
@@ -166,7 +182,8 @@ export async function updateCustomerAction(
     return formError(
       prev,
       formData,
-      parsed.error.issues[0]?.message ?? "Invalid input"
+      parsed.error.issues[0]?.message ?? "Invalid input",
+      firstIssueField(parsed.error.issues)
     );
   }
 
@@ -179,7 +196,9 @@ export async function updateCustomerAction(
 
   const composed = formatCustomerAddress(parsed.data);
   const coords = await resolveCustomerCoordinates(composed, existing);
-  if (!coords.ok) return formError(prev, formData, coords.error);
+  if (!coords.ok) {
+    return formError(prev, formData, coords.error, "address_line1");
+  }
 
   const { error } = await supabase
     .from("customers")

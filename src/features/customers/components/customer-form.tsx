@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, type ComponentProps } from "react";
+import { useActionState, useEffect, useRef, type ComponentProps } from "react";
 import {
   inputClassName,
   textareaClassName,
@@ -58,8 +58,31 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
     action,
     {} as CustomerFormState
   );
+  const errorRef = useRef<HTMLParagraphElement>(null);
 
   const values = state.values ?? initialValues(customer);
+
+  useEffect(() => {
+    if (!state.error || !state.revision) return;
+
+    const banner = errorRef.current;
+    banner?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    const fieldName = state.field;
+    const fieldEl = fieldName
+      ? (document.getElementById(fieldName) as HTMLElement | null)
+      : null;
+
+    if (fieldEl && "focus" in fieldEl) {
+      window.setTimeout(() => {
+        fieldEl.focus({ preventScroll: true });
+        fieldEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      return;
+    }
+
+    banner?.focus({ preventScroll: true });
+  }, [state.error, state.field, state.revision]);
 
   return (
     <form
@@ -70,7 +93,13 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
     >
       {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
       {state.error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p
+          ref={errorRef}
+          tabIndex={-1}
+          role="alert"
+          aria-live="assertive"
+          className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 outline-none"
+        >
           {state.error}
         </p>
       ) : null}
