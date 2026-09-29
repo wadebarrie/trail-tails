@@ -16,9 +16,15 @@ export type AddableDog = {
 export function RouteAddDogSelect({
   routeId,
   dogs,
+  emptyHint,
+  emphasize,
 }: {
   routeId: string;
   dogs: AddableDog[];
+  /** Shown when there are no dogs eligible to add (not “all already on this route”). */
+  emptyHint?: string;
+  /** Highlight the control when this PackRoute still needs dogs. */
+  emphasize?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -43,19 +49,28 @@ export function RouteAddDogSelect({
   if (!dogs.length) {
     return (
       <p className="text-sm text-stone-500">
-        Every active dog is already on this route.
+        {emptyHint ??
+          "No other recurring dogs are available to add. Create a dog first, or move one from another PackRoute."}
       </p>
     );
   }
 
   return (
-    <form ref={formRef} action={add} className="flex flex-wrap items-end gap-2">
+    <form
+      ref={formRef}
+      action={add}
+      className={`flex flex-wrap items-end gap-2 rounded-xl p-3 ${
+        emphasize
+          ? "border border-[var(--color-trail-600)] bg-[var(--color-trail-50)]"
+          : "border border-transparent"
+      }`}
+    >
       <div className="min-w-[12rem] flex-1">
         <label
           htmlFor={`add-dog-${routeId}`}
           className="block text-sm font-medium text-stone-700"
         >
-          Add dog
+          Add dog to this PackRoute
         </label>
         <select
           id={`add-dog-${routeId}`}

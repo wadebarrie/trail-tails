@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   completeOnboardingAction,
@@ -13,8 +13,10 @@ import { OnboardingSupportCard } from "@/features/onboarding/components/onboardi
 import { OnboardingCsvImportCallout } from "@/features/onboarding/components/onboarding-csv-import-callout";
 import {
   ONBOARDING_PATH,
+  ONBOARDING_ROUTE_CADENCE_KEY,
   onboardingStepLabel,
   type OnboardingProgress,
+  type OnboardingRouteCadence,
   type OnboardingStepId,
 } from "@/features/onboarding/constants";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
@@ -71,6 +73,34 @@ function DoneCheck({ done }: { done: boolean }) {
   );
 }
 
+function useRouteCadence() {
+  const [cadence, setCadenceState] = useState<OnboardingRouteCadence | null>(
+    null
+  );
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(ONBOARDING_ROUTE_CADENCE_KEY);
+      if (stored === "once" || stored === "twice") {
+        setCadenceState(stored);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  function setCadence(next: OnboardingRouteCadence) {
+    setCadenceState(next);
+    try {
+      window.localStorage.setItem(ONBOARDING_ROUTE_CADENCE_KEY, next);
+    } catch {
+      // ignore
+    }
+  }
+
+  return [cadence, setCadence] as const;
+}
+
 export function OnboardingWizard({
   step,
   progress,
@@ -98,8 +128,14 @@ export function OnboardingWizard({
   const [driverPending, startDriver] = useTransition();
   const [finishPending, startFinish] = useTransition();
   const [dismissPending, startDismiss] = useTransition();
+  const [routeCadence, setRouteCadence] = useRouteCadence();
 
   const routeReturn = `${ONBOARDING_PATH}?step=route`;
+  const packRouteReady =
+    routeCadence === "twice"
+      ? progress.routeChecklist.morning.ready &&
+        progress.routeChecklist.afternoon.ready
+      : progress.hasRoute;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -112,7 +148,7 @@ export function OnboardingWizard({
         </h1>
         <p className="mt-2 text-sm text-stone-600">
           We&apos;ll walk through your first vehicle, driver, customer, dog,
-          route, and company defaults — enough to run a morning. You can refine
+          PackRoute, and company defaults — enough to run a day. You can refine
           everything later.
         </p>
       </div>
@@ -125,10 +161,10 @@ export function OnboardingWizard({
           <h2 className="text-lg font-semibold text-stone-900">Welcome</h2>
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
-            driver, a customer with an address, their dog, and a weekday route
-            with that dog assigned. You can add people one at a time or
-            bulk-import customers and dogs from a CSV. Takes most teams about
-            10–15 minutes.
+            driver, a customer with an address, their dog, and a PackRoute (a
+            service zone) with that dog assigned. You can add people one at a
+            time or bulk-import customers and dogs from a CSV. Takes most teams
+            about 10–15 minutes.
           </p>
           <ul className="space-y-2 text-sm text-stone-700">
             <li className="flex justify-between gap-3">
@@ -148,7 +184,7 @@ export function OnboardingWizard({
               <DoneCheck done={progress.hasDog} />
             </li>
             <li className="flex justify-between gap-3">
-              <span>Runnable route</span>
+              <span>PackRoute</span>
               <DoneCheck done={progress.hasRoute} />
             </li>
             <li className="flex justify-between gap-3">
@@ -357,7 +393,7 @@ export function OnboardingWizard({
               default pickup window
             </strong>{" "}
             — that&apos;s what shows on day plans and SMS. You&apos;ll put them
-            on a route next. Or import customers and dogs together from CSV.
+            on a PackRoute next. Or import customers and dogs together from CSV.
           </p>
           {!progress.hasCustomer ? (
             <p className="text-sm text-amber-800">
@@ -376,7 +412,7 @@ export function OnboardingWizard({
                 href={`${ONBOARDING_PATH}?step=route`}
                 className="font-medium underline-offset-2 hover:underline"
               >
-                Continue to route
+                Continue to PackRoute
               </Link>
             </p>
           ) : (
@@ -394,52 +430,123 @@ export function OnboardingWizard({
       {step === "route" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            5. Create a runnable route
+            5. Set a PackRoute
           </h2>
           <p className="text-sm text-stone-600">
-            A route only shows on Today once it has weekday schedule days and at
-            least one dog assigned. Start with one morning route — you can add
-            more later.
+            A PackRoute is a service zone you cover — a neighbourhood or area —
+            for morning or afternoon. It only shows on Today once it has
+            weekdays and at least one dog assigned.
           </p>
-          <ul className="space-y-2 rounded-lg border border-stone-100 bg-stone-50 px-4 py-3 text-sm text-stone-700">
-            <li className="flex justify-between gap-3">
-              <span>Route created</span>
-              <DoneCheck done={progress.routeChecklist.created} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Schedule days set</span>
-              <DoneCheck done={progress.routeChecklist.hasScheduleDays} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Dog assigned to the route</span>
-              <DoneCheck done={progress.routeChecklist.hasDogAssigned} />
-            </li>
-          </ul>
-          {progress.hasRoute ? (
-            <p className="text-sm text-emerald-700">
-              Route is ready for Today.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=company`}
-                className="font-medium underline-offset-2 hover:underline"
-              >
-                Continue to company info
-              </Link>
+
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-stone-800">
+              How do your days usually run?
+            </legend>
+            <p className="text-xs text-stone-500">
+              Morning and afternoon are separate PackRoutes even in the same
+              zone (different dogs, drivers, and order).
             </p>
-          ) : (
-            <div className="space-y-3">
-              <Link
-                href={`/dashboard/route?returnTo=${encodeURIComponent(routeReturn)}`}
-                className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setRouteCadence("once")}
+                className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                  routeCadence === "once"
+                    ? "border-[var(--color-trail-600)] bg-[var(--color-trail-50)] ring-2 ring-[var(--color-trail-600)]"
+                    : "border-stone-200 bg-white hover:border-stone-300"
+                }`}
               >
-                {progress.routeChecklist.created
-                  ? "Finish route on Routes"
-                  : "Set up a route"}
-              </Link>
-              <p className="text-xs text-stone-500">
-                On Routes: set schedule days, then add your dog under Pickup
-                order. Come back here when the checklist is green.
-              </p>
+                <span className="font-semibold text-stone-900">
+                  One PackRoute per day
+                </span>
+                <span className="mt-1 block text-xs text-stone-600">
+                  Usually mornings only (or afternoons only).
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRouteCadence("twice")}
+                className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                  routeCadence === "twice"
+                    ? "border-[var(--color-trail-600)] bg-[var(--color-trail-50)] ring-2 ring-[var(--color-trail-600)]"
+                    : "border-stone-200 bg-white hover:border-stone-300"
+                }`}
+              >
+                <span className="font-semibold text-stone-900">
+                  Morning and afternoon
+                </span>
+                <span className="mt-1 block text-xs text-stone-600">
+                  Two PackRoutes each day — set both up.
+                </span>
+              </button>
             </div>
+          </fieldset>
+
+          {routeCadence ? (
+            <>
+              <ul className="space-y-2 rounded-lg border border-stone-100 bg-stone-50 px-4 py-3 text-sm text-stone-700">
+                {routeCadence === "once" ? (
+                  <>
+                    <li className="flex justify-between gap-3">
+                      <span>PackRoute created</span>
+                      <DoneCheck done={progress.routeChecklist.created} />
+                    </li>
+                    <li className="flex justify-between gap-3">
+                      <span>Schedule days set</span>
+                      <DoneCheck done={progress.routeChecklist.hasScheduleDays} />
+                    </li>
+                    <li className="flex justify-between gap-3">
+                      <span>Dog assigned to the PackRoute</span>
+                      <DoneCheck done={progress.routeChecklist.hasDogAssigned} />
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li className="flex justify-between gap-3">
+                      <span>Morning PackRoute ready</span>
+                      <DoneCheck done={progress.routeChecklist.morning.ready} />
+                    </li>
+                    <li className="flex justify-between gap-3">
+                      <span>Afternoon PackRoute ready</span>
+                      <DoneCheck
+                        done={progress.routeChecklist.afternoon.ready}
+                      />
+                    </li>
+                  </>
+                )}
+              </ul>
+              {packRouteReady ? (
+                <p className="text-sm text-emerald-700">
+                  PackRoute setup is ready for Today.{" "}
+                  <Link
+                    href={`${ONBOARDING_PATH}?step=company`}
+                    className="font-medium underline-offset-2 hover:underline"
+                  >
+                    Continue to company info
+                  </Link>
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <Link
+                    href={`/dashboard/route?returnTo=${encodeURIComponent(routeReturn)}`}
+                    className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
+                  >
+                    {progress.routeChecklist.created
+                      ? "Finish on Routes"
+                      : "Set a PackRoute"}
+                  </Link>
+                  <p className="text-xs text-stone-500">
+                    {routeCadence === "twice"
+                      ? "On PackRoutes: create a morning zone and an afternoon zone, check the dogs for each, then come back when both checklist items are green."
+                      : "On PackRoutes: name the zone, set weekdays, and check the dogs in the same form. Come back here when the checklist is green."}
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-stone-500">
+              Choose how your days run, then we&apos;ll show what to set up.
+            </p>
           )}
         </Card>
       ) : null}

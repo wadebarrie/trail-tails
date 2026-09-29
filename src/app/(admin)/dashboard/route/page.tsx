@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader, Card, EmptyState } from "@/features/admin/components/ui";
 import { RouteAddDogSelect } from "@/features/routes/components/route-add-dog-select";
 import { RouteDogsList } from "@/features/routes/components/route-dogs-list";
@@ -13,6 +14,7 @@ import { formatScheduleDayLabels } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 import { ONBOARDING_PATH } from "@/features/onboarding/constants";
+import { landingPrimaryButtonClassName } from "@/features/admin/components/button-styles";
 import { safeAppReturnPath } from "@/lib/safe-return-path";
 
 export default async function RouteOrderPage({
@@ -47,27 +49,67 @@ export default async function RouteOrderPage({
   ]);
 
   const allDogs = dogs ?? [];
+  const recurringDogs = allDogs.filter((d) => d.schedule_type !== "as_needed");
 
   return (
     <div>
       <PageHeader
-        title="Routes"
-        description="Each route is a morning or afternoon walk with its own dogs, driver, vehicle, and schedule. Create a separate route per bus — assign different drivers and vehicles so both vans run cleanly."
+        title="PackRoutes"
+        description="A PackRoute is a service zone you cover — usually a neighbourhood or area — for morning or afternoon. Each one has its own dogs, driver, van, and weekdays."
       />
 
+      {returnTo ? (
+        <div className="mb-6 rounded-xl border border-[var(--color-trail-600)] bg-[var(--color-trail-50)] px-4 py-3">
+          <p className="text-sm font-medium text-stone-900">
+            Onboarding: set your PackRoute
+          </p>
+          <p className="mt-1 text-sm text-stone-600">
+            Name the zone, pick morning or afternoon, set weekdays, and check
+            the dogs that ride this run — all in the form below.
+          </p>
+          <Link
+            href={returnTo}
+            className={`${landingPrimaryButtonClassName} mt-3 inline-flex`}
+          >
+            Back to onboarding
+          </Link>
+        </div>
+      ) : null}
+
       <Card className="mb-10">
-        <h2 className="text-lg font-semibold text-stone-900">Add route</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Add PackRoute</h2>
         <p className="mt-1 text-sm text-stone-500">
-          New routes need at least one scheduled day before they show on hike
-          pages.
+          A PackRoute is a service zone (neighbourhood or area) for morning or
+          afternoon. Add dogs while you create it.
         </p>
         <div className="mt-4">
-          <CreateRouteForm returnTo={returnTo} />
+          <CreateRouteForm
+            dogs={recurringDogs
+              .map((dog) => ({
+                id: dog.id,
+                name: dog.name,
+                ownerName:
+                  one(
+                    dog.customers as
+                      | { owner_name: string }
+                      | { owner_name: string }[]
+                  )?.owner_name ?? "",
+                currentRouteName: one(
+                  dog.routes as { name: string } | { name: string }[] | null
+                )?.name,
+              }))
+              .sort((a, b) => {
+                const aAssigned = a.currentRouteName ? 1 : 0;
+                const bAssigned = b.currentRouteName ? 1 : 0;
+                if (aAssigned !== bAssigned) return aAssigned - bAssigned;
+                return a.name.localeCompare(b.name);
+              })}
+          />
         </div>
       </Card>
 
       {!routes.length ? (
-        <EmptyState message="No routes configured yet. Add one above to get started." />
+        <EmptyState message="No PackRoutes yet. Add a service zone above to get started." />
       ) : (
         <div className="space-y-10">
           {routes.map((route) => {
@@ -173,7 +215,18 @@ export default async function RouteOrderPage({
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-stone-700">Dogs</h3>
 
-                  <RouteAddDogSelect routeId={route.id} dogs={addableDogs} />
+                  <RouteAddDogSelect
+                    routeId={route.id}
+                    dogs={addableDogs}
+                    emphasize={routeDogs.length === 0}
+                    emptyHint={
+                      recurringDogs.length === 0
+                        ? "No recurring dogs yet — add a dog first, then assign them here."
+                        : routeDogs.length === recurringDogs.length
+                          ? "Every recurring dog is already on this PackRoute."
+                          : undefined
+                    }
+                  />
 
                   <div>
                     <h4 className="mb-1 text-sm font-medium text-stone-600">
@@ -221,7 +274,8 @@ export default async function RouteOrderPage({
                       </>
                     ) : (
                       <p className="text-sm text-stone-500">
-                        No dogs on this route yet.
+                        No dogs on this PackRoute yet — check dogs in the form
+                        above when creating, or use Add dog here.
                       </p>
                     )}
                   </div>
