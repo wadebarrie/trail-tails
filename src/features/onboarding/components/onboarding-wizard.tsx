@@ -12,10 +12,11 @@ import {
 } from "@/features/onboarding/actions";
 import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
 import { OnboardingCsvImportCallout } from "@/features/onboarding/components/onboarding-csv-import-callout";
+import { OnboardingProgressNav } from "@/features/onboarding/components/onboarding-progress-nav";
+import { OnboardingWalkthroughTip } from "@/features/onboarding/components/onboarding-walkthrough-tip";
 import {
   ONBOARDING_PATH,
   ONBOARDING_ROUTE_CADENCE_KEY,
-  onboardingStepLabel,
   type OnboardingProgress,
   type OnboardingRouteCadence,
   type OnboardingStepId,
@@ -27,44 +28,6 @@ import {
 } from "@/features/admin/components/button-styles";
 import { inputClassName } from "@/features/admin/components/form-styles";
 import { Card } from "@/features/admin/components/ui";
-
-const STEP_ORDER: OnboardingStepId[] = [
-  "welcome",
-  "vehicle",
-  "driver",
-  "customer",
-  "dog",
-  "route",
-  "company",
-  "done",
-];
-
-function StepDots({ current }: { current: OnboardingStepId }) {
-  const idx = STEP_ORDER.indexOf(current);
-  return (
-    <ol className="flex flex-wrap gap-2" aria-label="Setup progress">
-      {STEP_ORDER.filter((s) => s !== "welcome" && s !== "done").map((step, i) => {
-        const stepIndex = STEP_ORDER.indexOf(step);
-        const done = stepIndex < idx;
-        const active = step === current;
-        return (
-          <li
-            key={step}
-            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-              active
-                ? "bg-[var(--color-trail-700)] text-white"
-                : done
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-stone-100 text-stone-500"
-            }`}
-          >
-            {i + 1}. {onboardingStepLabel(step)}
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
 
 function DoneCheck({ done }: { done: boolean }) {
   return done ? (
@@ -133,27 +96,24 @@ export function OnboardingWizard({
       : progress.hasRoute;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-5">
       <div>
         <p className="text-sm font-medium text-[var(--color-trail-700)]">
           First-run setup
         </p>
-        <h1 className="mt-1 text-2xl font-semibold text-stone-900">
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-stone-900">
           Set up {companyName}
         </h1>
-        <p className="mt-2 text-sm text-stone-600">
-          We&apos;ll walk through your first vehicle, driver, customer, dog,
-          PackRoute, and company defaults — enough to run a day. You can refine
-          everything later.
-        </p>
       </div>
 
-      <StepDots current={step} />
-      <OnboardingSupportCard />
+      <OnboardingProgressNav current={step} progress={progress} />
+      <OnboardingWalkthroughTip companyName={companyName} />
 
       {step === "welcome" ? (
         <Card className="space-y-4">
-          <h2 className="text-lg font-semibold text-stone-900">Welcome</h2>
+          <h2 className="text-lg font-semibold text-stone-900">
+            Ready when you are
+          </h2>
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
             driver, a customer with an address, their dog, and a PackRoute (a
@@ -192,7 +152,7 @@ export function OnboardingWizard({
               href={`${ONBOARDING_PATH}?step=vehicle`}
               className={landingPrimaryButtonClassName}
             >
-              Start setup
+              Start with vehicle
             </Link>
             <button
               type="button"
@@ -213,10 +173,10 @@ export function OnboardingWizard({
       {step === "vehicle" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            1. Add your first vehicle
+            Add your first vehicle
           </h2>
           <p className="text-sm text-stone-600">
-            Drivers pick a van or truck for the morning. A nickname is enough —
+            Drivers pick a van or truck for the day. A nickname is enough —
             plate and capacity are optional.
           </p>
           {progress.hasVehicle ? (
@@ -296,7 +256,7 @@ export function OnboardingWizard({
       {step === "driver" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            2. Add a driver
+            Add a driver
           </h2>
           <p className="text-sm text-stone-600">
             Drivers use the mobile Today view. As company admin you can enable
@@ -348,7 +308,7 @@ export function OnboardingWizard({
       {step === "customer" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            3. Add your first customer
+            Add your first customer
           </h2>
           <p className="text-sm text-stone-600">
             Customers need a full street address so we can geocode pickups and
@@ -380,7 +340,7 @@ export function OnboardingWizard({
       {step === "dog" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            4. Add a dog
+            Add a dog
           </h2>
           <p className="text-sm text-stone-600">
             Attach a dog to that customer and set their{" "}
@@ -425,7 +385,7 @@ export function OnboardingWizard({
       {step === "route" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            5. Set a PackRoute
+            Set a PackRoute
           </h2>
           <p className="text-sm text-stone-600">
             A PackRoute is a service zone you cover — a neighbourhood or area —
@@ -549,7 +509,7 @@ export function OnboardingWizard({
       {step === "company" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            6. Company defaults
+            Company defaults
           </h2>
           <p className="text-sm text-stone-600">
             Set your default hike price and when customers get the night-before
@@ -652,23 +612,33 @@ export function OnboardingWizard({
       ) : null}
 
       {step !== "welcome" && step !== "done" ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <button
-            type="button"
-            disabled={dismissPending}
-            className="text-stone-500 underline-offset-2 hover:underline"
-            onClick={() =>
-              startDismiss(async () => {
-                await dismissOnboardingAction();
-              })
-            }
-          >
-            Skip setup for now
-          </button>
-          <Link href="/dashboard/help" className="text-[var(--color-trail-700)] hover:underline">
-            Full help guide
-          </Link>
+        <div className="space-y-4 border-t border-stone-200 pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+            <button
+              type="button"
+              disabled={dismissPending}
+              className="text-stone-500 underline-offset-2 hover:underline"
+              onClick={() =>
+                startDismiss(async () => {
+                  await dismissOnboardingAction();
+                })
+              }
+            >
+              Skip setup for now
+            </button>
+            <Link
+              href="/dashboard/help"
+              className="text-[var(--color-trail-700)] hover:underline"
+            >
+              Full help guide
+            </Link>
+          </div>
+          <OnboardingSupportCard compact />
         </div>
+      ) : null}
+
+      {step === "welcome" ? (
+        <OnboardingSupportCard compact />
       ) : null}
     </div>
   );
