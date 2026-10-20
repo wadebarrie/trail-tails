@@ -35,7 +35,7 @@ function FaqAnswer({ text }: { text: string }) {
 
 const FEATURES = [
   {
-    title: "Automated SMS for dog owners",
+    title: "Automated texts for your customers",
     description:
       "Night-before confirmations, en-route ETAs, and pickup or drop-off updates fire from driver taps — so families get answers without WhatsApp group chats or drivers texting each stop.",
   },
@@ -78,7 +78,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
           />
           <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
             <div>
-              <SectionLabel>Proactive SMS for dog owners</SectionLabel>
+              <SectionLabel>For walking and hiking companies</SectionLabel>
               <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
                 {HOME_H1}
               </h1>
@@ -358,7 +358,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
           <div className="mx-auto max-w-xl px-4 sm:px-6">
             <div className="text-center">
               <h2 className="text-3xl font-semibold sm:text-4xl">
-                Happier dog owners. Fewer manual texts.
+                Fewer manual texts. Happier customers.
               </h2>
               <p className="mt-4 text-lg text-white/80">
                 Book a demo — we&apos;ll reply within a business day.
