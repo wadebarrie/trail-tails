@@ -9,6 +9,7 @@ import {
   daysRemainingInTrial,
   subscriptionPlanLabel,
 } from "@/features/subscription/helpers";
+import { formatAdminDate } from "@/lib/dates";
 import type { Subscription } from "@/features/subscription/types";
 
 function statusLabel(status: string) {
@@ -56,7 +57,9 @@ export function CompanyBillingCard({
           <div>
             <dt className="text-stone-500">Price</dt>
             <dd className="font-medium text-stone-900">
-              ${subscription.monthly_price}/{subscription.billing_interval === "yearly" ? "mo billed yearly" : "mo"}
+              {subscription.status === "trial" && subscription.monthly_price === 0
+                ? "No charge during trial"
+                : `$${subscription.monthly_price}/${subscription.billing_interval === "yearly" ? "mo billed yearly" : "mo"}`}
             </dd>
           </div>
           {trialDays != null ? (
@@ -68,6 +71,9 @@ export function CompanyBillingCard({
                   : trialDays === 0
                     ? "Ends today"
                     : `${trialDays} day${trialDays === 1 ? "" : "s"} left`}
+                {subscription.trial_ends_at
+                  ? ` · ends ${formatAdminDate(subscription.trial_ends_at)}`
+                  : ""}
               </dd>
             </div>
           ) : null}

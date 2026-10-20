@@ -1,12 +1,10 @@
-import Link from "next/link";
+import { RosterTable } from "@/features/admin/components/roster-table";
 import {
-  Badge,
   EmptyState,
   PageHeader,
   PrimaryLink,
-  TableShell,
-  motionTableRowClassName,
 } from "@/features/admin/components/ui";
+import { formatPhoneDisplay } from "@/lib/phone";
 import { requireRole } from "@/features/auth/queries";
 import { EnableSelfAsDriverButton } from "@/features/drivers/components/enable-self-as-driver-button";
 import { listAssignableDrivers } from "@/features/drivers/queries";
@@ -49,44 +47,26 @@ export default async function DriversPage() {
           }
         />
       ) : (
-        <TableShell>
-          <table className="min-w-full text-sm">
-            <thead className="bg-stone-50 text-left text-stone-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Phone</th>
-                <th className="px-4 py-3 font-medium">Role</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {drivers.map((d) => (
-                <tr key={d.id} className={motionTableRowClassName}>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/dashboard/drivers/${d.id}`}
-                      className="font-medium text-[var(--color-trail-700)] hover:underline"
-                    >
-                      {d.full_name}
-                      {d.id === profile.id ? " (you)" : ""}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-stone-600">{d.phone ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={d.role === "admin" ? "amber" : "neutral"}>
-                      {d.role === "admin" ? "Admin + driver" : "Driver"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge tone={d.is_active ? "green" : "neutral"}>
-                      {d.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </TableShell>
+        <RosterTable
+          noun="driver"
+          searchPlaceholder="Search by name or phone…"
+          columns={[
+            { key: "name", label: "Name" },
+            { key: "phone", label: "Phone" },
+            { key: "role", label: "Role" },
+            { key: "status", label: "Status" },
+          ]}
+          rows={drivers.map((d) => ({
+            id: d.id,
+            href: `/dashboard/drivers/${d.id}`,
+            cells: {
+              name: `${d.full_name}${d.id === profile.id ? " (you)" : ""}`,
+              phone: formatPhoneDisplay(d.phone),
+              role: d.role === "admin" ? "Admin + driver" : "Driver",
+              status: d.is_active ? "Active" : "Inactive",
+            },
+          }))}
+        />
       )}
     </div>
   );

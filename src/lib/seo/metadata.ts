@@ -190,8 +190,12 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
     a: "Drivers tap status on PackRoute’s mobile Today view; PackRoute sends night-before reminders, ETAs, and pickup texts automatically. Customers reply by text for skip requests that wait for office approval.",
   },
   {
+    q: "How long does setup take?",
+    a: "Most teams are sending real customer texts the same day. In-app setup is a vehicle, a driver, a customer, a dog, and a route, and usually takes under an hour. We also do a 30–45 minute onboarding screenshare and can import a CSV of customers and dogs.",
+  },
+  {
     q: "How much does PackRoute cost?",
-    a: "From $99/month during beta (one hiker). First month free after a demo. See /pricing for tiers.",
+    a: "From $99/month during beta (one driver). First month free after a demo. See the pricing page for tiers.",
   },
   {
     q: "Is PackRoute a Time to Pet alternative?",

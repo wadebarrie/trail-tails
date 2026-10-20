@@ -86,6 +86,41 @@ export function formatDateLabel(dateStr: string, timeZone: string): string {
   }).format(new Date(`${dateStr}T12:00:00`));
 }
 
+function adminDateValue(value: string | Date): Date {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(`${value}T12:00:00Z`);
+  }
+  return typeof value === "string" ? new Date(value) : value;
+}
+
+/** Admin lists: 20 Oct 2026 (en-CA), in the company timezone. */
+export function formatAdminDate(
+  value: string | Date,
+  timeZone = "America/Vancouver"
+): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(adminDateValue(value));
+}
+
+/** Admin lists: 20 Oct 2026, 6:00 a.m. */
+export function formatAdminDateTime(
+  value: string | Date,
+  timeZone = "America/Vancouver"
+): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(adminDateValue(value));
+}
+
 export function formatTime(time: string): string {
   const [hour, minute] = time.split(":");
   const h = Number(hour);

@@ -86,7 +86,7 @@ export const privacyDocument: LegalDocumentContent = {
         },
         {
           type: "p",
-          text: "Business customers are responsible for obtaining any consent required from their own customers, staff, and other individuals whose information they upload to PackRoute.",
+          text: "Business customers are responsible for obtaining any consent required from their own customers, staff, and other individuals whose information they upload to PackRoute. Customer texts are sent from PackRoute’s business number. Recipients can text STOP REMINDERS to turn off night-before reminders; pickup and drop-off status texts still send while the dog is scheduled.",
         },
       ],
     },

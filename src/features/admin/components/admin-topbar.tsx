@@ -24,7 +24,7 @@ export function AdminTopbar({
           </div>
 
           <div className="hidden min-w-0 flex-1 md:block">
-            <AdminGlobalSearch />
+            <AdminGlobalSearch inputId="admin-global-search-desktop" />
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
@@ -51,7 +51,7 @@ export function AdminTopbar({
         </div>
 
         <div className="md:hidden">
-          <AdminGlobalSearch />
+          <AdminGlobalSearch inputId="admin-global-search-mobile" />
         </div>
       </div>
     </header>

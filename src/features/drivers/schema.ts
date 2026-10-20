@@ -24,7 +24,6 @@ export const driverCreateSchema = z.object({
     .toLowerCase()
     .email("Enter a valid email address"),
   phone: optionalPhone,
-  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export const driverUpdateSchema = z.object({

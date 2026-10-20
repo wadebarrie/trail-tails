@@ -60,7 +60,7 @@ export default async function ImportPage({
       ) : null}
 
       <PageHeader
-        title="Bulk import"
+        title="Import spreadsheet"
         description="Download a CSV template, fill in your customers and dogs, then upload to import everything at once. Leave route blank if you will assign routes later."
         action={
           <div className="flex flex-wrap gap-2">

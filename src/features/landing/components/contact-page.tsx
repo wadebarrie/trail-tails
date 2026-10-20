@@ -19,10 +19,27 @@ export function ContactPageContent() {
         </h1>
         <p className="mt-4 text-lg text-stone-600">
           Book a demo, ask about early access, or send a question. We&apos;ll
-          reply to{" "}
+          reply from{" "}
           <span className="font-medium text-stone-800">{SITE_CONTACT_EMAIL}</span>
           .
         </p>
+
+        <section className="mt-10 space-y-4 text-sm leading-relaxed text-stone-600">
+          <h2 className="text-lg font-semibold text-stone-900">
+            What connects, and how data is handled
+          </h2>
+          <p>
+            Every plan includes CSV export for billing. QuickBooks Online and
+            Xero sync are optional paid add-ons — we turn them on for your
+            company when you ask. There is no separate status page; email{" "}
+            {SITE_CONTACT_EMAIL} if the product is down.
+          </p>
+          <p>
+            Office admins sign in with a password and an authenticator app.
+            Each company only sees its own customers, dogs, and routes. Texts
+            go out through Twilio from PackRoute&apos;s business number.
+          </p>
+        </section>
 
         <div className="mt-10 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
           <ContactForm />
@@ -41,13 +58,7 @@ export function ContactPageContent() {
         </p>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/#how-it-works", label: "How it works" },
-          { href: "/#features", label: "Features" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

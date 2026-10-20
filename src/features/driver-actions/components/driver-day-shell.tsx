@@ -31,6 +31,7 @@ import {
   isBriefingDismissed,
 } from "@/features/driver-actions/use-briefing-dismissed";
 import type { DriverDayView as DriverDayViewData } from "@/features/driver-actions/queries";
+import { formatWindowRange } from "@/lib/dates";
 
 type DriverDayShellProps = {
   active: "today" | "tomorrow";
@@ -156,6 +157,13 @@ function DriverDayShellInner({
         dogCount={totalPickups}
         estimatedPickupCompletion={estimatedCompletion}
         notes={briefingNotes}
+        stops={allPickups.map((stop) => ({
+          id: stop.id,
+          dogName: stop.dogName,
+          ownerName: stop.ownerName,
+          address: stop.address,
+          windowLabel: formatWindowRange(stop.windowStart, stop.windowEnd),
+        }))}
         startLabel={startRouteCtaLabel(day)}
         onStart={handleStartRoute}
       />

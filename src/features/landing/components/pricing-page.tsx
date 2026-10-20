@@ -212,14 +212,7 @@ export function PricingPageContent({
         </section>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/", label: "Home" },
-          { href: "/dog-walking-software", label: "Product" },
-          { href: "/contact", label: "Contact" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

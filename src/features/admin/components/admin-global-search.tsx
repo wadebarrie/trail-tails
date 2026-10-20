@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { AdminSearchHit } from "@/features/admin/search";
 
-export function AdminGlobalSearch() {
+export function AdminGlobalSearch({
+  inputId,
+}: {
+  inputId: string;
+}) {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<AdminSearchHit[]>([]);
   const [open, setOpen] = useState(false);
@@ -67,7 +71,7 @@ export function AdminGlobalSearch() {
 
   return (
     <div ref={rootRef} className="relative w-full max-w-xl">
-      <label className="sr-only" htmlFor="admin-global-search">
+      <label className="sr-only" htmlFor={inputId}>
         Search customers, dogs, drivers, vehicles, and routes
       </label>
       <div className="relative">
@@ -82,7 +86,7 @@ export function AdminGlobalSearch() {
         </span>
         <input
           ref={inputRef}
-          id="admin-global-search"
+          id={inputId}
           type="search"
           autoComplete="off"
           role="combobox"

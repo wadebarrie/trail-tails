@@ -6,6 +6,8 @@ import {
   motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { getCompanyTimezone } from "@/features/company/queries";
+import { formatAdminDateTime } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import type { LogCategory, LogLevel } from "@/lib/logger";
 
@@ -42,6 +44,7 @@ function formatContext(context: Record<string, unknown> | null) {
 
 export default async function SystemLogsPage() {
   const profile = await requireRole("admin");
+  const timeZone = await getCompanyTimezone(profile.company_id);
   const supabase = await createClient();
 
   const { data: logs } = await supabase
@@ -79,7 +82,7 @@ export default async function SystemLogsPage() {
                 return (
                   <tr key={row.id} className={`align-top ${motionTableRowClassName}`}>
                     <td className="whitespace-nowrap px-4 py-3 text-stone-500">
-                      {new Date(row.created_at).toLocaleString()}
+                      {formatAdminDateTime(row.created_at, timeZone)}
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={toneForLevel(row.level)}>{row.level}</Badge>

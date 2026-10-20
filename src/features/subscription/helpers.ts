@@ -85,11 +85,24 @@ export function defaultTrialWindow(from = new Date()): {
   return { trialStartsAt, trialEndsAt };
 }
 
+const PLAN_LABELS: Record<string, string> = {
+  one_hiker: "One driver",
+  two_hikers: "Two drivers",
+  three_plus: "Three+ drivers",
+  starter: "Trial",
+  growth: "Growth",
+  enterprise: "Enterprise",
+  beta_partner: "Beta partner",
+};
+
 export function subscriptionPlanLabel(plan: string): string {
-  return plan
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  return (
+    PLAN_LABELS[plan] ??
+    plan
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ")
+  );
 }
 
 export function subscriptionStatusLabel(status: string): string {

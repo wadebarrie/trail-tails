@@ -70,17 +70,11 @@ export function DriverForm({ driver, email, returnTo }: DriverFormProps) {
             autoComplete="off"
             placeholder="driver@example.com"
           />
-          <Field
-            label="Temporary password"
-            name="password"
-            type="password"
-            required
-            autoComplete="new-password"
-          />
           <p className="-mt-2 text-xs text-stone-500">
-            Share this with the driver so they can sign in. If the email belongs
-            to a company admin, we enable driver access on that existing login
-            instead of creating a second account.
+            We email an invite link. The driver sets their own password. The
+            link expires — you can resend it from their profile. If the email
+            already belongs to a company admin, we enable driver access on that
+            login instead of creating a second account.
           </p>
         </>
       )}

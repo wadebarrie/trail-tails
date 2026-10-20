@@ -10,6 +10,7 @@ import {
 } from "@/features/dogs/actions";
 import { ExceptionFormFields } from "@/features/dogs/components/exception-form-fields";
 import { formatExceptionDates } from "@/features/dogs/exception-utils";
+import { humanRequestReason } from "@/features/pending-requests/labels";
 import type { ExceptionType } from "@/types";
 
 type DogOption = { id: string; name: string };
@@ -201,7 +202,7 @@ export function ExceptionsTable({
                   ex.exception_type
                 )}
               </td>
-              <td className="px-4 py-3 text-stone-600">{ex.reason ?? "—"}</td>
+              <td className="px-4 py-3 text-stone-600">{humanRequestReason(ex.reason)}</td>
               <td className="px-4 py-3">
                 <ExceptionActions
                   exception={ex}

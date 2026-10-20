@@ -40,7 +40,7 @@ export function AdventureDogHikingSoftwarePageContent() {
             PackRoute texts adventure dog hiking customers for you —
             night-before reminders, ETAs, and pickup updates — so families stay
             informed and your team stops living in WhatsApp. Routes and drivers
-            make those messages match the real van day.
+            make those messages match the route day.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Not a consumer marketplace or in-home pet sitting app. Built for
@@ -138,14 +138,7 @@ export function AdventureDogHikingSoftwarePageContent() {
         </section>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/", label: "Home" },
-          { href: "/dog-walking-software", label: "Dog walking software" },
-          { href: "/contact", label: "Contact" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

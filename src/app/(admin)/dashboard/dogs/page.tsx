@@ -1,32 +1,33 @@
-import Link from "next/link";
+import { RosterTable } from "@/features/admin/components/roster-table";
 import {
   EmptyState,
   PageHeader,
   PrimaryLink,
-  Badge,
-  TableShell,
-  SearchBar,
-  motionTableRowClassName,
 } from "@/features/admin/components/ui";
 import { QueryErrorBanner } from "@/features/admin/components/query-error-banner";
 import { requireRole } from "@/features/auth/queries";
+import { listAssignableDrivers } from "@/features/drivers/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatTime, WEEKDAYS } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";
 
-export default async function DogsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>;
-}) {
+function weekdayLabels(days: number[]) {
+  return [...days]
+    .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
+    .map((day) => WEEKDAYS.find((weekday) => weekday.value === day)?.label)
+    .filter(Boolean)
+    .join(", ");
+}
+
+export default async function DogsPage() {
   const profile = await requireRole("admin");
-  const { q } = await searchParams;
   const supabase = await createClient();
 
-  const base = supabase
-    .from("dogs")
-    .select(
-      `
+  const [{ data: dogs, error }, drivers, { data: vehicles }] = await Promise.all([
+    supabase
+      .from("dogs")
+      .select(
+        `
       id,
       name,
       breed,
@@ -36,16 +37,18 @@ export default async function DogsPage({
       pickup_window_end,
       route_sort_order,
       customers ( owner_name ),
-      routes ( name ),
+      routes ( name, default_vehicle_id, default_driver_id ),
       dog_schedule_days ( day_of_week )
     `
-    )
-    .eq("company_id", profile.company_id)
-    .order("route_sort_order");
-
-  const { data: dogs, error } = q
-    ? await base.ilike("name", `%${q}%`)
-    : await base;
+      )
+      .eq("company_id", profile.company_id)
+      .order("route_sort_order"),
+    listAssignableDrivers(profile.company_id, { activeOnly: false }),
+    supabase
+      .from("vehicles")
+      .select("id, name")
+      .eq("company_id", profile.company_id),
+  ]);
 
   return (
     <div>
@@ -55,107 +58,69 @@ export default async function DogsPage({
         action={<PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>}
       />
 
-      <SearchBar defaultValue={q} placeholder="Search by dog name…" />
-
       {error ? <QueryErrorBanner /> : null}
 
       {!error && !dogs?.length ? (
         <EmptyState
-          message={
-            q
-              ? "No dogs match that search."
-              : "No dogs yet. Add your first dog to start building routes."
-          }
-          action={
-            q ? undefined : (
-              <PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>
-            )
-          }
+          message="No dogs yet. Add your first dog to start building routes."
+          action={<PrimaryLink href="/dashboard/dogs/new">Add dog</PrimaryLink>}
         />
       ) : !error && dogs?.length ? (
-        <TableShell minWidth="42rem">
-          <table className="min-w-full text-sm">
-            <thead className="bg-stone-50 text-left text-stone-500">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Dog
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Owner
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Route
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Pickup
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Days
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {dogs.map((dog) => {
-                const scheduleDays = (dog.dog_schedule_days ?? []) as {
-                  day_of_week: number;
-                }[];
-                const customer = one(
-                  dog.customers as
-                    | { owner_name: string }
-                    | { owner_name: string }[]
-                );
-                const route = one(
-                  dog.routes as { name: string } | { name: string }[] | null
-                );
-                const days = scheduleDays
-                  .map(
-                    (d) =>
-                      WEEKDAYS.find((w) => w.value === d.day_of_week)?.label
-                  )
-                  .filter(Boolean)
-                  .join(", ");
-                const scheduleLabel =
-                  dog.schedule_type === "as_needed"
-                    ? "Only when booked"
-                    : days || "—";
-
-                return (
-                  <tr key={dog.id} className={motionTableRowClassName}>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/dashboard/dogs/${dog.id}`}
-                        className="font-medium text-[var(--color-trail-700)] hover:underline"
-                      >
-                        {dog.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-stone-600">
-                      {customer?.owner_name}
-                    </td>
-                    <td className="px-4 py-3 text-stone-600">
-                      {route?.name ?? (
-                        <span className="text-stone-400">Unassigned</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-stone-600">
-                      {formatTime(dog.pickup_window_start)}–
-                      {formatTime(dog.pickup_window_end)}
-                    </td>
-                    <td className="px-4 py-3 text-stone-600">{scheduleLabel}</td>
-                    <td className="px-4 py-3">
-                      <Badge tone={dog.is_active ? "green" : "neutral"}>
-                        {dog.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </TableShell>
+        <RosterTable
+          noun="dog"
+          searchPlaceholder="Search by dog, owner, route, or van…"
+          columns={[
+            { key: "name", label: "Dog" },
+            { key: "owner", label: "Owner" },
+            { key: "route", label: "Route" },
+            { key: "van", label: "Van / driver" },
+            { key: "pickup", label: "Pickup" },
+            { key: "days", label: "Days" },
+            { key: "status", label: "Status" },
+          ]}
+          rows={dogs.map((dog) => {
+            const scheduleDays = (dog.dog_schedule_days ?? []) as {
+              day_of_week: number;
+            }[];
+            const customer = one(
+              dog.customers as
+                | { owner_name: string }
+                | { owner_name: string }[]
+            );
+            const route = one(
+              dog.routes as
+                | {
+                    name: string;
+                    default_vehicle_id: string | null;
+                    default_driver_id: string | null;
+                  }
+                | {
+                    name: string;
+                    default_vehicle_id: string | null;
+                    default_driver_id: string | null;
+                  }[]
+                | null
+            );
+            const van = vehicles?.find((v) => v.id === route?.default_vehicle_id);
+            const driver = drivers.find((d) => d.id === route?.default_driver_id);
+            const days = weekdayLabels(scheduleDays.map((d) => d.day_of_week));
+            const scheduleLabel =
+              dog.schedule_type === "as_needed" ? "Only when booked" : days;
+            return {
+              id: dog.id,
+              href: `/dashboard/dogs/${dog.id}`,
+              cells: {
+                name: dog.name,
+                owner: customer?.owner_name ?? "",
+                route: route?.name ?? "Unassigned",
+                van: [van?.name, driver?.full_name].filter(Boolean).join(" · "),
+                pickup: `${formatTime(dog.pickup_window_start)}–${formatTime(dog.pickup_window_end)}`,
+                days: scheduleLabel,
+                status: dog.is_active ? "Active" : "Inactive",
+              },
+            };
+          })}
+        />
       ) : null}
     </div>
   );

@@ -44,7 +44,7 @@ export function OnboardingWalkthroughTip({
     <aside className="relative rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 pr-12">
       <p className="text-sm font-medium text-stone-900">How this works</p>
       <p className="mt-1 text-sm text-stone-600">
-        We&apos;ll walk through a vehicle, driver, customer, dog, PackRoute, and
+        We&apos;ll walk through a vehicle, driver, customer, dog, route, and
         company defaults for {companyName} — enough to run a day. You can refine
         everything later.
       </p>

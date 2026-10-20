@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   Badge,
   Card,
@@ -37,9 +36,7 @@ export default async function DashboardPage() {
   const profile = await requireRole("admin");
   timer.mark("auth");
 
-  if (await companyNeedsOnboarding(profile.company_id)) {
-    redirect(ONBOARDING_PATH);
-  }
+  const needsOnboarding = await companyNeedsOnboarding(profile.company_id);
 
   const supabase = await createClient();
   const tz = await getCompanyTimezone(profile.company_id);
@@ -54,6 +51,8 @@ export default async function DashboardPage() {
     { count: customerCount },
     { count: dogCount },
     { count: routeCount },
+    { count: vehicleCount },
+    { count: driverCount },
   ] = await Promise.all([
     getHikeDaySummaries(profile.company_id, [today, tomorrow], {
       timeZone: tz,
@@ -78,6 +77,17 @@ export default async function DashboardPage() {
       .select("*", { count: "exact", head: true })
       .eq("company_id", profile.company_id)
       .eq("is_active", true),
+    supabase
+      .from("vehicles")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .or("role.eq.driver,can_drive.eq.true"),
   ]);
   timer.end();
 
@@ -92,6 +102,34 @@ export default async function DashboardPage() {
     routesWithDogs: 0,
   };
   const pending = pendingCount ?? 0;
+  const setupSteps = [
+    {
+      label: "Vehicle",
+      done: (vehicleCount ?? 0) > 0,
+      href: "/dashboard/vehicles",
+    },
+    {
+      label: "Driver",
+      done: (driverCount ?? 0) > 0,
+      href: "/dashboard/drivers",
+    },
+    {
+      label: "Customer",
+      done: (customerCount ?? 0) > 0,
+      href: "/dashboard/customers",
+    },
+    {
+      label: "Dog",
+      done: (dogCount ?? 0) > 0,
+      href: "/dashboard/dogs",
+    },
+    {
+      label: "Route",
+      done: (routeCount ?? 0) > 0,
+      href: "/dashboard/route",
+    },
+  ];
+  const setupDone = setupSteps.filter((step) => step.done).length;
 
   const operationsCards = [
     {
@@ -104,12 +142,12 @@ export default async function DashboardPage() {
       cta: "Open today’s list",
     },
     {
-      title: "Customer texts",
+      title: "Schedule requests",
       value: String(pending),
       href: "/dashboard/pending-requests",
       hint:
         pending === 0
-          ? "No customer texts waiting"
+          ? "No schedule requests waiting"
           : pending === 1
             ? "Approve or decline before it affects the route"
             : "Approve or decline before they affect routes",
@@ -118,7 +156,7 @@ export default async function DashboardPage() {
         pending > 0
           ? "border-l-amber-500 bg-amber-50/70"
           : "border-l-stone-300",
-      cta: pending > 0 ? "Review texts" : "View inbox",
+      cta: pending > 0 ? "Review requests" : "View queue",
     },
     {
       title: "Tomorrow",
@@ -161,6 +199,41 @@ export default async function DashboardPage() {
         description={`${formatDateLabel(today, tz)} — who’s on the vans and what needs attention.`}
         action={<PrimaryLink href="/dashboard/hikes/today">Open today</PrimaryLink>}
       />
+
+      {setupDone < setupSteps.length ? (
+        <section className="mb-6 rounded-xl border border-[var(--color-trail-200)] bg-[var(--color-trail-50)] px-4 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-stone-900">
+              First-run setup · {setupDone} of {setupSteps.length}
+            </h2>
+            {needsOnboarding ? (
+              <Link
+                href={ONBOARDING_PATH}
+                className="text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                Open the guided setup
+              </Link>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm text-stone-600">
+            Add a vehicle, driver, customer, dog, and route. This list hides
+            once every step has something on it.
+          </p>
+          <ol className="mt-3 space-y-1 text-sm">
+            {setupSteps.map((step, index) => (
+              <li key={step.label}>
+                <Link href={step.href} className="hover:underline">
+                  {index + 1}. {step.label}
+                </Link>
+                <span className="text-stone-500">
+                  {" "}
+                  · {step.done ? "Done" : "Still needed"}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
 
       {pending > 0 ? (
         <Link
@@ -261,7 +334,7 @@ export default async function DashboardPage() {
             Add dog
           </Link>
           <Link
-            href="/dashboard/billing"
+            href="/dashboard/hike-report"
             className="rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm font-semibold text-stone-800 shadow-sm motion-interactive hover:border-[var(--color-trail-600)] hover:text-[var(--color-trail-700)]"
           >
             Hike report

@@ -24,28 +24,28 @@ export type PricingTier = {
 export const PRICING_TIERS: readonly PricingTier[] = [
   {
     id: "one_hiker",
-    name: "One hiker",
+    name: "One driver",
     priceMonthly: 99,
     priceLabel: "$99/month",
-    hikers: "1 hiker or walker on the road",
+    hikers: "1 driver on the road",
     dogs: "Up to 20 active dogs a week",
   },
   {
     id: "two_hikers",
-    name: "Two hikers",
+    name: "Two drivers",
     badge: "Most common",
     priceMonthly: 179,
     priceLabel: "$179/month",
-    hikers: "2 hikers or walkers",
+    hikers: "2 drivers",
     dogs: "Up to 40 active dogs a week",
     highlight: true,
   },
   {
     id: "three_plus",
-    name: "Three+ hikers",
+    name: "Three+ drivers",
     priceMonthly: 299,
     priceLabel: "$299/month",
-    hikers: "3+ hikers or walkers, multi-route mornings",
+    hikers: "3+ drivers, multi-route mornings",
     dogs: "Up to 70 active dogs a week",
   },
 ] as const;
@@ -92,11 +92,11 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's different between tiers?",
-    a: "Capacity only — how many hikers or walkers you have on the road and how many active dogs you run in a week. Every feature, unlimited office logins, onboarding screenshare, and support are the same on every tier. Customer SMS is included within your dog cap.",
+    a: "Capacity only — how many drivers you have on the road and how many active dogs you run in a week. Every feature, unlimited office logins, onboarding screenshare, and support are the same on every tier. Customer SMS is included within your dog cap. PackRoute is for both dog walking and adventure hiking teams.",
   },
   {
-    q: "What counts as a hiker or walker?",
-    a: "Anyone who runs a pickup route day — the people your industry calls hikers or walkers. In PackRoute they use the Driver role and Driver Today view. Office-only logins do not count toward the capacity limit.",
+    q: "What counts as a driver?",
+    a: "Anyone who runs a pickup route day. Walking companies and hiking companies both use the Driver role and Driver Today view — whether you call them walkers or hikers on the road. Office-only logins do not count toward the capacity limit.",
   },
   {
     q: "What if we have more than 70 dogs?",
@@ -119,8 +119,12 @@ export const PRICING_FAQ = [
     a: "Yes. CSV import for customers and dogs, or we will help you move a spreadsheet during onboarding.",
   },
   {
+    q: "How does customer SMS work?",
+    a: "Texts send from PackRoute’s business number to Canada and US mobiles. Your company is responsible for consent. Customers text STOP REMINDERS to opt out of night-before reminders and START REMINDERS to opt back in. ETA and pickup texts still send while they are scheduled. SMS is included up to your active-dog cap — no per-text fee inside that cap.",
+  },
+  {
     q: "Can I move tiers later?",
-    a: "Anytime, up or down — same data, same dogs, no migration. We will prorate when billing is live.",
+    a: "Anytime, up or down — same data, same dogs, no migration. Beta subscriptions are billed in Stripe at the price on this page. Changing tiers updates what you pay going forward. Email us if you need the current period adjusted.",
   },
   {
     q: "Annual discount?",

@@ -12,6 +12,8 @@ import { listAddableAsNeededDogsByRouteForDate } from "@/features/dogs/queries";
 import { listAssignableDrivers } from "@/features/drivers/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
+import { VehicleLoadNotice } from "@/features/vehicles/components/vehicle-load-notice";
+import { hikeVehicleLoadWarnings } from "@/features/vehicles/load-warnings";
 
 export default async function TodayHikesPage() {
   const profile = await requireRole("admin");
@@ -29,7 +31,7 @@ export default async function TodayHikesPage() {
     listAssignableDrivers(profile.company_id, { activeOnly: true }),
     supabase
       .from("vehicles")
-      .select("id, name, plate")
+      .select("id, name, plate, capacity")
       .eq("company_id", profile.company_id)
       .eq("is_active", true)
       .order("name"),
@@ -55,6 +57,9 @@ export default async function TodayHikesPage() {
       />
 
       <ExceptionSyncFailureBanner companyId={profile.company_id} />
+      <VehicleLoadNotice
+        messages={hikeVehicleLoadWarnings(runningRoutes, vehicles ?? [])}
+      />
 
       {runningRoutes.length > 0 ? (
         <div className="space-y-8">
