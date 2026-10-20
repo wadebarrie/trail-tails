@@ -113,14 +113,29 @@ export function timeToMinutes(time: string): number {
 export function getLocalTimeInTimezone(timeZone: string, at = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
-    hour: "numeric",
-    minute: "numeric",
-    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
   }).formatToParts(at);
 
-  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  let hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
   const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+  // Some ICU builds report midnight as 24:00.
+  if (hour === 24) hour = 0;
   return { hour, minute, minutesSinceMidnight: hour * 60 + minute };
+}
+
+/** Timestamp in a company timezone (admin logs must not use the server's UTC). */
+export function formatDateTimeInTimezone(iso: string, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(iso));
 }
 
 /** True when local time is at or past the configured HH:MM time. */

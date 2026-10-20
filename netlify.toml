@@ -7,4 +7,4 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Scheduled: netlify/functions/night-before-cron.mjs (hourly → night-before time per company)
+# Scheduled: netlify/functions/night-before-cron.mjs (every 15 min → company local reminder time)

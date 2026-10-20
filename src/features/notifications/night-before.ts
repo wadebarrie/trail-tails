@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
-import { getDateInTimezone, getLocalTimeInTimezone, getUtcBoundsForLocalDate, isPastLocalTime } from "@/lib/dates";
+import { getDateInTimezone, getUtcBoundsForLocalDate } from "@/lib/dates";
+import { nightBeforeSendDecision } from "@/features/notifications/night-before-schedule";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
 import { one } from "@/lib/supabase/relations";
@@ -11,23 +12,24 @@ const DEFAULT_NIGHT_BEFORE_REMINDER_TIME = "19:30:00";
 export async function sendNightBeforeRemindersForCompany(
   companyId: string,
   timeZone: string,
-  reminderTime = DEFAULT_NIGHT_BEFORE_REMINDER_TIME
+  reminderTime = DEFAULT_NIGHT_BEFORE_REMINDER_TIME,
+  at = new Date()
 ) {
-  const localTime = getLocalTimeInTimezone(timeZone);
   const today = getDateInTimezone(timeZone, 0);
   const tomorrow = getDateInTimezone(timeZone, 1);
+  const decision = nightBeforeSendDecision(timeZone, reminderTime, at);
 
   // Morning sync: today for drivers, tomorrow so the office can plan daytime.
-  if (localTime.hour === 5) {
+  if (!decision.send && decision.reason === "morning_sync") {
     await Promise.all([
       syncStopsForDate(companyId, today),
       syncStopsForDate(companyId, tomorrow),
     ]);
-    return { skipped: true as const, reason: "morning_sync" };
+    return { skipped: true as const, reason: "morning_sync" as const };
   }
 
-  if (!isPastLocalTime(timeZone, reminderTime)) {
-    return { skipped: true as const, reason: "before_reminder_time" };
+  if (!decision.send) {
+    return { skipped: true as const, reason: decision.reason };
   }
 
   const supabase = createServiceClient();

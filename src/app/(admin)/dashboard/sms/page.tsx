@@ -1,11 +1,14 @@
 import { EmptyState, PageHeader } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { formatDateTimeInTimezone } from "@/lib/dates";
+import { getCompanyTimezone } from "@/features/company/queries";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function SmsHistoryPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
+  const timeZone = await getCompanyTimezone(profile.company_id);
 
   const { data: messages } = await supabase
     .from("sms_messages")
@@ -46,7 +49,7 @@ export default async function SmsHistoryPage() {
                   {msg.direction}
                 </span>
                 <span className="text-xs text-stone-500">
-                  {new Date(msg.created_at).toLocaleString()}
+                  {formatDateTimeInTimezone(msg.created_at, timeZone)}
                 </span>
               </div>
               <p className="mt-1 text-stone-800">{msg.body}</p>

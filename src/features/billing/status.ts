@@ -4,7 +4,7 @@ export type BillingStatus =
   | "completed"
   | "cancelled"
   | "skipped"
-  | "no_show"
+  | "not_closed_out"
   | "pending";
 
 const INCOMPLETE: StopStatus[] = ["scheduled", "en_route", "arrived"];
@@ -27,8 +27,9 @@ export function deriveBillingStatus(
     return { billingStatus: "skipped", billable: false };
   }
 
+  // Past days still on the schedule were never closed out — not a confirmed no-show.
   if (hikeDate < today && INCOMPLETE.includes(pickupStatus)) {
-    return { billingStatus: "no_show", billable: false };
+    return { billingStatus: "not_closed_out", billable: false };
   }
 
   return { billingStatus: "pending", billable: false };
@@ -42,8 +43,8 @@ export function billingStatusLabel(status: BillingStatus): string {
       return "Cancelled";
     case "skipped":
       return "Skipped";
-    case "no_show":
-      return "No show";
+    case "not_closed_out":
+      return "Not closed out";
     case "pending":
       return "Pending";
   }

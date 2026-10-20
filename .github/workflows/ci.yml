@@ -40,6 +40,12 @@ jobs:
       - name: Address parse
         run: npm run test:address-parse
 
+      - name: Billing status
+        run: npm run test:billing
+
+      - name: Night-before send time
+        run: npm run test:night-before
+
       - name: Production build
         run: npm run build
         env:

@@ -7,18 +7,20 @@ function formatCents(cents: number | null): string {
   return (cents / 100).toFixed(2);
 }
 
+export const BILLING_CSV_COLUMNS = [
+  "Date",
+  "Customer",
+  "Dog",
+  "Pickup Status",
+  "Dropoff Status",
+  "Billing Status",
+  "Billable",
+  "Rate",
+  "Line Total",
+] as const;
+
 export function billingReportToCsv(items: BillingLineItem[]): string {
-  const headers = [
-    "Date",
-    "Customer",
-    "Dog",
-    "Pickup Status",
-    "Dropoff Status",
-    "Billing Status",
-    "Billable",
-    "Rate",
-    "Line Total",
-  ];
+  const headers = [...BILLING_CSV_COLUMNS];
 
   const rows = items.map((item) =>
     [
