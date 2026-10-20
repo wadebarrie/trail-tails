@@ -23,7 +23,7 @@ export type BillingSummary = {
   billableDays: number;
   cancelledDays: number;
   skippedDays: number;
-  noShowDays: number;
+  notClosedOutDays: number;
   pendingDays: number;
   billableCents: number;
   byCustomer: {
@@ -64,7 +64,7 @@ export function summarizeBilling(items: BillingLineItem[]): BillingSummary {
   let billableCents = 0;
   let cancelledDays = 0;
   let skippedDays = 0;
-  let noShowDays = 0;
+  let notClosedOutDays = 0;
   let pendingDays = 0;
 
   for (const item of items) {
@@ -75,8 +75,8 @@ export function summarizeBilling(items: BillingLineItem[]): BillingSummary {
       cancelledDays += 1;
     } else if (item.billingStatus === "skipped") {
       skippedDays += 1;
-    } else if (item.billingStatus === "no_show") {
-      noShowDays += 1;
+    } else if (item.billingStatus === "not_closed_out") {
+      notClosedOutDays += 1;
     } else {
       pendingDays += 1;
     }
@@ -98,7 +98,7 @@ export function summarizeBilling(items: BillingLineItem[]): BillingSummary {
     billableDays,
     cancelledDays,
     skippedDays,
-    noShowDays,
+    notClosedOutDays,
     pendingDays,
     billableCents,
     byCustomer: [...byCustomerMap.entries()]

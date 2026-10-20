@@ -1,11 +1,14 @@
 import { EmptyState, PageHeader, Badge } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
+import { formatDateTimeInTimezone } from "@/lib/dates";
+import { getCompanyTimezone } from "@/features/company/queries";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function NotificationsPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
+  const timeZone = await getCompanyTimezone(profile.company_id);
 
   const { data: notifications } = await supabase
     .from("notification_log")
@@ -58,7 +61,7 @@ export default async function NotificationsPage() {
                     {n.status}
                   </Badge>
                   <span className="text-xs text-stone-500">
-                    {new Date(n.created_at).toLocaleString()}
+                    {formatDateTimeInTimezone(n.created_at, timeZone)}
                   </span>
                 </div>
               </div>

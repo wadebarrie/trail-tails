@@ -23,9 +23,9 @@ test("cancelled is not billable", () => {
   assert.equal(r.billingStatus, "cancelled");
 });
 
-test("past scheduled is no_show", () => {
+test("past scheduled is not closed out", () => {
   const r = deriveBillingStatus("scheduled", null, "2025-06-01", "2025-06-25");
-  assert.equal(r.billingStatus, "no_show");
+  assert.equal(r.billingStatus, "not_closed_out");
   assert.equal(r.billable, false);
 });
 

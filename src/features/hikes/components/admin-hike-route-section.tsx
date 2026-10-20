@@ -28,6 +28,7 @@ export function AdminHikeRouteSection({
   date,
   addableAsNeededDogs = [],
   routeCadence = "twice",
+  dayLabel = "today",
 }: {
   entry: HikeWithRoute;
   drivers: Driver[];
@@ -36,6 +37,7 @@ export function AdminHikeRouteSection({
   date?: string;
   addableAsNeededDogs?: AddableAsNeededDog[];
   routeCadence?: RouteCadence;
+  dayLabel?: "today" | "tomorrow";
 }) {
   const { route, hike } = entry;
   const stops = (hike?.stops ?? []) as Parameters<
@@ -102,6 +104,7 @@ export function AdminHikeRouteSection({
             stopType="pickup"
             title="Pickups"
             stops={stops}
+            dayLabel={dayLabel}
           />
           <HikeStopsSection
             hikeId={hike.id}
@@ -110,6 +113,7 @@ export function AdminHikeRouteSection({
             stopType="dropoff"
             title="Drop-offs"
             stops={stops}
+            dayLabel={dayLabel}
           />
         </div>
       ) : (

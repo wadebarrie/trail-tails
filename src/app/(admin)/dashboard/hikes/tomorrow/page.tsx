@@ -80,6 +80,7 @@ export default async function TomorrowHikesPage() {
               date={date}
               addableAsNeededDogs={addableByRouteId.get(entry.route.id) ?? []}
               routeCadence={routeCadence}
+              dayLabel="tomorrow"
             />
           ))}
         </div>

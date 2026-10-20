@@ -12,6 +12,7 @@ import { requireRole } from "@/features/auth/queries";
 import { BillingDateRangeFilter } from "@/features/billing/components/billing-date-range-filter";
 import { AccountingAddonsCard } from "@/features/billing/components/accounting-addons-card";
 import { billingStatusLabel } from "@/features/billing/status";
+import { BILLING_CSV_COLUMNS } from "@/features/billing/csv";
 import {
   defaultBillingDateRange,
   formatCentsDisplay,
@@ -31,8 +32,8 @@ function statusTone(
       return "amber";
     case "cancelled":
     case "skipped":
-    case "no_show":
-      return "red";
+    case "not_closed_out":
+      return "amber";
     default:
       return "neutral";
   }
@@ -67,7 +68,7 @@ export default async function BillingPage({
     <div>
       <PageHeader
         title="Hike report"
-        description="Completed hike days for your own invoicing — export a CSV for QuickBooks, Xero, or your billing process."
+        description="Completed hike days for your own invoicing — export a CSV for QuickBooks, Xero, or your billing process. A day is billable after you close it out on Today."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -87,6 +88,29 @@ export default async function BillingPage({
       />
 
       <AccountingAddonsCard compact />
+
+      {summary.notClosedOutDays > 0 ? (
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">
+            {summary.notClosedOutDays} past hike
+            {summary.notClosedOutDays === 1 ? "" : "s"} not closed out
+          </p>
+          <p className="mt-1 text-amber-900">
+            These stay off the billable total until someone uses Close out hike
+            on the day they ran. They are not marked as no-shows.{" "}
+            <Link
+              href="/dashboard/hikes/today"
+              className="font-medium underline-offset-2 hover:underline"
+            >
+              Open Today to close out
+            </Link>
+          </p>
+        </div>
+      ) : null}
+
+      <p className="mt-4 text-sm text-stone-600">
+        CSV columns: {BILLING_CSV_COLUMNS.join(", ")}.
+      </p>
 
       <div className="mt-6">
         <BillingDateRangeFilter start={start} end={end} />
@@ -117,9 +141,9 @@ export default async function BillingPage({
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-stone-500">No show</p>
+          <p className="text-sm text-stone-500">Not closed out</p>
           <p className="mt-1 text-2xl font-semibold text-stone-900">
-            {summary.noShowDays}
+            {summary.notClosedOutDays}
           </p>
         </Card>
         <Card>

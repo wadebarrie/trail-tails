@@ -1,8 +1,9 @@
-/** Hourly trigger — calls Next.js cron route with CRON_SECRET (set in Netlify env).
- *  Night-before texts send on the first hourly run at or after each company's configured time.
+/** Every 15 minutes — calls Next.js cron route with CRON_SECRET (set in Netlify env).
+ *  Night-before texts send on the first run at or after each company's local reminder time.
+ *  A top-of-hour UTC schedule made 7:30 PM Pacific look like 3:00 AM in UTC logs.
  */
 export const config = {
-  schedule: "0 * * * *",
+  schedule: "*/15 * * * *",
 };
 
 export default async function handler() {

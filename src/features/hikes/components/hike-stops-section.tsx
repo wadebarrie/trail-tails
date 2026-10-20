@@ -34,6 +34,7 @@ export function HikeStopsSection({
   stopType,
   title,
   stops,
+  dayLabel = "today",
 }: {
   hikeId: string;
   routeId?: string;
@@ -41,6 +42,8 @@ export function HikeStopsSection({
   stopType: StopType;
   title: string;
   stops: StopRow[];
+  /** "today" or "tomorrow" — used in time labels so Tomorrow doesn't say today. */
+  dayLabel?: "today" | "tomorrow";
 }) {
   const filtered = stops
     .filter((s) => s.stop_type === stopType)
@@ -113,7 +116,7 @@ export function HikeStopsSection({
                 {stop.dogs?.name ?? "Unknown"}
                 {stop.dogs?.schedule_type === "as_needed" ? (
                   <span className="ml-2 text-xs font-normal text-stone-500">
-                    Today only
+                    {dayLabel === "tomorrow" ? "Tomorrow only" : "Today only"}
                   </span>
                 ) : null}
               </p>
@@ -125,8 +128,8 @@ export function HikeStopsSection({
                 allowSaveAsDogDefault={stopType === "pickup"}
                 label={
                   stopType === "dropoff"
-                    ? "Drop-off time today"
-                    : "Pickup time today"
+                    ? `Drop-off time ${dayLabel}`
+                    : `Pickup time ${dayLabel}`
                 }
               />
             </div>
