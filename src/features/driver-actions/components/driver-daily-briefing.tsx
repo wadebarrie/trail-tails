@@ -3,6 +3,14 @@
 import { driverActionButtonClassName } from "@/features/admin/components/motion-styles";
 import type { DriverBriefingNote } from "@/features/driver-actions/briefing-notes";
 
+type BriefingStop = {
+  id: string;
+  dogName: string;
+  ownerName: string;
+  address: string;
+  windowLabel: string | null;
+};
+
 type DriverDailyBriefingProps = {
   greeting: string;
   routeLabel: string;
@@ -10,6 +18,7 @@ type DriverDailyBriefingProps = {
   dogCount: number;
   estimatedPickupCompletion: string | null;
   notes: DriverBriefingNote[];
+  stops: BriefingStop[];
   startLabel: string;
   onStart: () => void;
 };
@@ -21,6 +30,7 @@ export function DriverDailyBriefing({
   dogCount,
   estimatedPickupCompletion,
   notes,
+  stops,
   startLabel,
   onStart,
 }: DriverDailyBriefingProps) {
@@ -76,7 +86,38 @@ export function DriverDailyBriefing({
             </ul>
           </div>
         ) : null}
+
+        {stops.length > 0 ? (
+          <div>
+            <p className="text-xs font-medium uppercase tracking-widest text-white/45">
+              Stops before you start
+            </p>
+            <ol className="mt-3 space-y-3">
+              {stops.map((stop, index) => (
+                <li key={stop.id} className="text-sm text-white/90">
+                  <p className="font-medium">
+                    {index + 1}. {stop.dogName}
+                    <span className="font-normal text-white/70">
+                      {" "}
+                      · {stop.ownerName}
+                    </span>
+                  </p>
+                  <p className="text-white/70">{stop.address}</p>
+                  {stop.windowLabel ? (
+                    <p className="text-white/60">{stop.windowLabel}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
       </section>
+
+      <p className="mt-4 text-sm text-white/70">
+        {startLabel.replace(/→/g, "").trim()} opens your stop list. Customer
+        texts go out later, when you tap En route, Picked up, or Dropped off —
+        not from this button.
+      </p>
 
       <button
         type="button"

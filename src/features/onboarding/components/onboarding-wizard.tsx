@@ -116,7 +116,7 @@ export function OnboardingWizard({
           </h2>
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
-            driver, a customer with an address, their dog, and a PackRoute (a
+            driver, a customer with an address, their dog, and a route (a
             service zone) with that dog assigned. You can add people one at a
             time or bulk-import customers and dogs from a CSV. Takes most teams
             about 10–15 minutes.
@@ -139,7 +139,7 @@ export function OnboardingWizard({
               <DoneCheck done={progress.hasDog} />
             </li>
             <li className="flex justify-between gap-3">
-              <span>PackRoute</span>
+              <span>Route</span>
               <DoneCheck done={progress.hasRoute} />
             </li>
             <li className="flex justify-between gap-3">
@@ -348,7 +348,7 @@ export function OnboardingWizard({
               default pickup window
             </strong>{" "}
             — that&apos;s what shows on day plans and SMS. You&apos;ll put them
-            on a PackRoute next. Or import customers and dogs together from CSV.
+            on a route next. Or import customers and dogs together from CSV.
           </p>
           {!progress.hasCustomer ? (
             <p className="text-sm text-amber-800">
@@ -367,7 +367,7 @@ export function OnboardingWizard({
                 href={`${ONBOARDING_PATH}?step=route`}
                 className="font-medium underline-offset-2 hover:underline"
               >
-                Continue to PackRoute
+                Continue to route
               </Link>
             </p>
           ) : (
@@ -385,10 +385,10 @@ export function OnboardingWizard({
       {step === "route" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            Set a PackRoute
+            Set a route
           </h2>
           <p className="text-sm text-stone-600">
-            A PackRoute is a service zone you cover — a neighbourhood or area —
+            A route is a service zone you cover — a neighbourhood or area —
             for morning or afternoon. It only shows on Today once it has
             weekdays and at least one dog assigned.
           </p>
@@ -398,7 +398,7 @@ export function OnboardingWizard({
               How do your days usually run?
             </legend>
             <p className="text-xs text-stone-500">
-              Morning and afternoon are separate PackRoutes even in the same
+              Morning and afternoon are separate routes even in the same
               zone (different dogs, drivers, and order).
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
@@ -412,7 +412,7 @@ export function OnboardingWizard({
                 }`}
               >
                 <span className="font-semibold text-stone-900">
-                  One PackRoute per day
+                  One route per day
                 </span>
                 <span className="mt-1 block text-xs text-stone-600">
                   Usually mornings only (or afternoons only).
@@ -431,7 +431,7 @@ export function OnboardingWizard({
                   Morning and afternoon
                 </span>
                 <span className="mt-1 block text-xs text-stone-600">
-                  Two PackRoutes each day — set both up.
+                  Two routes each day — set both up.
                 </span>
               </button>
             </div>
@@ -443,7 +443,7 @@ export function OnboardingWizard({
                 {routeCadence === "once" ? (
                   <>
                     <li className="flex justify-between gap-3">
-                      <span>PackRoute created</span>
+                      <span>Route created</span>
                       <DoneCheck done={progress.routeChecklist.created} />
                     </li>
                     <li className="flex justify-between gap-3">
@@ -451,18 +451,18 @@ export function OnboardingWizard({
                       <DoneCheck done={progress.routeChecklist.hasScheduleDays} />
                     </li>
                     <li className="flex justify-between gap-3">
-                      <span>Dog assigned to the PackRoute</span>
+                      <span>Dog assigned to the route</span>
                       <DoneCheck done={progress.routeChecklist.hasDogAssigned} />
                     </li>
                   </>
                 ) : (
                   <>
                     <li className="flex justify-between gap-3">
-                      <span>Morning PackRoute ready</span>
+                      <span>Morning route ready</span>
                       <DoneCheck done={progress.routeChecklist.morning.ready} />
                     </li>
                     <li className="flex justify-between gap-3">
-                      <span>Afternoon PackRoute ready</span>
+                      <span>Afternoon route ready</span>
                       <DoneCheck
                         done={progress.routeChecklist.afternoon.ready}
                       />
@@ -472,7 +472,7 @@ export function OnboardingWizard({
               </ul>
               {packRouteReady ? (
                 <p className="text-sm text-emerald-700">
-                  PackRoute setup is ready for Today.{" "}
+                  Route setup is ready for Today.{" "}
                   <Link
                     href={`${ONBOARDING_PATH}?step=company`}
                     className="font-medium underline-offset-2 hover:underline"
@@ -488,12 +488,12 @@ export function OnboardingWizard({
                   >
                     {progress.routeChecklist.created
                       ? "Finish on Routes"
-                      : "Set a PackRoute"}
+                      : "Set a route"}
                   </Link>
                   <p className="text-xs text-stone-500">
                     {routeCadence === "twice"
-                      ? "On PackRoutes: create a morning zone and an afternoon zone, check the dogs for each, then come back when both checklist items are green."
-                      : "On PackRoutes: name the zone, set weekdays, and check the dogs in the same form. Come back here when the checklist is green."}
+                      ? "On Routes: create a morning zone and an afternoon zone, check the dogs for each, then come back when both checklist items are green."
+                      : "On Routes: name the zone, set weekdays, and check the dogs in the same form. Come back here when the checklist is green."}
                   </p>
                 </div>
               )}

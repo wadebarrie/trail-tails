@@ -57,7 +57,7 @@ export const termsDocument: LegalDocumentContent = {
           items: [
             "Routes, ETAs, schedules, notifications, and driver workflows in PackRoute are tools only — not guarantees of timing, safety, or outcomes.",
             "Do not rely on PackRoute for emergencies or urgent pet-care decisions. Call emergency services or your veterinarian when needed.",
-            "You are responsible for having permission to send SMS, email, and other customer notifications through PackRoute, including consent and opt-out requirements.",
+            "You are responsible for having permission to send SMS, email, and other customer notifications through PackRoute, including consent and opt-out requirements. Night-before reminders stop when a recipient texts STOP REMINDERS. Pickup and drop-off status texts still send while that dog is on the schedule.",
             "You are responsible for the accuracy, completeness, and legality of data you enter into PackRoute.",
           ],
         },

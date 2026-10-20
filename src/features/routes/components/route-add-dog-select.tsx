@@ -50,7 +50,7 @@ export function RouteAddDogSelect({
     return (
       <p className="text-sm text-stone-500">
         {emptyHint ??
-          "No other recurring dogs are available to add. Create a dog first, or move one from another PackRoute."}
+          "No other recurring dogs are available to add. Create a dog first, or move one from another route."}
       </p>
     );
   }
@@ -70,7 +70,7 @@ export function RouteAddDogSelect({
           htmlFor={`add-dog-${routeId}`}
           className="block text-sm font-medium text-stone-700"
         >
-          Add dog to this PackRoute
+          Add dog to this route
         </label>
         <select
           id={`add-dog-${routeId}`}

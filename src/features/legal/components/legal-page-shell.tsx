@@ -26,12 +26,7 @@ export function LegalPageShell({ document }: { document: LegalDocumentContent })
         </p>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/", label: "Home" },
-          { href: "/contact", label: "Contact" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

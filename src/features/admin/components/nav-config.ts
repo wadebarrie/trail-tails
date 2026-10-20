@@ -38,11 +38,12 @@ export const navGroups: NavGroup[] = [
     items: [
       {
         href: "/dashboard/pending-requests",
-        label: "Customer texts",
-        shortLabel: "Texts",
+        label: "Schedule requests",
+        shortLabel: "Requests",
         showRequestBadge: true,
       },
       { href: "/dashboard/exceptions", label: "Time off" },
+      { href: "/dashboard/messages", label: "Customer text preview" },
     ],
   },
   {
@@ -50,7 +51,7 @@ export const navGroups: NavGroup[] = [
     label: "Business",
     items: [
       { href: "/dashboard/import", label: "Import spreadsheet" },
-      { href: "/dashboard/billing", label: "Hike report" },
+      { href: "/dashboard/hike-report", label: "Hike report" },
       { href: "/dashboard/settings", label: "Settings" },
       { href: "/dashboard/help", label: "Help & guide" },
     ],
@@ -82,7 +83,7 @@ export function isGroupActive(pathname: string, group: NavGroup) {
 
 /**
  * Mobile bottom bar: day planning first (Today + Tomorrow), then Routes,
- * Customer texts, and More.
+ * Schedule requests, and More.
  */
 export const mobilePrimaryNav: NavItem[] = [
   { href: "/dashboard/hikes/today", label: "Today" },
@@ -90,7 +91,8 @@ export const mobilePrimaryNav: NavItem[] = [
   { href: "/dashboard/route", label: "Routes" },
   {
     href: "/dashboard/pending-requests",
-    label: "Texts",
+    label: "Requests",
+    shortLabel: "Requests",
     showRequestBadge: true,
   },
 ];
@@ -101,8 +103,9 @@ const mobileOperationsNav: NavGroup = {
   id: "operations",
   label: "Operations",
   items: [
-    // Customer texts stay on the bottom bar — only Time off here.
+    // Schedule requests stay on the bottom bar.
     { href: "/dashboard/exceptions", label: "Time off" },
+    { href: "/dashboard/messages", label: "Customer text preview" },
   ],
 };
 

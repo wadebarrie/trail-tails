@@ -242,14 +242,7 @@ export function TimeToPetAlternativePageContent() {
         </section>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/", label: "Home" },
-          { href: "/barkbus-alternative", label: "BarkBus alternative" },
-          { href: "/contact", label: "Contact" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

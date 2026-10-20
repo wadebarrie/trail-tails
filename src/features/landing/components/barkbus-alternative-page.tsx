@@ -217,14 +217,7 @@ export function BarkBusAlternativePageContent() {
         </section>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/", label: "Home" },
-          { href: "/time-to-pet-alternative", label: "Time to Pet alternative" },
-          { href: "/contact", label: "Contact" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

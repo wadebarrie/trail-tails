@@ -7,6 +7,8 @@ import { RouteVehicleSelect } from "@/features/routes/components/route-vehicle-s
 import { CreateRouteForm } from "@/features/routes/components/route-form";
 import { RouteEditPanel } from "@/features/routes/components/route-edit-panel";
 import { cadencePeriodLabel } from "@/features/company/route-cadence";
+import { VehicleLoadNotice } from "@/features/vehicles/components/vehicle-load-notice";
+import { vehicleLoadWarningMessages } from "@/features/vehicles/load-warnings";
 import { getCompanyRouteCadence } from "@/features/company/queries";
 import { getRouteScheduleDays, listRoutes } from "@/features/routes/queries";
 import { requireRole } from "@/features/auth/queries";
@@ -47,7 +49,7 @@ export default async function RouteOrderPage({
     listAssignableDrivers(profile.company_id, { activeOnly: true }),
     supabase
       .from("vehicles")
-      .select("id, name, plate")
+      .select("id, name, plate, capacity")
       .eq("company_id", profile.company_id)
       .eq("is_active", true)
       .order("name"),
@@ -55,22 +57,52 @@ export default async function RouteOrderPage({
 
   const allDogs = dogs ?? [];
   const recurringDogs = allDogs.filter((d) => d.schedule_type !== "as_needed");
+  const vehicleById = new Map((vehicles ?? []).map((vehicle) => [vehicle.id, vehicle]));
+  const loadWarnings = vehicleLoadWarningMessages(
+    routes.map((route) => {
+      const assigned = allDogs.filter((dog) => dog.route_id === route.id);
+      const starts = assigned
+        .map((dog) => dog.pickup_window_start)
+        .filter((value): value is string => Boolean(value))
+        .sort();
+      const ends = assigned
+        .map((dog) => dog.pickup_window_end)
+        .filter((value): value is string => Boolean(value))
+        .sort();
+      const vehicle = route.default_vehicle_id
+        ? vehicleById.get(route.default_vehicle_id)
+        : undefined;
+      return {
+        routeId: route.id,
+        routeName: route.name,
+        period: route.period,
+        vehicleId: route.default_vehicle_id,
+        vehicleLabel: vehicle
+          ? `${vehicle.name}${vehicle.plate ? ` · ${vehicle.plate}` : ""}`
+          : "Vehicle",
+        capacity: vehicle?.capacity ?? null,
+        dogCount: assigned.length,
+        earliestStart: starts[0] ?? null,
+        latestEnd: ends.at(-1) ?? null,
+      };
+    })
+  );
 
   return (
     <div>
       <PageHeader
-        title="PackRoutes"
+        title="Routes"
         description={
           onceDaily
-            ? "A PackRoute is a service zone you cover — usually a neighbourhood or area. Each one has its own dogs, driver, van, and weekdays."
-            : "A PackRoute is a service zone you cover — usually a neighbourhood or area — for morning or afternoon. Each one has its own dogs, driver, van, and weekdays."
+            ? "A route is a service zone you cover — usually a neighbourhood or area. Each one has its own dogs, driver, van, and weekdays."
+            : "A route is a service zone you cover — usually a neighbourhood or area — for morning or afternoon. Each one has its own dogs, driver, van, and weekdays."
         }
       />
 
       {returnTo ? (
         <div className="mb-6 rounded-xl border border-[var(--color-trail-600)] bg-[var(--color-trail-50)] px-4 py-3">
           <p className="text-sm font-medium text-stone-900">
-            Onboarding: set your PackRoute
+            Onboarding: set your route
           </p>
           <p className="mt-1 text-sm text-stone-600">
             {onceDaily
@@ -86,12 +118,14 @@ export default async function RouteOrderPage({
         </div>
       ) : null}
 
+      <VehicleLoadNotice messages={loadWarnings} />
+
       <Card className="mb-10">
-        <h2 className="text-lg font-semibold text-stone-900">Add PackRoute</h2>
+        <h2 className="text-lg font-semibold text-stone-900">Add route</h2>
         <p className="mt-1 text-sm text-stone-500">
           {onceDaily
-            ? "A PackRoute is a service zone (neighbourhood or area). Add dogs while you create it."
-            : "A PackRoute is a service zone (neighbourhood or area) for morning or afternoon. Add dogs while you create it."}
+            ? "A route is a service zone (neighbourhood or area). Add dogs while you create it."
+            : "A route is a service zone (neighbourhood or area) for morning or afternoon. Add dogs while you create it."}
         </p>
         <div className="mt-4">
           <CreateRouteForm
@@ -121,7 +155,7 @@ export default async function RouteOrderPage({
       </Card>
 
       {!routes.length ? (
-        <EmptyState message="No PackRoutes yet. Add a service zone above to get started." />
+        <EmptyState message="No routes yet. Add a service zone above to get started." />
       ) : (
         <div className="space-y-10">
           {routes.map((route) => {
@@ -240,7 +274,7 @@ export default async function RouteOrderPage({
                       recurringDogs.length === 0
                         ? "No recurring dogs yet — add a dog first, then assign them here."
                         : routeDogs.length === recurringDogs.length
-                          ? "Every recurring dog is already on this PackRoute."
+                          ? "Every recurring dog is already on this route."
                           : undefined
                     }
                   />
@@ -291,7 +325,7 @@ export default async function RouteOrderPage({
                       </>
                     ) : (
                       <p className="text-sm text-stone-500">
-                        No dogs on this PackRoute yet — check dogs in the form
+                        No dogs on this route yet — check dogs in the form
                         above when creating, or use Add dog here.
                       </p>
                     )}

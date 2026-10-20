@@ -14,14 +14,22 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
     <>
       <Section id="getting-started" title="Getting started" variant="admin">
         <p>
-          New companies get a guided{" "}
+          New companies see a first-run checklist on{" "}
+          <Link
+            href="/dashboard"
+            className="font-medium text-[var(--color-trail-700)] hover:underline"
+          >
+            Overview
+          </Link>{" "}
+          (vehicle → driver → customer → dog → route) until each step has a
+          record, plus a guided{" "}
           <Link
             href="/dashboard/onboarding"
             className="font-medium text-[var(--color-trail-700)] hover:underline"
           >
-            first-run setup
-          </Link>{" "}
-          (vehicle → driver → customer → dog → route). Prefer a walkthrough with
+            setup wizard
+          </Link>
+          . Prefer a walkthrough with
           PackRoute? Use the{" "}
           <Link
             href="/contact"
@@ -109,11 +117,12 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
             → <strong>Add driver</strong>.
           </li>
           <li>
-            Enter their full name, login email, and a temporary password (at least 8
-            characters).
+            Enter their full name and login email. PackRoute emails an invite
+            so they set their own password. Resend it from their driver profile
+            if the link expires.
           </li>
           <li>
-            Share the login link and password securely — send them to{" "}
+            They sign in at{" "}
             <Link href="/login?role=driver" className="font-medium text-[var(--color-trail-700)] hover:underline">
               the driver sign-in page
             </Link>
@@ -300,7 +309,7 @@ export function AdminSetupSections({ Section }: AdminSetupSectionsProps) {
         <h3 className="pt-3 font-semibold text-stone-900">Other daily tools</h3>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <Link href="/dashboard/billing" className="font-medium text-[var(--color-trail-700)] hover:underline">
+            <Link href="/dashboard/hike-report" className="font-medium text-[var(--color-trail-700)] hover:underline">
               Billing
             </Link>{" "}
             — export completed hikes by date range for invoicing (PackRoute does not

@@ -15,6 +15,24 @@ import { HOME_H1 } from "@/lib/seo/metadata";
 
 const FAQ = LANDING_FAQ_VISIBLE;
 
+function FaqAnswer({ text }: { text: string }) {
+  const marker = "pricing page";
+  const index = text.indexOf(marker);
+  if (index === -1) return text;
+  return (
+    <>
+      {text.slice(0, index)}
+      <Link
+        href="/pricing"
+        className="font-medium text-[var(--color-trail-700)] underline underline-offset-2"
+      >
+        {marker}
+      </Link>
+      {text.slice(index + marker.length)}
+    </>
+  );
+}
+
 const FEATURES = [
   {
     title: "Automated SMS for dog owners",
@@ -24,7 +42,7 @@ const FEATURES = [
   {
     title: "Routes that make those texts accurate",
     description:
-      "Build daily pickup routes, assign drivers, manage recurring dogs, and adjust today or tomorrow — the ops layer so every SMS matches the real van day.",
+        "Build daily pickup routes, assign drivers, manage recurring dogs, and adjust today or tomorrow — the ops layer so every SMS matches the route day.",
   },
   {
     title: "Driver workflow on mobile",
@@ -48,7 +66,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function LandingPage({ showStartTrial = false }: { showStartTrial?: boolean }) {
   return (
-    <div className="min-h-dvh bg-atmosphere-hero text-stone-900">
+    <div className="min-h-dvh overflow-x-clip bg-atmosphere-hero text-stone-900">
       <LandingHeader showStartTrial={showStartTrial} />
 
       <main id="main-content">
@@ -65,11 +83,12 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                 {HOME_H1}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-stone-600">
-                Growing past one hiker or walker? PackRoute texts customers for
+                Growing past one driver? PackRoute texts your customers for
                 you — night-before reminders, ETAs, and pickup updates — so the
                 office stops answering “where are you?” and drivers stop living
-                in WhatsApp. Routes and a simple mobile driver workflow make
-                those messages accurate.
+                in WhatsApp. It works for dog walking and adventure hiking
+                teams. Routes and a simple mobile driver workflow make those
+                messages accurate.
               </p>
               <div className="mt-8">
                 <CtaButtons showStartTrial={showStartTrial} />
@@ -97,7 +116,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
               Built for adventure dog hiking teams
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
-              Recurring dogs, multiple hikers or walkers, and last-minute skip
+              Recurring dogs, multiple drivers, and last-minute skip
               requests usually mean spreadsheet mornings and group-chat ETAs.
               PackRoute keeps customers updated by automated SMS, with routes and
               drivers behind the scenes — then exports completed hikes for the
@@ -127,7 +146,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                 },
                 {
                   role: "Office",
-                  body: "Build routes, assign drivers, approve schedule requests, and export hike CSVs for invoicing — the ops that keep SMS accurate.",
+                  body: "A guided setup (vehicle, driver, customer, dog, route) usually takes under an hour, or a 30–45 minute screenshare where we import your spreadsheet. Then build routes, assign drivers, approve schedule requests, and export hike CSVs.",
                 },
               ].map((item) => (
                 <div
@@ -233,6 +252,15 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                   </span>
                 </li>
               </ul>
+              <h3 className="mt-8 text-base font-semibold text-stone-900">
+                How SMS works
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm text-stone-600">
+                <li>Texts send from PackRoute&apos;s business number. Customers reply to that same number. It is not a private number per company.</li>
+                <li>Canada and US mobile numbers. Your company is responsible for having consent to text, as described in the Terms.</li>
+                <li>Customers can text STOP REMINDERS to turn off night-before reminders, and START REMINDERS to turn them back on. ETA, pickup, and drop-off texts still send while the dog is on the schedule.</li>
+                <li>Message cost is included in your plan up to the active-dog cap. There is no per-text fee inside that cap.</li>
+              </ul>
               <p className="mt-5 text-sm text-stone-500">
                 Customers can still text to skip a day, set vacation dates, or
                 pause service — your office approves before anything changes.
@@ -314,7 +342,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                     </span>
                   </summary>
                   <dd className="mt-3 text-sm leading-relaxed text-stone-600">
-                    {item.a}
+                    <FaqAnswer text={item.a} />
                   </dd>
                 </details>
               ))}
@@ -356,16 +384,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
         </section>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/#how-it-works", label: "How it works" },
-          { href: "/#features", label: "Features" },
-          { href: "/#sms", label: "Customer SMS" },
-          { href: "/contact", label: "Contact" },
-          { href: "/dog-walking-software", label: "Dog walking software" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }

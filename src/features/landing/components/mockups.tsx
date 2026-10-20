@@ -332,7 +332,7 @@ export function DriverMobileMock() {
           </div>
 
           <h2 className="text-xl font-bold text-white">Today</h2>
-          <p className="mt-0.5 text-xs text-white/70">Thursday, June 27</p>
+          <p className="mt-0.5 text-xs text-white/70">Today</p>
 
           {/* Status */}
           <div className="mt-3">
@@ -384,7 +384,7 @@ export function AdminDashboardMock() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-semibold text-stone-900">Today&apos;s operations</p>
             <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-              2 pending requests
+              1 pending request
             </span>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">

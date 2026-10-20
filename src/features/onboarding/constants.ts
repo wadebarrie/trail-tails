@@ -95,7 +95,7 @@ export function onboardingStepLabel(step: OnboardingStepId): string {
     case "dog":
       return "Dog";
     case "route":
-      return "PackRoute";
+      return "Route";
     case "company":
       return "Company";
     case "done":

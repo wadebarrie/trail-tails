@@ -21,7 +21,7 @@ export function RouteCreateDogPicker({ dogs }: { dogs: AddableDog[] }) {
         <p className="text-sm font-medium text-amber-900">No dogs to add yet</p>
         <p className="mt-1 text-xs text-amber-800">
           Add a customer and dog in onboarding first, then come back — or create
-          this PackRoute now and assign dogs later.
+          this route now and assign dogs later.
         </p>
       </div>
     );
@@ -33,7 +33,7 @@ export function RouteCreateDogPicker({ dogs }: { dogs: AddableDog[] }) {
         Dogs in this zone
       </legend>
       <p className="mb-3 text-xs text-stone-500">
-        Select who rides this PackRoute. Unassigned dogs are checked by default
+        Select who rides this route. Unassigned dogs are checked by default
         — you can change pickup order on the card after saving.
       </p>
       <ul className="max-h-56 space-y-2 overflow-y-auto">

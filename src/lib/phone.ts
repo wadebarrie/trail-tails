@@ -14,3 +14,13 @@ export function phonesMatch(a: string, b: string): boolean {
   const kb = phoneMatchKey(b);
   return ka.length > 0 && ka === kb;
 }
+
+/** Display-only North American format. Storage and SMS stay E.164. */
+export function formatPhoneDisplay(phone: string | null | undefined): string {
+  if (!phone?.trim()) return "";
+  const digits = digitsOnly(phone);
+  const local =
+    digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (local.length !== 10) return phone.trim();
+  return `(${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6)}`;
+}

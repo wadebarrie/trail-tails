@@ -46,6 +46,9 @@ jobs:
       - name: Night-before send time
         run: npm run test:night-before
 
+      - name: UX audit helpers
+        run: npm run test:ux-audit
+
       - name: Production build
         run: npm run build
         env:

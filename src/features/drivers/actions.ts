@@ -9,7 +9,11 @@ import {
   driverCreateSchema,
   driverUpdateSchema,
 } from "@/features/drivers/schema";
+import { AUTH_ROUTES } from "@/features/auth/constants";
 import { safeAppReturnPath } from "@/lib/safe-return-path";
+import { getClientEnv, getSupabaseAnonKey } from "@/lib/env";
+import { getAuthCallbackUrl } from "@/lib/site-url";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 function normalizePhone(phone: string | undefined) {
   const trimmed = phone?.trim();
@@ -67,14 +71,13 @@ export async function createDriverAction(
   const email = parsed.data.email.trim().toLowerCase();
   const service = createServiceClient();
   const { data: authData, error: authError } =
-    await service.auth.admin.createUser({
-      email,
-      password: parsed.data.password,
-      email_confirm: true,
-      user_metadata: {
+    await service.auth.admin.inviteUserByEmail(email, {
+      redirectTo: getAuthCallbackUrl(AUTH_ROUTES.resetPassword),
+      data: {
         company_id: profile.company_id,
         role: "driver",
         full_name: parsed.data.full_name,
+        can_drive: true,
       },
     });
 
@@ -221,6 +224,36 @@ export async function enableSelfAsDriverAction(): Promise<{ error?: string }> {
   revalidatePath("/today");
   revalidatePath("/dashboard");
   return {};
+}
+
+export async function resendDriverInviteAction(
+  driverId: string
+): Promise<{ error?: string; ok?: boolean }> {
+  const profile = await requireRole("admin");
+  const service = createServiceClient();
+  const { data: existing } = await service
+    .from("profiles")
+    .select("id, role, company_id")
+    .eq("id", driverId)
+    .eq("company_id", profile.company_id)
+    .eq("role", "driver")
+    .maybeSingle();
+
+  if (!existing) return { error: "Driver not found." };
+
+  const { data: userData, error: userError } =
+    await service.auth.admin.getUserById(driverId);
+  const email = userData.user?.email;
+  if (userError || !email) return { error: "No login email for this driver." };
+
+  const redirectTo = getAuthCallbackUrl(AUTH_ROUTES.resetPassword);
+  const { NEXT_PUBLIC_SUPABASE_URL } = getClientEnv();
+  const anon = createSupabaseClient(NEXT_PUBLIC_SUPABASE_URL, getSupabaseAnonKey(), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { error } = await anon.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) return { error: error.message };
+  return { ok: true };
 }
 
 export async function getDriverEmail(driverId: string): Promise<string | null> {

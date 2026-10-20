@@ -6,7 +6,10 @@ import {
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { ExceptionSyncFailureBanner } from "@/features/dogs/components/exception-sync-failure-banner";
+import { getCompanyTimezone } from "@/features/company/queries";
 import { PendingRequestActions } from "@/features/pending-requests/components/pending-request-actions";
+import { requestTypeLabel } from "@/features/pending-requests/labels";
+import { formatAdminDateTime } from "@/lib/dates";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,28 +20,12 @@ function statusLabel(status: string) {
   return status.replace(/_/g, " ");
 }
 
-function commandLabel(commandType: string) {
-  switch (commandType) {
-    case "skip_tomorrow":
-      return "Skip tomorrow";
-    case "skip_weekday":
-      return "Skip a weekday";
-    case "skip_date":
-      return "Skip a day";
-    case "vacation":
-      return "Vacation / time off";
-    case "pause":
-      return "Pause service";
-    case "resume":
-      return "Resume service";
-    default:
-      return commandType.replace(/_/g, " ");
-  }
-}
 
 function RequestCard({
   req,
+  timeZone,
 }: {
+  timeZone: string;
   req: {
     id: string;
     raw_body: string;
@@ -59,11 +46,11 @@ function RequestCard({
         <div>
           <p className="font-medium text-stone-900">{ownerName}</p>
           <p className="mt-1 text-sm font-medium text-stone-800">
-            {commandLabel(req.command_type)}
+            {requestTypeLabel(req.command_type)}
           </p>
           <p className="mt-1 text-sm text-stone-600">“{req.raw_body}”</p>
           <p className="mt-1 text-xs text-stone-500">
-            {new Date(req.created_at).toLocaleString()}
+            {formatAdminDateTime(req.created_at, timeZone)}
           </p>
         </div>
         <Badge
@@ -88,6 +75,7 @@ function RequestCard({
 export default async function PendingRequestsPage() {
   const profile = await requireRole("admin");
   const supabase = await createClient();
+  const timeZone = await getCompanyTimezone(profile.company_id);
 
   const { data: requests } = await supabase
     .from("pending_requests")
@@ -111,8 +99,8 @@ export default async function PendingRequestsPage() {
   return (
     <div>
       <PageHeader
-        title="Customer texts"
-        description="When a customer texts to change their schedule, approve or decline here before anything changes on the route."
+        title="Schedule requests"
+        description="Customer texts that ask to skip, pause, or change a day. Nothing on the route changes until you approve."
       />
 
       <ExceptionSyncFailureBanner companyId={profile.company_id} />
@@ -128,11 +116,11 @@ export default async function PendingRequestsPage() {
             {pending.length > 0 ? (
               <div className="space-y-3">
                 {pending.map((req) => (
-                  <RequestCard key={req.id} req={req} />
+                  <RequestCard key={req.id} req={req} timeZone={timeZone} />
                 ))}
               </div>
             ) : (
-              <EmptyState message="Nothing waiting right now." />
+              <EmptyState message="Nothing waiting. Skip, vacation, and pause texts from customers show up here for the office to approve." />
             )}
           </section>
 
@@ -143,7 +131,7 @@ export default async function PendingRequestsPage() {
               </h2>
               <div className="space-y-3">
                 {recent.map((req) => (
-                  <RequestCard key={req.id} req={req} />
+                  <RequestCard key={req.id} req={req} timeZone={timeZone} />
                 ))}
               </div>
             </section>

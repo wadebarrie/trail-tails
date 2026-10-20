@@ -78,7 +78,7 @@ function RouteFormFields({
             <option value="afternoon">Afternoon</option>
           </select>
           <p className="mt-1 text-xs text-stone-500">
-            Same zone in the afternoon is a separate PackRoute — different dogs,
+            Same zone in the afternoon is a separate route — different dogs,
             driver, and order.
           </p>
         </div>
@@ -87,7 +87,7 @@ function RouteFormFields({
       <ScheduleDaysField
         defaultDays={defaultDays}
         label="Schedule days"
-        hint="Weekdays this PackRoute runs."
+        hint="Weekdays this route runs."
       />
 
       {dogs ? <RouteCreateDogPicker dogs={dogs} /> : null}
@@ -107,7 +107,7 @@ function FormMessages({ state }: { state: { error?: string; ok?: boolean } }) {
       ) : null}
       {state.ok ? (
         <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-          PackRoute saved.
+          Route saved.
         </p>
       ) : null}
     </>
@@ -146,7 +146,7 @@ export function CreateRouteForm({
       <FormMessages state={state} />
       <RouteFormFields
         formKey={`create-${state.ok ? "saved" : "new"}`}
-        submitLabel="Create PackRoute"
+        submitLabel="Create route"
         pending={pending}
         dogs={dogs}
         routeCadence={routeCadence}
@@ -185,7 +185,7 @@ export function EditRouteForm({
         defaultName={defaultName}
         defaultDays={defaultDays}
         defaultPeriod={defaultPeriod}
-        submitLabel="Save PackRoute"
+        submitLabel="Save route"
         pending={pending}
         routeCadence={routeCadence}
       />

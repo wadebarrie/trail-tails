@@ -71,7 +71,7 @@ export function OnboardingGuide() {
           <p>
             Tenant admins add drivers from{" "}
             <strong>Dashboard → Drivers → Add driver</strong>. Each driver gets a login
-            email and temporary password you share securely. Drivers use{" "}
+            email. PackRoute emails an invite so they set their own password. Drivers use{" "}
             <Link
               href="/login?role=driver"
               className="font-medium text-[var(--color-trail-700)] hover:underline"

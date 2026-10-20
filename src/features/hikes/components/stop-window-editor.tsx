@@ -82,13 +82,9 @@ export function StopWindowEditor({
           onClick={beginEditing}
           className="text-left text-sm text-stone-500 underline decoration-stone-300 underline-offset-2 hover:text-stone-700"
         >
-          {label}: {range ?? (optional ? "None" : "Not set")}
+          Edit {label.toLowerCase()}
+          {range ? ` (${range})` : ""}
         </button>
-        <p className="text-xs text-stone-400">
-          {allowSaveAsDogDefault
-            ? "Just for this day — check the box below if you also want to update their usual pickup time."
-            : "Just for this day."}
-        </p>
       </div>
     );
   }
@@ -140,6 +136,11 @@ export function StopWindowEditor({
       >
         Cancel
       </button>
+      <p className="w-full text-xs text-stone-500">
+        {allowSaveAsDogDefault
+          ? "Just for this day — check the box below if you also want to update their usual pickup time."
+          : "Just for this day."}
+      </p>
       {allowSaveAsDogDefault ? (
         <label className="flex w-full items-center gap-2 text-xs text-stone-600">
           <input

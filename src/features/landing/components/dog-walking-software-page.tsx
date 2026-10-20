@@ -42,7 +42,8 @@ export function DogWalkingSoftwarePageContent() {
             automated SMS — night-before reminders, ETAs, and pickup texts —
             so families stop asking &ldquo;where is my dog?&rdquo; and drivers
             stop living in WhatsApp. Routes and a mobile driver workflow make
-            those messages match the real van day.
+            those messages match the route day. It is for dog walking and
+            adventure hiking teams.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Built for adventure dog hiking teams, pack walks, and group dog
@@ -60,7 +61,7 @@ export function DogWalkingSoftwarePageContent() {
               Customer SMS first — routes and drivers that support it
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
-              For operators growing from one hiker or walker to a few vans —
+              For operators growing from one driver to a few vans —
               roughly twenty to three hundred active dogs — who need dog walking
               management software that matches how field days actually run.
             </p>
@@ -194,13 +195,7 @@ export function DogWalkingSoftwarePageContent() {
         </section>
       </main>
 
-      <MarketingFooter
-        extraLinks={[
-          { href: "/", label: "Home" },
-          { href: "/contact", label: "Contact" },
-          { href: "/login", label: "Login" },
-        ]}
-      />
+      <MarketingFooter />
     </div>
   );
 }
