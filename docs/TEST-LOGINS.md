@@ -73,3 +73,24 @@ Requires `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `.env.loc
 ## Company ID (metadata / SQL)
 
 `a0000000-0000-0000-0000-000000000001` — PackRoute
+
+---
+
+## Sales demo (Harbour Hikes)
+
+A separate company for prospect calls. It is not the platform owner, and the office login skips email codes so you can hand over the screen. Customer phones are fictional `555` numbers, so texts from this company do not reach real people.
+
+**Password:** `CoastalDemo26!`
+
+| Role | Email | Name |
+|------|-------|------|
+| Office | `demo@packroute.app` | Maya Chen |
+| Driver | `demo-driver@packroute.app` | Sam Reid |
+
+Sign in at https://packroute.app/login. The office account lands on the dashboard. The driver account lands on Today.
+
+Recreate or refresh the roster (next 14 days of hikes):
+
+```bash
+node scripts/seed-demo-company.mjs
+```

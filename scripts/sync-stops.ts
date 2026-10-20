@@ -24,7 +24,8 @@ if (existsSync(envPath)) {
   }
 }
 
-const COMPANY_ID = "a0000000-0000-0000-0000-000000000001";
+const COMPANY_ID =
+  process.env.DEMO_COMPANY_ID ?? "a0000000-0000-0000-0000-000000000001";
 const dates = process.argv.slice(2);
 
 if (!dates.length) {

@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { AUTH_ROUTES } from "@/features/auth/constants";
+import { isDemoLogin } from "@/features/auth/demo-login";
 import { hasValidAdminEmailMfaCookie } from "@/lib/auth/admin-email-mfa";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,7 +38,7 @@ export const getAdminMfaStatus = cache(async (): Promise<AdminMfaStatus> => {
     ? await hasValidAdminEmailMfaCookie(user.id)
     : false;
 
-  const satisfied = totpSatisfied || emailSatisfied;
+  const satisfied = totpSatisfied || emailSatisfied || isDemoLogin(user);
 
   return {
     // Email OTP needs no enrollment — always available for admins.

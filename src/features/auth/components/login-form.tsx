@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getLoginRedirect } from "@/features/auth/access";
+import { isDemoLogin } from "@/features/auth/demo-login";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { EmailOtpMfaForm } from "@/features/auth/components/email-otp-mfa-form";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
@@ -81,7 +82,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return;
     }
 
-    if (profile.role === "admin") {
+    if (profile.role === "admin" && !isDemoLogin(user)) {
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const enrolled = (factors?.totp ?? []).some(
         (factor) => factor.status === "verified"
