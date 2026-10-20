@@ -21,6 +21,9 @@ export function formatPhoneDisplay(phone: string | null | undefined): string {
   const digits = digitsOnly(phone);
   const local =
     digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
-  if (local.length !== 10) return phone.trim();
+  // NANP area codes do not start with 0 or 1. Incomplete numbers stay as stored.
+  if (local.length !== 10 || local.startsWith("0") || local.startsWith("1")) {
+    return phone.trim();
+  }
   return `(${local.slice(0, 3)}) ${local.slice(3, 6)}-${local.slice(6)}`;
 }

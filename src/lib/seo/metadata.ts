@@ -7,7 +7,7 @@ export const SITE_TAGLINE =
   "Proactive SMS for adventure dog hiking teams";
 
 export const SITE_DESCRIPTION =
-  "Keep dog owners updated without the WhatsApp scramble. PackRoute sends night-before reminders, ETAs, and pickup texts automatically — backed by multi-driver routes and a simple driver phone workflow for adventure dog hiking teams.";
+  "Keep customers updated without the WhatsApp scramble. PackRoute sends night-before reminders, ETAs, and pickup texts automatically — backed by multi-driver routes and a simple driver phone workflow for dog walking and adventure hiking teams.";
 
 export const SITE_DESCRIPTION_SHORT =
   "Automated customer SMS ETAs for adventure dog hiking teams — with routes and a mobile driver workflow that make those texts accurate.";
@@ -57,7 +57,7 @@ export const SITE_CONTACT_EMAIL = "hello@packroute.app";
 export const HOME_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 export const HOME_H1 =
-  "Proactive SMS for dog owners — so your team stops living in group chats";
+  "Proactive SMS for walking and hiking teams — so the office stops living in group chats";
 
 export const DOG_WALKING_SOFTWARE_TITLE =
   "Dog Walking Software with Automated SMS ETAs";
