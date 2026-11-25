@@ -57,6 +57,7 @@ export const PUBLIC_PREFIXES = [
   "/api/cron",
   "/auth/callback",
   "/legal",
+  "/p/", // signed hike-photo gallery links (no login)
 ];
 
 /** Metadata and crawler routes (OG image, llms.txt, etc.) */

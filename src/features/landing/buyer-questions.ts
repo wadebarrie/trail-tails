@@ -25,7 +25,7 @@ export const BUYER_QUESTIONS: readonly BuyerQuestion[] = [
   {
     heading: "Recurring schedules, skip requests, and billing exports",
     q: "We do adventure hikes with groups of dogs and I need something that can handle recurring schedules, last-minute skip requests, and billing exports. What tools exist for this?",
-    a: "PackRoute is built for that combo: recurring dogs on morning and afternoon routes, customer texts for last-minute skips that wait for office approval, and completed-hike CSV export for QuickBooks, Xero, or e-Transfer. Built-in CAD invoicing is on the roadmap. It is field-day and SMS software for hiking teams — lighter than an all-in-one pet-care suite.",
+    a: "PackRoute is built for that combo: recurring dogs on morning and afternoon routes, customer texts for last-minute skips that wait for office approval, and CAD invoices (or CSV export) from completed hikes. It is field-day and SMS software for hiking teams — lighter than an all-in-one pet-care suite.",
   },
   {
     heading: "Automated SMS without drivers texting each family",
@@ -55,7 +55,7 @@ export const BUYER_QUESTIONS: readonly BuyerQuestion[] = [
   {
     heading: "Dedicated logistics vs mature pet-care platforms",
     q: "Won’t a dedicated logistics product lack the invoicing and CRM depth of mature pet-care platforms like Time to Pet?",
-    a: "PackRoute is lighter on purpose. It focuses on proactive customer SMS, multi-driver routes, group hike time slots, and a mobile driver workflow, then exports completed hikes as CSV for billing today — with CAD invoicing on the roadmap. Hiking teams get calmer field days without paying for boarding and pet-sitting workflows they do not use.",
+    a: "PackRoute is lighter on purpose. It focuses on proactive customer SMS, multi-driver routes, group hike time slots, and a mobile driver workflow. You can generate CAD invoices from completed hikes and still export CSV for QuickBooks. Hiking teams get calmer field days without paying for boarding and pet-sitting workflows they do not use.",
   },
 ] as const;
 

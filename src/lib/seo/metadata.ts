@@ -126,11 +126,11 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute include CRM and invoicing like Time to Pet?",
-    a: "PackRoute is a lighter product focused on routes, group hike time slots, drivers, and customer SMS. Completed hikes export as CSV for QuickBooks, Xero, or e-Transfer today, and built-in CAD invoicing is on the roadmap. Hiking teams are not paying for boarding and pet-sitting workflows they do not use.",
+    a: "PackRoute is a lighter product focused on routes, group hike time slots, drivers, and customer SMS. Generate CAD invoices from completed hikes, or export CSV for QuickBooks and Xero. Hiking teams are not paying for boarding and pet-sitting workflows they do not use.",
   },
   {
     q: "Does PackRoute handle payments or invoicing?",
-    a: "Today every plan includes completed-hike CSV export so you can bill in QuickBooks, Xero, or e-Transfer. Built-in CAD invoicing and payments are coming soon. Live QuickBooks Online and Xero sync are optional paid add-ons. See packroute.app/pricing for current CAD plans.",
+    a: "Generate CAD invoices from closed-out hikes, mark them sent, and record e-Transfer or cash. Online card pay is next. CSV export and optional QuickBooks Online / Xero sync remain available. See packroute.app/pricing for current CAD plans.",
   },
   {
     q: "How much does PackRoute cost?",
@@ -191,7 +191,7 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute include CRM and invoicing like Time to Pet?",
-    a: "PackRoute is lighter on purpose: routes, group hike slots, drivers, and customer updates. You get CSV hike export for billing today, and CAD invoicing is on the roadmap — without paying for boarding and pet-sitting features you do not use.",
+    a: "PackRoute is lighter on purpose: routes, group hike slots, drivers, and customer updates. Generate CAD invoices from completed hikes, or export CSV — without paying for boarding and pet-sitting features you do not use.",
   },
   {
     q: "How long does setup take?",

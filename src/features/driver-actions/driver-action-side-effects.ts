@@ -8,6 +8,7 @@ import {
   buildPickedUpMessage,
   logNotification,
 } from "@/features/notifications/log";
+import { getHikePhotoShareUrlForCustomer } from "@/features/hike-photos/queries";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 import type { LatLng } from "@/lib/google-maps/eta";
 
@@ -178,6 +179,12 @@ export async function scheduleDropoffSideEffects(input: {
   dogName: string;
 }) {
   try {
+    // Append the owner's photo gallery link when drivers tagged their dog.
+    const photosUrl = await getHikePhotoShareUrlForCustomer(
+      input.hikeId,
+      input.customerId
+    ).catch(() => null);
+
     await logNotification({
       companyId: input.companyId,
       customerId: input.customerId,
@@ -185,7 +192,7 @@ export async function scheduleDropoffSideEffects(input: {
       stopId: input.stopId,
       notificationType: "dropped_off",
       dogName: input.dogName,
-      body: buildDroppedOffMessage(input.dogName),
+      body: buildDroppedOffMessage(input.dogName, photosUrl),
     });
     await markHikeCompletedIfDone(input.hikeId);
     revalidateDriverPaths();

@@ -51,7 +51,7 @@ const FEATURES = [
   {
     title: "Billing that follows the hikes",
     description:
-      "Track completed hikes and export CSV for QuickBooks, Xero, or e-Transfer today. Built-in CAD invoicing is on the roadmap.",
+      "Generate CAD invoices from closed-out hikes, record e-Transfer or cash, or export CSV for QuickBooks and Xero.",
   },
 ] as const;
 
@@ -318,6 +318,38 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                 <DriverMobileMock />
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Founder */}
+        <section
+          id="about"
+          className="scroll-mt-20 border-y border-[var(--glass-border-subtle)] bg-white py-14 sm:py-16"
+        >
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <SectionLabel>Why PackRoute</SectionLabel>
+            <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
+              Built in BC for the teams running the vans
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-stone-600">
+              I&apos;m Wade Barrie. I built PackRoute after watching adventure
+              dog hiking companies lose mornings to &ldquo;where&apos;s my
+              dog?&rdquo; texts and WhatsApp group chats. The goal is simple:
+              give the office hours back, keep families in the loop, and let
+              drivers just run the day — priced in CAD for Canadian walking and
+              hiking teams.
+            </p>
+            <p className="mt-4 text-sm text-stone-500">
+              We&apos;re in open beta with real routes on the road. If you want
+              to see the product on a call,{" "}
+              <Link
+                href="/demo"
+                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                book a demo
+              </Link>
+              .
+            </p>
           </div>
         </section>
 
