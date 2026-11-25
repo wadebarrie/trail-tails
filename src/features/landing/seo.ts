@@ -267,7 +267,7 @@ export function buildContactPageJsonLd(): string {
     "@type": "ContactPage",
     "@id": `${pageUrl}/#webpage`,
     url: pageUrl,
-    name: `Contact — ${SITE_NAME}`,
+    name: `Contact · ${SITE_NAME}`,
     description:
       "Book a demo or ask about PackRoute — proactive SMS and field ops for adventure dog hiking teams.",
     isPartOf: { "@id": `${siteUrl}/#website` },
@@ -292,7 +292,7 @@ export function buildPricingPageJsonLd(): string {
     "@type": "WebPage",
     "@id": `${pageUrl}/#webpage`,
     url: pageUrl,
-    name: `${PRICING_TITLE} — ${SITE_NAME}`,
+    name: `${PRICING_TITLE} · ${SITE_NAME}`,
     description: PRICING_DESCRIPTION,
     isPartOf: { "@id": `${siteUrl}/#website` },
     inLanguage: "en-US",

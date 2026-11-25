@@ -4,16 +4,13 @@ import { buildBarkBusAlternativeJsonLdScriptProps } from "@/features/landing/seo
 import {
   BARKBUS_ALTERNATIVE_DESCRIPTION,
   BARKBUS_ALTERNATIVE_TITLE,
-  SITE_NAME,
+  buildPageMetadata,
 } from "@/lib/seo/metadata";
-import { getSiteUrl } from "@/lib/site-url";
 
-const title = `${BARKBUS_ALTERNATIVE_TITLE} — ${SITE_NAME}`;
-const canonical = `${getSiteUrl()}/barkbus-alternative`;
-
-export const metadata: Metadata = {
-  title,
+export const metadata: Metadata = buildPageMetadata({
+  title: BARKBUS_ALTERNATIVE_TITLE,
   description: BARKBUS_ALTERNATIVE_DESCRIPTION,
+  path: "/barkbus-alternative",
   keywords: [
     "barkbus alternative",
     "barkbus alternatives",
@@ -24,17 +21,7 @@ export const metadata: Metadata = {
     "adventure dog hiking software",
     "time to pet alternative",
   ],
-  alternates: { canonical },
-  openGraph: {
-    url: canonical,
-    title,
-    description: BARKBUS_ALTERNATIVE_DESCRIPTION,
-  },
-  twitter: {
-    title,
-    description: BARKBUS_ALTERNATIVE_DESCRIPTION,
-  },
-};
+});
 
 export default function BarkBusAlternativePage() {
   return (

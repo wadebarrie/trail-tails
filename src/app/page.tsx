@@ -5,27 +5,17 @@ import { isSelfSignupEnabled } from "@/features/platform/settings";
 import {
   HOME_TITLE,
   SITE_DESCRIPTION,
+  buildPageMetadata,
 } from "@/lib/seo/metadata";
-import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: HOME_TITLE,
+  absoluteTitle: HOME_TITLE,
   description: SITE_DESCRIPTION,
-  alternates: {
-    canonical: getSiteUrl(),
-  },
-  openGraph: {
-    url: getSiteUrl(),
-    title: HOME_TITLE,
-    description: SITE_DESCRIPTION,
-  },
-  twitter: {
-    title: HOME_TITLE,
-    description: SITE_DESCRIPTION,
-  },
-};
+  path: "/",
+});
 
 export default async function HomePage() {
   const showStartTrial = await isSelfSignupEnabled();

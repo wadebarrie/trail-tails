@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
+
+export const metadata: Metadata = {
+  title: "Page not found",
+  description: "This PackRoute page does not exist.",
+  robots: { index: false, follow: false },
+};
 
 export default function NotFound() {
   return (

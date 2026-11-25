@@ -5,29 +5,16 @@ import { isSelfSignupEnabled } from "@/features/platform/settings";
 import {
   PRICING_DESCRIPTION,
   PRICING_TITLE,
-  SITE_NAME,
+  buildPageMetadata,
 } from "@/lib/seo/metadata";
-import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
-const title = `${PRICING_TITLE} — ${SITE_NAME}`;
-const canonical = `${getSiteUrl()}/pricing`;
-
-export const metadata: Metadata = {
-  title,
+export const metadata: Metadata = buildPageMetadata({
+  title: PRICING_TITLE,
   description: PRICING_DESCRIPTION,
-  alternates: { canonical },
-  openGraph: {
-    url: canonical,
-    title,
-    description: PRICING_DESCRIPTION,
-  },
-  twitter: {
-    title,
-    description: PRICING_DESCRIPTION,
-  },
-};
+  path: "/pricing",
+});
 
 export default async function PricingPage() {
   const showStartTrial = await isSelfSignupEnabled();

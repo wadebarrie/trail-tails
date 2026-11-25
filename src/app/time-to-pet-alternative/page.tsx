@@ -2,18 +2,15 @@ import type { Metadata } from "next";
 import { TimeToPetAlternativePageContent } from "@/features/landing/components/time-to-pet-alternative-page";
 import { buildTimeToPetAlternativeJsonLdScriptProps } from "@/features/landing/seo";
 import {
-  SITE_NAME,
   TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
   TIME_TO_PET_ALTERNATIVE_TITLE,
+  buildPageMetadata,
 } from "@/lib/seo/metadata";
-import { getSiteUrl } from "@/lib/site-url";
 
-const title = `${TIME_TO_PET_ALTERNATIVE_TITLE} — ${SITE_NAME}`;
-const canonical = `${getSiteUrl()}/time-to-pet-alternative`;
-
-export const metadata: Metadata = {
-  title,
+export const metadata: Metadata = buildPageMetadata({
+  title: TIME_TO_PET_ALTERNATIVE_TITLE,
   description: TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
+  path: "/time-to-pet-alternative",
   keywords: [
     "time to pet alternative",
     "time to pet alternatives",
@@ -25,17 +22,7 @@ export const metadata: Metadata = {
     "dog walking software",
     "adventure dog hiking software",
   ],
-  alternates: { canonical },
-  openGraph: {
-    url: canonical,
-    title,
-    description: TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
-  },
-  twitter: {
-    title,
-    description: TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
-  },
-};
+});
 
 export default function TimeToPetAlternativePage() {
   return (

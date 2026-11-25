@@ -4,27 +4,14 @@ import { buildAdventureDogHikingSoftwareJsonLdScriptProps } from "@/features/lan
 import {
   ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
   ADVENTURE_DOG_HIKING_SOFTWARE_TITLE,
-  SITE_NAME,
+  buildPageMetadata,
 } from "@/lib/seo/metadata";
-import { getSiteUrl } from "@/lib/site-url";
 
-const title = `${ADVENTURE_DOG_HIKING_SOFTWARE_TITLE} — ${SITE_NAME}`;
-const canonical = `${getSiteUrl()}/adventure-dog-hiking-software`;
-
-export const metadata: Metadata = {
-  title,
+export const metadata: Metadata = buildPageMetadata({
+  title: ADVENTURE_DOG_HIKING_SOFTWARE_TITLE,
   description: ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
-  alternates: { canonical },
-  openGraph: {
-    url: canonical,
-    title,
-    description: ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
-  },
-  twitter: {
-    title,
-    description: ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
-  },
-};
+  path: "/adventure-dog-hiking-software",
+});
 
 export default function AdventureDogHikingSoftwarePage() {
   return (

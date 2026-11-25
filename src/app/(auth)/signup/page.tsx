@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SignupForm } from "@/features/platform/components/signup-form";
 import { SelfSignupForm } from "@/features/onboarding/components/self-signup-form";
@@ -9,6 +10,12 @@ import {
 } from "@/features/platform/settings";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Sign up",
+  description:
+    "PackRoute is invite-only while we onboard beta teams. Book a demo to get started.",
+};
 
 function SignupsPausedMessage() {
   return (
@@ -78,15 +85,23 @@ export default async function SignupPage({
           PackRoute is invite-only while we onboard beta teams. Book a short demo
           or email us and we&apos;ll set up your company when you&apos;re ready.
         </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/demo"
+            className="inline-flex items-center justify-center rounded-xl bg-[var(--color-cta)] px-5 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-cta-hover)]"
+          >
+            Book a demo
+          </Link>
+          <Link
+            href="/contact"
+            className="inline-flex items-center justify-center rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+          >
+            Contact us
+          </Link>
+        </div>
         <div className="mt-6">
           <OnboardingSupportCard compact />
         </div>
-        <Link
-          href="/contact"
-          className="mt-4 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"
-        >
-          Go to contact →
-        </Link>
         <Link
           href="/login"
           className="mt-6 block text-sm font-medium text-[var(--color-trail-700)] hover:underline"

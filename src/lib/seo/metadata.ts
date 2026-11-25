@@ -1,5 +1,7 @@
 /** Shared SEO copy — keep in sync with visible landing page messaging. */
+import type { Metadata } from "next";
 import { BUYER_QUESTION_FAQ } from "@/features/landing/buyer-questions";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const SITE_NAME = "PackRoute";
 
@@ -83,10 +85,73 @@ export const BARKBUS_ALTERNATIVE_TITLE =
 export const BARKBUS_ALTERNATIVE_DESCRIPTION =
   "Looking for a BarkBus alternative focused on adventure dog hiking pickups? PackRoute plans multi-van routes, guides drivers on mobile web, and updates customers by SMS — without an owner app or AI booking suite.";
 
-export const PRICING_TITLE = "PackRoute Pricing — First Month Free (CAD)";
+export const PRICING_TITLE = "Pricing — First Month Free (CAD)";
 
 export const PRICING_DESCRIPTION =
   "Canadian pricing by drivers and dogs for walking and hiking teams. First month free, no card required to start. Beta rates from CA$99/month — every tier includes routes, group hike slots, and automated customer SMS.";
+
+/** Prevent indexing of authenticated / internal app surfaces. */
+export const NOINDEX_ROBOTS = {
+  index: false,
+  follow: false,
+  googleBot: { index: false, follow: false },
+} as const;
+
+const DEFAULT_OG_IMAGE = {
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
+  alt: `${SITE_NAME} — ${SITE_TAGLINE}`,
+} as const;
+
+/**
+ * Marketing / legal page metadata. Pass a title *without* the site name —
+ * the root layout template appends ` · PackRoute`.
+ */
+export function buildPageMetadata({
+  title,
+  description,
+  path,
+  keywords,
+  absoluteTitle,
+  noIndex,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  keywords?: string[];
+  /** When set, bypasses the ` · PackRoute` title template (homepage). */
+  absoluteTitle?: string;
+  noIndex?: boolean;
+}): Metadata {
+  const siteUrl = getSiteUrl();
+  const canonical = path === "/" ? siteUrl : `${siteUrl}${path}`;
+  // Match the rendered <title>: template uses ` · PackRoute` for segment titles.
+  const ogTitle = absoluteTitle ?? `${title} · ${SITE_NAME}`;
+
+  return {
+    title: absoluteTitle ? { absolute: absoluteTitle } : title,
+    description,
+    ...(keywords ? { keywords } : {}),
+    ...(noIndex ? { robots: NOINDEX_ROBOTS } : {}),
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      siteName: SITE_NAME,
+      url: canonical,
+      title: ogTitle,
+      description,
+      images: [DEFAULT_OG_IMAGE],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+      images: [DEFAULT_OG_IMAGE.url],
+    },
+  };
+}
 
 type FaqItem = { readonly q: string; readonly a: string };
 
@@ -206,9 +271,3 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
     a: "For Canadian adventure dog hiking teams, yes — a lighter, CAD-priced replacement focused on hours saved and customer experience, not a full pet-sitting suite.",
   },
 ];
-/** Prevent indexing of authenticated / internal app surfaces. */
-export const NOINDEX_ROBOTS = {
-  index: false,
-  follow: false,
-  googleBot: { index: false, follow: false },
-} as const;

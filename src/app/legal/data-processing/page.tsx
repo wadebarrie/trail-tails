@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { LegalPageShell } from "@/features/legal/components/legal-page-shell";
 import { dataProcessingDocument } from "@/features/legal/content/data-processing";
-import { getSiteUrl } from "@/lib/site-url";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: dataProcessingDocument.title,
   description: dataProcessingDocument.description,
-  alternates: { canonical: `${getSiteUrl()}/legal/data-processing` },
-};
+  path: "/legal/data-processing",
+});
 
 export default function DataProcessingPage() {
   return <LegalPageShell document={dataProcessingDocument} />;
