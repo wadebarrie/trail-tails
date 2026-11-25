@@ -11,6 +11,7 @@ const TYPE_LABELS: Record<string, string> = {
   request_approved: "Approved",
   request_declined: "Declined",
   help: "Help",
+  invoice: "Invoice",
 };
 
 export function smsTypeLabel(input: {

@@ -40,6 +40,9 @@ jobs:
       - name: Signup polish
         run: npm run test:signup-polish
 
+      - name: Invoice e-Transfer
+        run: npm run test:invoice-etransfer
+
       - name: Safe redirect
         run: npm run test:safe-redirect
 
