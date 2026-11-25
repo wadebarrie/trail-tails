@@ -17,13 +17,6 @@ export function OnboardingSetupBanner() {
       >
         Continue setup
       </Link>
-      {" · "}
-      <Link
-        href="/contact"
-        className="font-medium underline-offset-2 hover:underline"
-      >
-        Get onboarding help
-      </Link>
     </div>
   );
 }

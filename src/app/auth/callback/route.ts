@@ -1,6 +1,7 @@
 import { canAccessAdmin } from "@/features/auth/access";
 import { AUTH_ROUTES, getHomeRouteForRole } from "@/features/auth/constants";
 import { authCallbackDestination } from "@/features/auth/signup-guards";
+import { readOnboardingGate } from "@/features/onboarding/gate";
 import { getCurrentProfile } from "@/features/auth/queries";
 import { provisionConfirmedSelfSignup } from "@/features/onboarding/self-signup.server";
 import { buildAdminEmailMfaCookie } from "@/lib/auth/admin-email-mfa";
@@ -34,15 +35,11 @@ export async function GET(request: Request) {
     : AUTH_ROUTES.login;
 
   let onboardingCompletedAt: string | null = "complete";
+  let onboardingDismissedAt: string | null = null;
   if (profile?.role === "admin") {
-    const { data: company, error: companyError } = await supabase
-      .from("companies")
-      .select("onboarding_completed_at")
-      .eq("id", profile.company_id)
-      .maybeSingle();
-    if (!companyError) {
-      onboardingCompletedAt = company?.onboarding_completed_at ?? null;
-    }
+    const gate = await readOnboardingGate(supabase, profile.company_id);
+    onboardingCompletedAt = gate.completedAt;
+    onboardingDismissedAt = gate.dismissedAt;
   }
 
   const destination = profile
@@ -50,6 +47,7 @@ export async function GET(request: Request) {
         role: profile.role,
         canDrive: profile.can_drive,
         onboardingCompletedAt,
+        onboardingDismissedAt,
         nextParam,
         fallback,
       })

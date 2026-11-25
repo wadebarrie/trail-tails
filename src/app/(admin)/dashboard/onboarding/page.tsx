@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/features/auth/queries";
 import { OnboardingWizard } from "@/features/onboarding/components/onboarding-wizard";
 import {
-  nextIncompleteStep,
   ONBOARDING_LEGACY_STEP_ALIASES,
   ONBOARDING_PATH,
   ONBOARDING_STEPS,
@@ -11,6 +10,9 @@ import {
 import { getOnboardingProgress } from "@/features/onboarding/queries";
 import { formatTrialEndDate } from "@/features/subscription/trial-clock";
 import { createClient } from "@/lib/supabase/server";
+import { buildGalleryUrl } from "@/features/hike-photos/share";
+import type { WizardSmsMode } from "@/features/onboarding/first-value";
+import { nextIncompleteStep as firstValueStep } from "@/features/onboarding/first-value";
 
 function parseStep(raw: string | undefined): OnboardingStepId | null {
   if (!raw) return null;
@@ -42,7 +44,8 @@ export default async function OnboardingPage({
   }
 
   const supabase = await createClient();
-  const [{ data: company }, { data: subscription }] = await Promise.all([
+  const [{ data: company }, smsSettings, { data: subscription }, { data: dog }, { data: share }, { data: invoice }] =
+    await Promise.all([
     supabase
       .from("companies")
       .select(
@@ -51,9 +54,37 @@ export default async function OnboardingPage({
       .eq("id", profile.company_id)
       .maybeSingle(),
     supabase
+      .from("companies")
+      .select("sms_mode, sms_test_phone")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
       .from("subscriptions")
       .select("status, trial_ends_at")
       .eq("company_id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("dogs")
+      .select("id, name")
+      .eq("company_id", profile.company_id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("hike_photo_shares")
+      .select("token")
+      .eq("company_id", profile.company_id)
+      .is("revoked_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("invoices")
+      .select("id")
+      .eq("company_id", profile.company_id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle(),
   ]);
 
@@ -66,28 +97,34 @@ export default async function OnboardingPage({
       : null;
 
   const requested = parseStep(rawStep);
-  const step =
-    requested ??
-    (progress.hasVehicle || progress.hasCustomer
-      ? nextIncompleteStep(progress)
-      : "welcome");
+  const step = requested ?? firstValueStep(progress);
+  const smsMode: WizardSmsMode =
+    !smsSettings.error && smsSettings.data?.sms_mode === "test" ? "test" : "live";
 
   return (
     <OnboardingWizard
       step={step}
       progress={progress}
       companyName={company?.name ?? "your company"}
-      adminCanDrive={profile.can_drive}
+      ownerName={profile.full_name}
+      ownerPhone={smsSettings.data?.sms_test_phone || profile.phone || ""}
+      dogId={dog?.id ?? null}
+      dogName={dog?.name ?? null}
+      smsMode={smsMode}
       defaultHikeRateCents={company?.default_hike_rate_cents ?? null}
       nightBeforeReminderTime={
         company?.night_before_reminder_time ?? "19:30:00"
       }
       initialRouteCadence={
-        company?.route_cadence === "once" || company?.route_cadence === "twice"
+        progress.welcomeSaved &&
+        (company?.route_cadence === "once" || company?.route_cadence === "twice")
           ? company.route_cadence
           : null
       }
+      initialOutingStyle={progress.outingStyle}
       trialEndsOn={trialEndsOn}
+      galleryUrl={share?.token ? buildGalleryUrl(share.token) : null}
+      invoiceId={invoice?.id ?? null}
     />
   );
 }

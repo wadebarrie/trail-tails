@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authErrorMessage } from "@/features/auth/lib/auth-error-message";
 import { TurnstileField } from "@/features/auth/components/turnstile-field";
 import { postAuthDestination } from "@/features/auth/signup-guards";
+import { readOnboardingGate } from "@/features/onboarding/gate";
 import { createClient } from "@/lib/supabase/client";
 import {
   primaryButtonClassName,
@@ -245,15 +246,11 @@ export function EmailOtpMfaForm({
         }
 
         let onboardingCompletedAt: string | null = "complete";
+        let onboardingDismissedAt: string | null = null;
         if (profile.role === "admin") {
-          const { data: company, error: companyError } = await supabase
-            .from("companies")
-            .select("onboarding_completed_at")
-            .eq("id", profile.company_id)
-            .maybeSingle();
-          if (!companyError) {
-            onboardingCompletedAt = company?.onboarding_completed_at ?? null;
-          }
+          const gate = await readOnboardingGate(supabase, profile.company_id);
+          onboardingCompletedAt = gate.completedAt;
+          onboardingDismissedAt = gate.dismissedAt;
         }
 
         router.replace(
@@ -261,6 +258,7 @@ export function EmailOtpMfaForm({
             role: profile.role as "admin" | "driver",
             canDrive: profile.can_drive === true,
             onboardingCompletedAt,
+            onboardingDismissedAt,
             next: stayOnPage ? undefined : nextPath,
           })
         );

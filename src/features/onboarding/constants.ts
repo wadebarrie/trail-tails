@@ -4,20 +4,22 @@ export const ONBOARDING_PATH = "/dashboard/onboarding";
 
 export const ONBOARDING_STEPS = [
   "welcome",
-  "vehicle",
-  "driver",
   "customer",
   "dog",
   "route",
-  "company",
+  "prices",
+  "try",
   "done",
 ] as const;
 
 export type OnboardingStepId = (typeof ONBOARDING_STEPS)[number];
 
-/** Legacy step id from earlier onboarding copy — redirect to `driver`. */
+/** Older wizard urls land on the closest step in the new order. */
 export const ONBOARDING_LEGACY_STEP_ALIASES: Record<string, OnboardingStepId> = {
-  hiker: "driver",
+  hiker: "customer",
+  vehicle: "welcome",
+  driver: "customer",
+  company: "prices",
 };
 
 export type OnboardingRouteCadence = "once" | "twice";
@@ -52,52 +54,35 @@ export type OnboardingProgress = {
   hasDriver: boolean;
   hasCustomer: boolean;
   hasDog: boolean;
-  /** True when at least one PackRoute can actually run (schedule days + assigned dog). */
+  /** True when one PackRoute can run (schedule days + assigned dog). */
   hasRoute: boolean;
   routeChecklist: OnboardingRouteChecklist;
   hasCompanyInfo: boolean;
+  welcomeSaved: boolean;
+  hasSampleText: boolean;
+  hasGallery: boolean;
+  hasDraftInvoice: boolean;
   completedAt: string | null;
+  dismissedAt: string | null;
+  outingStyle: "walk" | "hike" | null;
 };
 
-export function nextIncompleteStep(
-  progress: OnboardingProgress
-): OnboardingStepId {
-  if (!progress.hasVehicle) return "vehicle";
-  if (!progress.hasDriver) return "driver";
-  if (!progress.hasCustomer) return "customer";
-  if (!progress.hasDog) return "dog";
-  if (!progress.hasRoute) return "route";
-  if (!progress.hasCompanyInfo) return "company";
-  return "done";
-}
-
-export function isOnboardingComplete(progress: OnboardingProgress): boolean {
-  return (
-    progress.hasVehicle &&
-    progress.hasDriver &&
-    progress.hasCustomer &&
-    progress.hasDog &&
-    progress.hasRoute &&
-    progress.hasCompanyInfo
-  );
-}
+export { nextIncompleteStep, isFirstValueReady as isOnboardingComplete } from "@/features/onboarding/first-value";
 
 export function onboardingStepLabel(step: OnboardingStepId): string {
   switch (step) {
     case "welcome":
       return "Welcome";
-    case "vehicle":
-      return "Vehicle";
-    case "driver":
-      return "Driver";
     case "customer":
       return "Customer";
     case "dog":
       return "Dog";
     case "route":
       return "Route";
-    case "company":
-      return "Company";
+    case "prices":
+      return "Prices";
+    case "try":
+      return "Try it";
     case "done":
       return "Done";
   }

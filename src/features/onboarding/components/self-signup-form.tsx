@@ -8,7 +8,6 @@ import {
   selfSignupAction,
   type SelfSignupResult,
 } from "@/features/onboarding/actions";
-import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
 import { TurnstileField } from "@/features/auth/components/turnstile-field";
 import { SubmitButton } from "@/features/admin/components/ui";
 import { COMMON_TIMEZONES } from "@/features/platform/timezones";
@@ -32,11 +31,6 @@ export function SelfSignupForm({ siteKey }: { siteKey: string | null }) {
 
   return (
     <form action={formAction} className="mt-8 space-y-4">
-      <p className="rounded-lg border border-[var(--color-trail-100)] bg-[var(--color-trail-50)] px-3 py-2.5 text-sm text-[var(--color-trail-800)]">
-        We email you a confirmation link first. Your company is created only
-        after you confirm, and setup starts on the next screen.
-      </p>
-
       {!siteKey ? (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
           Signup is unavailable until bot protection is configured.
@@ -105,7 +99,6 @@ export function SelfSignupForm({ siteKey }: { siteKey: string | null }) {
       />
 
       <TurnstileField siteKey={siteKey} />
-      <OnboardingSupportCard compact />
 
       <div className="space-y-2 text-xs leading-relaxed text-stone-500">
         <p>

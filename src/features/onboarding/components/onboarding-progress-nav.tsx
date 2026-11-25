@@ -10,12 +10,11 @@ import {
 
 /** Core setup steps shown in the progress nav (excludes welcome / done). */
 export const ONBOARDING_PROGRESS_STEPS = [
-  "vehicle",
-  "driver",
   "customer",
   "dog",
   "route",
-  "company",
+  "prices",
+  "try",
 ] as const;
 
 export type OnboardingProgressStepId =
@@ -30,18 +29,16 @@ function stepCompleted(
   progress: OnboardingProgress
 ): boolean {
   switch (step) {
-    case "vehicle":
-      return progress.hasVehicle;
-    case "driver":
-      return progress.hasDriver;
     case "customer":
       return progress.hasCustomer;
     case "dog":
       return progress.hasDog;
     case "route":
       return progress.hasRoute;
-    case "company":
+    case "prices":
       return progress.hasCompanyInfo;
+    case "try":
+      return progress.hasSampleText || progress.hasGallery || progress.hasDraftInvoice;
   }
 }
 
