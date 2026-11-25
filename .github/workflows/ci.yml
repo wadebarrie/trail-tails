@@ -37,6 +37,9 @@ jobs:
       - name: Signup verification
         run: npm run test:signup-verification
 
+      - name: Supabase hardening
+        run: npm run test:supabase-hardening
+
       - name: Stripe map
         run: npm run test:stripe-map
 
