@@ -40,6 +40,9 @@ jobs:
       - name: Signup polish
         run: npm run test:signup-polish
 
+      - name: Pricing JSON-LD
+        run: npm run test:pricing-jsonld
+
       - name: Invoice e-Transfer
         run: npm run test:invoice-etransfer
 
