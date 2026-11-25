@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { FormSubmitButton } from "@/features/admin/components/form-submit-button";
 import { createInvoicePayLinkFormAction } from "@/features/invoices/actions";
 import type { InvoiceActionResult } from "@/features/invoices/actions";
@@ -16,20 +16,17 @@ export function CreatePayLinkButton({
     createInvoicePayLinkFormAction.bind(null, invoiceId),
     null
   );
-  const [copied, setCopied] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const url = state?.ok ? state.url : existingUrl;
-
-  useEffect(() => {
-    setCopied(false);
-  }, [url]);
+  const copied = Boolean(url && copiedUrl === url);
 
   async function copyLink() {
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
-      setCopied(true);
+      setCopiedUrl(url);
     } catch {
-      setCopied(false);
+      setCopiedUrl(null);
     }
   }
 
