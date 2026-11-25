@@ -39,7 +39,8 @@ export type NotificationType =
   | "request_received"
   | "request_approved"
   | "request_declined"
-  | "help";
+  | "help"
+  | "invoice";
 
 export type {
   SubscriptionPlan,
@@ -86,6 +87,10 @@ export interface Company {
   sms_test_phone: string | null;
   /** Self-serve companies stay in test mode until PackRoute sets this true. */
   sms_live_approved: boolean;
+  etransfer_email: string | null;
+  etransfer_recipient_name: string | null;
+  etransfer_instructions: string | null;
+  show_card_payment: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -340,6 +345,7 @@ export interface Invoice {
   notes: string | null;
   stripe_checkout_session_id: string | null;
   stripe_pay_url: string | null;
+  public_token: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

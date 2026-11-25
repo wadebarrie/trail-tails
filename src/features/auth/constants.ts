@@ -58,6 +58,7 @@ export const PUBLIC_PREFIXES = [
   "/auth/callback",
   "/legal",
   "/p/", // signed hike-photo gallery links (no login)
+  "/i/", // unguessable customer invoice links (no login)
 ];
 
 /** Metadata and crawler routes (OG image, llms.txt, etc.) */

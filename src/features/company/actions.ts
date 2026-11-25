@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { COMMON_TIMEZONES } from "@/features/platform/timezones";
 import { digitsOnly } from "@/lib/phone";
+import { parseEtransferEmail, resolveShowCardPayment } from "@/features/invoices/etransfer";
+import { getStripeSecretKey } from "@/lib/stripe";
 
 const baseSettingsSchema = z.object({
   company_name: z
@@ -21,6 +23,10 @@ const baseSettingsSchema = z.object({
   sms_mode: z.enum(["test", "live"]).optional(),
   sms_test_phone: z.string().optional(),
   sms_customer_consent: z.enum(["yes"]).optional(),
+  etransfer_email: z.string().optional(),
+  etransfer_recipient_name: z.string().max(80).optional(),
+  etransfer_instructions: z.string().max(280).optional(),
+  show_card_payment: z.enum(["yes"]).optional(),
 });
 
 function parseRateToCents(raw?: string): number | null {
@@ -47,7 +53,7 @@ export async function updateCompanySettingsAction(
   }
 
   const supabase = await createClient();
-  const [{ data: existing }, smsRow] = await Promise.all([
+  const [{ data: existing }, smsRow, paymentRow] = await Promise.all([
     supabase
       .from("companies")
       .select("timezone")
@@ -56,6 +62,11 @@ export async function updateCompanySettingsAction(
     supabase
       .from("companies")
       .select("sms_mode, sms_live_approved")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("etransfer_email")
       .eq("id", profile.company_id)
       .maybeSingle(),
   ]);
@@ -92,6 +103,14 @@ export async function updateCompanySettingsAction(
     };
   }
 
+  const etransfer = parseEtransferEmail(parsed.data.etransfer_email);
+  if (!etransfer.ok) return { error: etransfer.error };
+  const savePayment = !paymentRow.error;
+  const showCard = resolveShowCardPayment(
+    parsed.data.show_card_payment === "yes",
+    Boolean(getStripeSecretKey())
+  );
+
   const { error } = await supabase
     .from("companies")
     .update({
@@ -104,6 +123,16 @@ export async function updateCompanySettingsAction(
         parsed.data.auto_send_gallery_on_closeout !== "false",
       ...(saveSms
         ? { sms_mode: smsMode, sms_test_phone: testPhone }
+        : {}),
+      ...(savePayment
+        ? {
+            etransfer_email: etransfer.email,
+            etransfer_recipient_name:
+              parsed.data.etransfer_recipient_name?.trim() || null,
+            etransfer_instructions:
+              parsed.data.etransfer_instructions?.trim() || null,
+            show_card_payment: showCard,
+          }
         : {}),
     })
     .eq("id", profile.company_id);

@@ -9,8 +9,11 @@ import {
 import { requireRole } from "@/features/auth/queries";
 import { formatCentsDisplay } from "@/features/billing/queries";
 import { CreatePayLinkButton } from "@/features/invoices/components/create-pay-link-button";
-import { MarkSentButton } from "@/features/invoices/components/mark-sent-button";
+import { CopyInvoiceLinkButton } from "@/features/invoices/components/copy-invoice-link-button";
+import { SendInvoiceButton } from "@/features/invoices/components/send-invoice-button";
 import { RecordPaymentForm } from "@/features/invoices/components/record-payment-form";
+import { buildInvoicePublicUrl } from "@/features/invoices/etransfer";
+import { getSiteUrl } from "@/lib/site-url";
 import { getInvoiceWithLines } from "@/features/invoices/queries";
 import {
   invoiceStatusLabel,
@@ -34,11 +37,19 @@ export default async function InvoiceDetailPage({
   const { invoice, customer, lines, payments, paidCents, balanceCents } = detail;
 
   const supabase = await createClient();
-  const { data: company } = await supabase
-    .from("companies")
-    .select("timezone")
-    .eq("id", profile.company_id)
-    .single();
+  const [{ data: company }, linkRow] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("timezone")
+      .eq("id", profile.company_id)
+      .single(),
+    supabase
+      .from("invoices")
+      .select("public_token")
+      .eq("id", id)
+      .eq("company_id", profile.company_id)
+      .maybeSingle(),
+  ]);
   const timeZone = company?.timezone ?? "America/Los_Angeles";
   const today = getDateInTimezoneAt(timeZone, new Date());
 
@@ -52,10 +63,18 @@ export default async function InvoiceDetailPage({
         description={`${customer?.owner_name ?? "Unknown customer"} · ${invoice.period_start} – ${invoice.period_end}`}
         action={
           invoice.status === "draft" ? (
-            <MarkSentButton invoiceId={invoice.id} />
+            <SendInvoiceButton invoiceId={invoice.id} />
           ) : undefined
         }
       />
+
+      {!linkRow.error && linkRow.data?.public_token ? (
+        <div className="mb-4">
+          <CopyInvoiceLinkButton
+            url={buildInvoicePublicUrl(getSiteUrl(), linkRow.data.public_token as string)}
+          />
+        </div>
+      ) : null}
 
       <p className="mb-6 text-sm text-stone-600">
         {customer?.email ? (

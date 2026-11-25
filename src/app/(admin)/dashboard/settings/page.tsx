@@ -6,6 +6,7 @@ import { CompanyBillingCard } from "@/features/subscription/components/company-b
 import { getSubscriptionForCompany } from "@/features/subscription/queries";
 import { requireRole } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
+import { getStripeSecretKey } from "@/lib/stripe";
 
 const DEFAULT_NIGHT_BEFORE_REMINDER_TIME = "19:30:00";
 
@@ -19,7 +20,7 @@ export default async function SettingsPage({
   const showBilling = tab === "billing";
   const supabase = await createClient();
 
-  const [{ data: company }, smsSettings, subscription] = await Promise.all([
+  const [{ data: company }, smsSettings, paymentSettings, subscription] = await Promise.all([
     supabase
       .from("companies")
       .select(
@@ -30,6 +31,13 @@ export default async function SettingsPage({
     supabase
       .from("companies")
       .select("sms_mode, sms_test_phone, sms_live_approved")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select(
+        "etransfer_email, etransfer_recipient_name, etransfer_instructions, show_card_payment"
+      )
       .eq("id", profile.company_id)
       .maybeSingle(),
     getSubscriptionForCompany(profile.company_id),
@@ -92,6 +100,12 @@ export default async function SettingsPage({
           smsMode={smsSettings.data?.sms_mode === "test" ? "test" : "live"}
           smsTestPhone={smsSettings.data?.sms_test_phone ?? ""}
           smsLiveApproved={smsSettings.data?.sms_live_approved !== false}
+          paymentSettingsAvailable={!paymentSettings.error}
+          etransferEmail={paymentSettings.data?.etransfer_email ?? ""}
+          etransferRecipientName={paymentSettings.data?.etransfer_recipient_name ?? ""}
+          etransferInstructions={paymentSettings.data?.etransfer_instructions ?? ""}
+          showCardPayment={paymentSettings.data?.show_card_payment === true}
+          stripeConfigured={Boolean(getStripeSecretKey())}
         />
       </section>
       )}

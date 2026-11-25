@@ -18,6 +18,12 @@ export function CompanySettingsForm({
   smsMode = "live",
   smsTestPhone = "",
   smsLiveApproved = true,
+  paymentSettingsAvailable = false,
+  etransferEmail = "",
+  etransferRecipientName = "",
+  etransferInstructions = "",
+  showCardPayment = false,
+  stripeConfigured = false,
 }: {
   companyName: string;
   timezone: string;
@@ -29,6 +35,12 @@ export function CompanySettingsForm({
   smsMode?: "test" | "live";
   smsTestPhone?: string;
   smsLiveApproved?: boolean;
+  paymentSettingsAvailable?: boolean;
+  etransferEmail?: string;
+  etransferRecipientName?: string;
+  etransferInstructions?: string;
+  showCardPayment?: boolean;
+  stripeConfigured?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(
     updateCompanySettingsAction,
@@ -287,6 +299,69 @@ export function CompanySettingsForm({
           </div>
         </fieldset>
       </div>
+
+      {paymentSettingsAvailable ? (
+        <div>
+          <h2 className="text-sm font-semibold text-stone-900">Interac e-Transfer</h2>
+          <p className="mt-1 text-xs text-stone-500">
+            Shown on the invoice link. Customers pay you directly. Card payment
+            stays off unless you turn it on.
+          </p>
+          <label htmlFor="etransfer_email" className="mt-3 block text-sm font-medium text-stone-700">
+            e-Transfer email
+          </label>
+          <input
+            id="etransfer_email"
+            name="etransfer_email"
+            type="email"
+            defaultValue={etransferEmail}
+            placeholder="payments@example.com"
+            className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
+          />
+          <label
+            htmlFor="etransfer_recipient_name"
+            className="mt-3 block text-sm font-medium text-stone-700"
+          >
+            Recipient name (optional)
+          </label>
+          <input
+            id="etransfer_recipient_name"
+            name="etransfer_recipient_name"
+            defaultValue={etransferRecipientName}
+            className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
+          />
+          <label
+            htmlFor="etransfer_instructions"
+            className="mt-3 block text-sm font-medium text-stone-700"
+          >
+            Instructions (optional)
+          </label>
+          <textarea
+            id="etransfer_instructions"
+            name="etransfer_instructions"
+            rows={2}
+            defaultValue={etransferInstructions}
+            placeholder="Autodeposit is on. No password needed."
+            className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
+          />
+          <label className="mt-3 flex items-start gap-2 text-sm text-stone-700">
+            <input
+              type="checkbox"
+              name="show_card_payment"
+              value="yes"
+              defaultChecked={showCardPayment}
+              disabled={!stripeConfigured}
+              className="mt-1"
+            />
+            <span>
+              Show card payment option
+              {stripeConfigured
+                ? ""
+                : " — available after Stripe is configured."}
+            </span>
+          </label>
+        </div>
+      ) : null}
 
       <SubmitButton pending={pending}>Save settings</SubmitButton>
     </form>

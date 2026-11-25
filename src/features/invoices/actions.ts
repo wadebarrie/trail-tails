@@ -7,8 +7,18 @@ import { getBillingLineItems } from "@/features/billing/queries";
 import type { BillingLineItem } from "@/features/billing/queries";
 import { CUSTOMER_INVOICE_CHECKOUT_PURPOSE } from "@/features/invoices/apply-stripe-invoice-payment";
 import { nextInvoiceNumber } from "@/features/invoices/queries";
-import { getDateInTimezone } from "@/lib/dates";
+import {
+  buildInvoicePaymentMessage,
+  buildInvoicePublicUrl,
+  invoiceSendBlockReason,
+} from "@/features/invoices/etransfer";
+import { sendInvoiceEmail } from "@/features/invoices/invoice-email";
+import { generateShareToken } from "@/features/hike-photos/share";
+import { logNotification } from "@/features/notifications/log";
+import { digitsOnly } from "@/lib/phone";
 import { getSiteUrl } from "@/lib/site-url";
+import { createServiceClient } from "@/lib/supabase/service";
+import { getDateInTimezone } from "@/lib/dates";
 import { createStripeClient, getStripeSecretKey } from "@/lib/stripe";
 import type { PaymentMethod } from "@/types";
 
@@ -246,6 +256,159 @@ export async function markInvoiceSentAction(
 
   revalidateInvoicePaths(invoiceId);
   return { ok: true };
+}
+
+async function ensureInvoiceToken(
+  invoiceId: string,
+  companyId: string
+): Promise<{ token: string } | { error: string }> {
+  const service = createServiceClient();
+  const { data: existing, error: readError } = await service
+    .from("invoices")
+    .select("public_token")
+    .eq("id", invoiceId)
+    .eq("company_id", companyId)
+    .maybeSingle();
+  if (readError) {
+    return { error: "Invoice links need the e-Transfer migration before they can be shared." };
+  }
+  const current = existing?.public_token as string | null;
+  if (current) return { token: current };
+  const token = generateShareToken();
+  const { error } = await service
+    .from("invoices")
+    .update({ public_token: token })
+    .eq("id", invoiceId)
+    .eq("company_id", companyId)
+    .is("public_token", null);
+  if (error) return { error: "Could not create the invoice link." };
+  return { token };
+}
+
+export async function ensureInvoiceLinkAction(
+  invoiceId: string
+): Promise<{ url?: string; error?: string }> {
+  const profile = await requireRole("admin");
+  const token = await ensureInvoiceToken(invoiceId, profile.company_id);
+  if ("error" in token) return { error: token.error };
+  return { url: buildInvoicePublicUrl(getSiteUrl(), token.token) };
+}
+
+export async function sendInvoiceAction(
+  invoiceId: string
+): Promise<InvoiceActionResult> {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: invoice } = await supabase
+    .from("invoices")
+    .select("id, status, due_date, customer_id, invoice_number, total_cents, currency")
+    .eq("id", invoiceId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+  if (!invoice) return { ok: false, error: "Invoice not found." };
+  if (invoice.status === "paid") return { ok: false, error: "This invoice is already paid." };
+  if (invoice.status !== "draft" && invoice.status !== "sent" && invoice.status !== "overdue") {
+    return { ok: false, error: "This invoice can't be sent." };
+  }
+
+  const [{ data: company }, { data: customer }, paymentSettings] = await Promise.all([
+    supabase.from("companies").select("name").eq("id", profile.company_id).maybeSingle(),
+    supabase
+      .from("customers")
+      .select("email, phone, secondary_phone")
+      .eq("id", invoice.customer_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("etransfer_email, show_card_payment")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+  ]);
+
+  if (paymentSettings.error) {
+    return {
+      ok: false,
+      error: "Invoice links need the e-Transfer migration before they can be shared.",
+    };
+  }
+
+  const etransferEmail = (paymentSettings.data?.etransfer_email as string | null) ?? null;
+  const showCard = paymentSettings.data?.show_card_payment === true;
+  const blocked = invoiceSendBlockReason({ etransferEmail, showCardPayment: showCard });
+  if (blocked) return { ok: false, error: blocked };
+
+  const token = await ensureInvoiceToken(invoiceId, profile.company_id);
+  if ("error" in token) return { ok: false, error: token.error };
+  const link = buildInvoicePublicUrl(getSiteUrl(), token.token);
+  const message = buildInvoicePaymentMessage({
+    companyName: (company?.name as string) ?? "PackRoute",
+    invoiceNumber: invoice.invoice_number as string,
+    totalCents: invoice.total_cents as number,
+    link,
+    etransferEmail,
+  });
+
+  const hasPhone =
+    digitsOnly((customer?.phone as string | null) ?? "").length >= 10 ||
+    digitsOnly((customer?.secondary_phone as string | null) ?? "").length >= 10;
+
+  const sms = hasPhone
+    ? await logNotification({
+        companyId: profile.company_id,
+        customerId: invoice.customer_id as string,
+        notificationType: "invoice",
+        body: message,
+      })
+    : { sent: 0, failed: 0, unknown: 0 };
+
+  const email = await sendInvoiceEmail({
+    to: (customer?.email as string | null) ?? "",
+    companyName: (company?.name as string) ?? "PackRoute",
+    invoiceNumber: invoice.invoice_number as string,
+    totalCents: invoice.total_cents as number,
+    link,
+    etransferEmail,
+  });
+
+  if (sms.sent === 0 && email !== "sent") {
+    return {
+      ok: false,
+      error: hasPhone
+        ? "The text did not send. Check Texts sent, then try again. The invoice link is ready to copy."
+        : "This customer has no mobile number, and invoice email is not configured. Add a phone number or copy the link.",
+    };
+  }
+
+  if (invoice.status === "draft") {
+    const dueDate =
+      invoice.due_date ??
+      (await companyToday(profile.company_id, DEFAULT_TERMS_DAYS));
+    const { error } = await supabase
+      .from("invoices")
+      .update({
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        due_date: dueDate,
+      })
+      .eq("id", invoiceId)
+      .eq("company_id", profile.company_id);
+    if (error) return { ok: false, error: error.message };
+  }
+
+  revalidateInvoicePaths(invoiceId);
+  const parts = [
+    sms.sent > 0 ? "Text sent" : null,
+    email === "sent" ? "Email sent" : null,
+  ].filter(Boolean);
+  return { ok: true, message: `${parts.join(" and ")}. Invoice link: ${link}` };
+}
+
+export async function sendInvoiceFormAction(
+  invoiceId: string,
+  _prev: InvoiceActionResult | null
+): Promise<InvoiceActionResult> {
+  return sendInvoiceAction(invoiceId);
 }
 
 /** Form-friendly wrapper for useActionState (invoice id bound by caller). */
