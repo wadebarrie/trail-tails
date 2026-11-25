@@ -1,11 +1,10 @@
 import { canAccessAdmin } from "@/features/auth/access";
 import { AUTH_ROUTES, getHomeRouteForRole } from "@/features/auth/constants";
-import { postAuthDestination } from "@/features/auth/signup-guards";
+import { authCallbackDestination } from "@/features/auth/signup-guards";
 import { getCurrentProfile } from "@/features/auth/queries";
 import { provisionConfirmedSelfSignup } from "@/features/onboarding/self-signup.server";
 import { buildAdminEmailMfaCookie } from "@/lib/auth/admin-email-mfa";
 import { createClient } from "@/lib/supabase/server";
-import { safeAuthNextPath } from "@/lib/auth/safe-redirect";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -47,11 +46,12 @@ export async function GET(request: Request) {
   }
 
   const destination = profile
-    ? postAuthDestination({
+    ? authCallbackDestination({
         role: profile.role,
         canDrive: profile.can_drive,
         onboardingCompletedAt,
-        next: nextParam ? safeAuthNextPath(nextParam, fallback) : null,
+        nextParam,
+        fallback,
       })
     : `${AUTH_ROUTES.login}?error=no_profile`;
 

@@ -85,6 +85,7 @@ export async function handleAuth(request: NextRequest) {
             role: profile.role,
             canDrive: profile.can_drive,
             onboardingCompletedAt,
+            next: request.nextUrl.searchParams.get("next"),
           })
         );
       }

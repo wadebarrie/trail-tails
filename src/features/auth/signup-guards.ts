@@ -1,5 +1,6 @@
 import { ONBOARDING_PATH } from "@/features/onboarding/constants";
-import { getLoginRedirect } from "@/features/auth/access";
+import { getLoginRedirect, passwordResetRedirect } from "@/features/auth/access";
+import { safeAuthNextPath } from "@/lib/auth/safe-redirect";
 
 export const SIGNUP_EMAIL_ATTEMPT_LIMIT = 5;
 export const SIGNUP_IP_ATTEMPT_LIMIT = 20;
@@ -86,6 +87,9 @@ export function postAuthDestination(input: {
   onboardingCompletedAt: string | null;
   next?: string | null;
 }): string {
+  const reset = passwordResetRedirect(input.next);
+  if (reset) return reset;
+
   if (input.role === "admin" && input.onboardingCompletedAt == null) {
     if (input.next?.startsWith(ONBOARDING_PATH)) return input.next;
     return ONBOARDING_PATH;
@@ -95,6 +99,24 @@ export function postAuthDestination(input: {
     { role: input.role, can_drive: input.canDrive, is_active: true },
     input.next ?? undefined
   );
+}
+
+/** Where `/auth/callback?next=` sends a signed-in profile. */
+export function authCallbackDestination(input: {
+  role: "admin" | "driver";
+  canDrive: boolean;
+  onboardingCompletedAt: string | null;
+  nextParam: string | null;
+  fallback: string;
+}): string {
+  return postAuthDestination({
+    role: input.role,
+    canDrive: input.canDrive,
+    onboardingCompletedAt: input.onboardingCompletedAt,
+    next: input.nextParam
+      ? safeAuthNextPath(input.nextParam, input.fallback)
+      : null,
+  });
 }
 
 export function turnstileSiteKey(): string | null {
