@@ -194,9 +194,61 @@ export async function completeHikeAction(
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   revalidatePath("/dashboard/billing");
+  revalidatePath("/dashboard/hike-report");
   revalidatePath("/today");
   revalidatePath("/tomorrow");
   return { success: true };
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Admin: close out every incomplete hike in a date range (past days included).
+ * Open stops become picked up / dropped off — same as per-hike Close out.
+ */
+export async function bulkCloseOutHikesInRangeAction(
+  start: string,
+  end: string
+): Promise<{ success?: true; closed?: number; error?: string }> {
+  const profile = await requireRole("admin");
+  if (!DATE_RE.test(start) || !DATE_RE.test(end)) {
+    return { error: "Choose a valid date range." };
+  }
+  if (end < start) {
+    return { error: "End date must be on or after the start date." };
+  }
+
+  const supabase = await createClient();
+  const { data: hikes, error } = await supabase
+    .from("hikes")
+    .select("id, status")
+    .eq("company_id", profile.company_id)
+    .gte("date", start)
+    .lte("date", end)
+    .neq("status", "completed");
+
+  if (error) return { error: error.message };
+
+  let closed = 0;
+  for (const hike of hikes ?? []) {
+    const result = await completeHikeAction(hike.id);
+    if (result.error) return { error: result.error, closed };
+    closed += 1;
+  }
+
+  revalidatePath("/dashboard/billing");
+  revalidatePath("/dashboard/hike-report");
+  return { success: true, closed };
+}
+
+export async function bulkCloseOutHikesFormAction(
+  _prev: { success?: true; closed?: number; error?: string } | null,
+  formData: FormData
+): Promise<{ success?: true; closed?: number; error?: string }> {
+  return bulkCloseOutHikesInRangeAction(
+    String(formData.get("start") ?? ""),
+    String(formData.get("end") ?? "")
+  );
 }
 
 export async function reorderRouteDogsAction(

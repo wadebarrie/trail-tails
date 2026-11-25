@@ -58,7 +58,8 @@ export function HikePhotoUpload({ hikeId, companyId, dogs }: Props) {
     const failures: string[] = [];
 
     for (const [index, file] of files.entries()) {
-      setProgress(`Uploading ${index + 1} of ${files.length}…`);
+      const step = `${index + 1} of ${files.length}`;
+      setProgress(`Compressing ${step}…`);
       let storagePath: string | null = null;
       try {
         const blob = await compressImageForUpload(file);
@@ -66,6 +67,7 @@ export function HikePhotoUpload({ hikeId, companyId, dogs }: Props) {
           throw new Error("Photo is too large.");
         }
 
+        setProgress(`Uploading ${step}…`);
         storagePath = buildPhotoStoragePath(
           companyId,
           hikeId,
@@ -79,6 +81,7 @@ export function HikePhotoUpload({ hikeId, companyId, dogs }: Props) {
           });
         if (uploadError) throw new Error("Upload failed. Check your signal.");
 
+        setProgress(`Saving ${step}…`);
         const result = await recordHikePhotoAction({
           hikeId,
           storagePath,

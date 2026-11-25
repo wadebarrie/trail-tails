@@ -90,7 +90,12 @@ export function RecordPaymentForm({
         </div>
       </div>
 
-      <FormSubmitButton pendingLabel="Recording…">Record payment</FormSubmitButton>
+      <FormSubmitButton pendingLabel="Recording payment…">
+        Record payment
+      </FormSubmitButton>
+      <p className="text-xs text-stone-500">
+        Saving to the server can take a few seconds on a slow connection.
+      </p>
     </form>
   );
 }

@@ -18,6 +18,9 @@ export function CreateInvoiceDraftsButton({
     null
   );
 
+  const needsCloseOut =
+    state?.ok === false && state.error.toLowerCase().includes("close-out");
+
   return (
     <form action={formAction} className="flex flex-col items-start gap-2">
       <input type="hidden" name="start" value={start} />
@@ -26,9 +29,16 @@ export function CreateInvoiceDraftsButton({
         Create invoice drafts
       </FormSubmitButton>
       {state?.ok === false ? (
-        <p role="alert" className="text-sm text-red-700">
-          {state.error}
-        </p>
+        <div role="alert" className="max-w-lg space-y-1 text-sm text-red-700">
+          <p>{state.error}</p>
+          {needsCloseOut ? (
+            <p>
+              Scroll up to the amber banner and use{" "}
+              <span className="font-medium">Close out</span> for this range,
+              then try again.
+            </p>
+          ) : null}
+        </div>
       ) : null}
       {state?.ok ? (
         <p role="status" className="text-sm text-green-800">
