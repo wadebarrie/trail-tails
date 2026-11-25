@@ -384,6 +384,17 @@ export interface HikePhotoShare {
   created_at: string;
 }
 
+/** Claim row so two close-outs cannot both text the same owner for one day. */
+export interface HikePhotoGallerySend {
+  id: string;
+  company_id: string;
+  customer_id: string;
+  hike_date: string;
+  status: "pending" | "sent" | "failed";
+  created_at: string;
+  sent_at: string | null;
+}
+
 type TableDef<T> = {
   Row: T;
   Insert: Partial<T>;
@@ -413,6 +424,7 @@ export interface Database {
       hike_photos: TableDef<HikePhoto>;
       hike_photo_dogs: TableDef<HikePhotoDog>;
       hike_photo_shares: TableDef<HikePhotoShare>;
+      hike_photo_gallery_sends: TableDef<HikePhotoGallerySend>;
       invoices: TableDef<Invoice>;
       invoice_lines: TableDef<InvoiceLine>;
       payments: TableDef<Payment>;

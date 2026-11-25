@@ -268,6 +268,46 @@ export async function sendTodaysGalleriesAction(
   return { ok: true, message: `${parts.join(". ")}.` };
 }
 
+/** Admin: text gallery links after a hike is already closed out. */
+export async function sendGalleryForClosedHikeAction(
+  hikeId: string
+): Promise<SendGalleriesResult> {
+  const profile = await requireRole("admin");
+  if (!isUuid(hikeId)) return { ok: false, error: "Hike not found." };
+
+  const supabase = await createClient();
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id")
+    .eq("id", hikeId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+  if (!hike) return { ok: false, error: "Hike not found." };
+
+  const { sendHikeGallerySmsForHike } = await import(
+    "@/features/hike-photos/send-gallery-sms"
+  );
+  const result = await sendHikeGallerySmsForHike(hikeId, { force: false });
+
+  revalidatePath("/dashboard/photos");
+  revalidatePath("/dashboard/sms");
+  revalidatePath("/dashboard/notifications");
+
+  if (result.sent > 0) {
+    return {
+      ok: true,
+      message: `Gallery text sent to ${result.sent} owner${result.sent === 1 ? "" : "s"}.`,
+    };
+  }
+  if (result.errors > 0) {
+    return {
+      ok: false,
+      error: "Hike is closed out. The gallery text didn't send — try Send today's galleries.",
+    };
+  }
+  return { ok: true, message: "Hike closed out. No new gallery text to send." };
+}
+
 export async function sendTodaysGalleriesFormAction(
   date: string,
   _prev: SendGalleriesResult | null

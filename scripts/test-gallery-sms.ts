@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import {
   buildHikeGalleryMessage,
+  bulkCloseOutConfirmBody,
   galleryLinkAlreadySent,
+  gallerySendBudgetExceeded,
+  galleryTokenLikePattern,
   galleryWhenLabel,
 } from "../src/features/hike-photos/gallery-sms-rules";
 import { smsStatusTone, smsTypeLabel } from "../src/features/sms/labels";
@@ -112,6 +115,35 @@ test("a different day's token does not count", () => {
     ),
     false
   );
+});
+
+test("underscore in a share token is not a LIKE wildcard", () => {
+  assert.equal(galleryTokenLikePattern("ab_cd"), "%/p/ab\\_cd%");
+  assert.equal(galleryTokenLikePattern("100%"), "%/p/100\\%%");
+  assert.notEqual(galleryTokenLikePattern("ab_cd"), "%/p/ab_cd%");
+});
+
+test("bulk gallery budget is one deadline, not per hike", () => {
+  assert.equal(gallerySendBudgetExceeded(1_000, 1_000), true);
+  assert.equal(gallerySendBudgetExceeded(999, 1_000), false);
+  assert.equal(gallerySendBudgetExceeded(5_000, undefined), false);
+});
+
+test("bulk close-out warning cannot be undone and names the text count", () => {
+  const body = bulkCloseOutConfirmBody({
+    routeCount: 284,
+    galleryTextsOn: true,
+    galleryRecipientCount: 12,
+  });
+  assert.match(body, /cannot be undone/i);
+  assert.match(body, /284 incomplete routes/);
+  assert.match(body, /up to 12 owners/);
+  const off = bulkCloseOutConfirmBody({
+    routeCount: 2,
+    galleryTextsOn: false,
+    galleryRecipientCount: 4,
+  });
+  assert.match(off, /no owners will be texted/i);
 });
 
 test("texts sent labels", () => {

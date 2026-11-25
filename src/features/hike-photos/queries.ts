@@ -371,3 +371,35 @@ export async function getHikePhotoShareUrlForCustomer(
 
   return buildGalleryUrl(share.token as string);
 }
+
+/** Owners with a live gallery link on routes that are not closed out yet. */
+export async function countTaggedGalleryOwners(
+  companyId: string,
+  start: string,
+  end: string
+): Promise<number> {
+  const supabase = await createClient();
+  const { data: hikes, error } = await supabase
+    .from("hikes")
+    .select("id")
+    .eq("company_id", companyId)
+    .gte("date", start)
+    .lte("date", end)
+    .neq("status", "completed");
+  if (error || !hikes?.length) return 0;
+
+  const customers = new Set<string>();
+  const ids = hikes.map((hike) => hike.id as string);
+  for (let i = 0; i < ids.length; i += 80) {
+    const { data: shares } = await supabase
+      .from("hike_photo_shares")
+      .select("customer_id")
+      .eq("company_id", companyId)
+      .in("hike_id", ids.slice(i, i + 80))
+      .is("revoked_at", null);
+    for (const share of shares ?? []) {
+      customers.add(share.customer_id as string);
+    }
+  }
+  return customers.size;
+}

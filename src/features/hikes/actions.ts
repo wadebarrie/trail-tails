@@ -10,7 +10,8 @@ import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
 } from "@/features/hikes/stop-order";
-import { awaitGallerySmsOnCloseOut } from "@/features/hike-photos/send-gallery-sms";
+import { BULK_GALLERY_SMS_BUDGET_MS } from "@/features/hike-photos/gallery-sms-rules";
+import { sendGallerySmsForHikeIds } from "@/features/hike-photos/send-gallery-sms";
 import { one } from "@/lib/supabase/relations";
 
 function revalidateHikePaths(options?: { includeDashboard?: boolean }) {
@@ -191,8 +192,6 @@ export async function completeHikeAction(
 
   if (hikeError) return { error: hikeError.message };
 
-  await awaitGallerySmsOnCloseOut(hikeId);
-
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
@@ -214,7 +213,13 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 export async function bulkCloseOutHikesInRangeAction(
   start: string,
   end: string
-): Promise<{ success?: true; closed?: number; error?: string }> {
+): Promise<{
+  success?: true;
+  closed?: number;
+  gallerySent?: number;
+  galleryDeferred?: number;
+  error?: string;
+}> {
   const profile = await requireRole("admin");
   if (!DATE_RE.test(start) || !DATE_RE.test(end)) {
     return { error: "Choose a valid date range." };
@@ -235,21 +240,52 @@ export async function bulkCloseOutHikesInRangeAction(
   if (error) return { error: error.message };
 
   let closed = 0;
+  const closedIds: string[] = [];
   for (const hike of hikes ?? []) {
     const result = await completeHikeAction(hike.id);
     if (result.error) return { error: result.error, closed };
     closed += 1;
+    closedIds.push(hike.id);
   }
+
+  const galleries = await sendGallerySmsForHikeIds(closedIds, {
+    force: false,
+    deadlineMs: Date.now() + BULK_GALLERY_SMS_BUDGET_MS,
+  }).catch(() => ({
+    sent: 0,
+    skipped: 0,
+    errors: 0,
+    deferred: closedIds.length,
+  }));
 
   revalidatePath("/dashboard/billing");
   revalidatePath("/dashboard/hike-report");
-  return { success: true, closed };
+  revalidatePath("/dashboard/photos");
+  revalidatePath("/dashboard/sms");
+  return {
+    success: true,
+    closed,
+    gallerySent: galleries.sent,
+    galleryDeferred: galleries.deferred,
+  };
 }
 
 export async function bulkCloseOutHikesFormAction(
-  _prev: { success?: true; closed?: number; error?: string } | null,
+  _prev: {
+    success?: true;
+    closed?: number;
+    gallerySent?: number;
+    galleryDeferred?: number;
+    error?: string;
+  } | null,
   formData: FormData
-): Promise<{ success?: true; closed?: number; error?: string }> {
+): Promise<{
+  success?: true;
+  closed?: number;
+  gallerySent?: number;
+  galleryDeferred?: number;
+  error?: string;
+}> {
   return bulkCloseOutHikesInRangeAction(
     String(formData.get("start") ?? ""),
     String(formData.get("end") ?? "")

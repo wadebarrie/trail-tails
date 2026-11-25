@@ -21,6 +21,7 @@ import {
   getBillingLineItems,
   summarizeBilling,
 } from "@/features/billing/queries";
+import { countTaggedGalleryOwners } from "@/features/hike-photos/queries";
 import { createClient } from "@/lib/supabase/server";
 import type { BillingStatus } from "@/features/billing/status";
 
@@ -52,7 +53,7 @@ export default async function BillingPage({
 
   const { data: company } = await supabase
     .from("companies")
-      .select("timezone, default_hike_rate_cents, auto_send_gallery_on_closeout")
+    .select("timezone, default_hike_rate_cents, auto_send_gallery_on_closeout")
     .eq("id", profile.company_id)
     .single();
 
@@ -63,6 +64,19 @@ export default async function BillingPage({
 
   const items = await getBillingLineItems(profile.company_id, start, end);
   const summary = summarizeBilling(items);
+  const galleryTextsOn = company?.auto_send_gallery_on_closeout !== false;
+  let galleryRecipientCount: number | null = null;
+  if (galleryTextsOn && summary.notClosedOutDays > 0) {
+    try {
+      galleryRecipientCount = await countTaggedGalleryOwners(
+        profile.company_id,
+        start,
+        end
+      );
+    } catch {
+      galleryRecipientCount = null;
+    }
+  }
 
   const exportUrl = `/api/billing/export?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
 
@@ -119,7 +133,8 @@ export default async function BillingPage({
             start={start}
             end={end}
             notClosedOutDays={summary.notClosedOutDays}
-            galleryTextsOn={company?.auto_send_gallery_on_closeout !== false}
+            galleryTextsOn={galleryTextsOn}
+            galleryRecipientCount={galleryRecipientCount}
           />
         </div>
       ) : null}
