@@ -3,14 +3,17 @@ import { getDateInTimezone } from "@/lib/dates";
 import { logNotification } from "@/features/notifications/log";
 import { buildGalleryUrl } from "@/features/hike-photos/share";
 import {
+  ABANDONED_GALLERY_CLAIM_MS,
   SINGLE_GALLERY_SMS_BUDGET_MS,
   buildHikeGalleryMessage,
+  galleryClaimCanRetry,
   galleryLinkAlreadySent,
   gallerySendBudgetExceeded,
   galleryTokenLikePattern,
   galleryWhenLabel,
   type GalleryDeliveryRow,
 } from "@/features/hike-photos/gallery-sms-rules";
+import { findRecentOutboundSms } from "@/lib/twilio";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 
 export type GallerySmsResult = {
@@ -141,18 +144,20 @@ export async function sendHikeGallerySmsForHike(
             createdAt: new Date().toISOString(),
           },
         ]);
+      } else if (delivery.unknown > 0) {
+        // Leave the claim pending. A timeout can still be delivered.
+        result.deferred += 1;
       } else {
-        if (claim === "claimed") {
+        if (claim === "claimed" && delivery.failed > 0) {
           await markGalleryClaim(companyId, share.customerId, hikeDate, "failed");
         }
         if (delivery.failed > 0) result.errors += 1;
         else result.skipped += 1;
       }
     } catch (error) {
-      if (claim === "claimed") {
-        await markGalleryClaim(companyId, share.customerId, hikeDate, "failed");
-      }
-      result.errors += 1;
+      // Leave the claim pending. An exception after Twilio accepted must not
+      // become an immediate retry.
+      result.deferred += 1;
       logErrorFromException("sms", "Gallery SMS failed", error, {
         companyId,
         context: { hikeId, customerId: share.customerId },
@@ -366,8 +371,6 @@ async function claimGallerySend(
     return "unprotected";
   }
 
-  // Pending rows are left alone. A slow Twilio send is still in flight, and
-  // reclaiming it would text the owner twice. Only a recorded failure retries.
   const reclaimedFailed = await supabase
     .from("hike_photo_gallery_sends")
     .update({ status: "pending", created_at: new Date().toISOString() })
@@ -378,7 +381,83 @@ async function claimGallerySend(
     .select("id");
   if (reclaimedFailed.data?.length) return "claimed";
 
+  const { data: existing } = await supabase
+    .from("hike_photo_gallery_sends")
+    .select("status, created_at")
+    .eq("company_id", companyId)
+    .eq("customer_id", customerId)
+    .eq("hike_date", hikeDate)
+    .maybeSingle();
+  if (!existing) return "taken";
+
+  const createdAt = existing.created_at as string;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  if (!galleryClaimCanRetry(existing.status as string, ageMs)) return "taken";
+  if (existing.status !== "pending") return "taken";
+
+  const delivery = await confirmAbandonedGallerySend(
+    companyId,
+    customerId,
+    createdAt
+  );
+  if (delivery === "sent") {
+    await markGalleryClaim(companyId, customerId, hikeDate, "sent");
+    return "taken";
+  }
+
+  const { data: reclaimed } = await supabase
+    .from("hike_photo_gallery_sends")
+    .update({ status: "pending", created_at: new Date().toISOString() })
+    .eq("company_id", companyId)
+    .eq("customer_id", customerId)
+    .eq("hike_date", hikeDate)
+    .eq("status", "pending")
+    .lte("created_at", new Date(Date.now() - ABANDONED_GALLERY_CLAIM_MS).toISOString())
+    .select("id");
+  if (reclaimed?.length) return "claimed";
+
   return "taken";
+}
+
+/** A pending claim left behind by a crashed send. Don't retry if Twilio has it. */
+async function confirmAbandonedGallerySend(
+  companyId: string,
+  customerId: string,
+  since: string
+): Promise<"sent" | "failed" | "unknown"> {
+  const supabase = createServiceClient();
+  const { data: notes } = await supabase
+    .from("notification_log")
+    .select("body, status")
+    .eq("company_id", companyId)
+    .eq("customer_id", customerId)
+    .eq("notification_type", "hike_photos")
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if ((notes ?? []).some((note) => note.status === "sent")) return "sent";
+
+  const body = (notes ?? []).find((note) => note.body)?.body as string | undefined;
+  if (!body) return "unknown";
+
+  const { data: customer } = await supabase
+    .from("customers")
+    .select("phone, secondary_phone")
+    .eq("id", customerId)
+    .maybeSingle();
+  const phones = [customer?.phone, customer?.secondary_phone]
+    .map((phone) => (typeof phone === "string" ? phone.trim() : ""))
+    .filter(Boolean);
+  if (!phones.length) return "unknown";
+
+  let sawFailure = false;
+  for (const phone of phones) {
+    const lookedUp = await findRecentOutboundSms(phone, body);
+    if (lookedUp.outcome === "sent") return "sent";
+    if (lookedUp.outcome === "failed") sawFailure = true;
+  }
+  return sawFailure ? "failed" : "unknown";
 }
 
 async function markGalleryClaim(

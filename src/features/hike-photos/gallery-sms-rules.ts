@@ -64,9 +64,18 @@ export const BULK_GALLERY_SMS_BUDGET_MS = 18_000;
  */
 export const SINGLE_GALLERY_SMS_BUDGET_MS = 8_000;
 
-/** Only a failed claim can be retried. A pending row may still be sending. */
-export function galleryClaimStatusCanRetry(status: string): boolean {
-  return status === "failed";
+/** A pending claim older than this was abandoned (the function died mid-send). */
+export const ABANDONED_GALLERY_CLAIM_MS = 30 * 60 * 1000;
+
+/**
+ * Confirmed failures can be retried immediately. A fresh pending row may still
+ * be in flight at Twilio, so it is not retried. A pending row older than
+ * {@link ABANDONED_GALLERY_CLAIM_MS} can be retried after a delivery check.
+ */
+export function galleryClaimCanRetry(status: string, ageMs: number): boolean {
+  if (status === "failed") return true;
+  if (status === "pending" && ageMs >= ABANDONED_GALLERY_CLAIM_MS) return true;
+  return false;
 }
 
 export function gallerySendBudgetExceeded(

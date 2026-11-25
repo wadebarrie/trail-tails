@@ -3,13 +3,24 @@ import {
   buildHikeGalleryMessage,
   bulkCloseOutConfirmBody,
   galleryLinkAlreadySent,
-  galleryClaimStatusCanRetry,
+  ABANDONED_GALLERY_CLAIM_MS,
+  galleryClaimCanRetry,
   gallerySendBudgetExceeded,
   galleryTokenLikePattern,
   galleryWhenLabel,
   SINGLE_GALLERY_SMS_BUDGET_MS,
 } from "../src/features/hike-photos/gallery-sms-rules";
-import { imageSizeFromHeader } from "../src/features/hike-photos/compress-image";
+import {
+  imageSizeFromHeader,
+  saneImageDimensions,
+} from "../src/features/hike-photos/compress-image";
+import {
+  fetchFailureOutcome,
+  outboundBodyMatches,
+  smsAbortTimeoutMs,
+  twilioMessageIsAccepted,
+  twilioMessageIsFailed,
+} from "../src/lib/twilio/outcome";
 import { smsStatusTone, smsTypeLabel } from "../src/features/sms/labels";
 
 function test(name: string, fn: () => void) {
@@ -153,10 +164,43 @@ test("jpeg header size does not upscale and finds the frame", () => {
   assert.equal(imageSizeFromHeader(new Uint8Array([1, 2, 3])), null);
 });
 
-test("only a failed gallery claim can be retried", () => {
-  assert.equal(galleryClaimStatusCanRetry("failed"), true);
-  assert.equal(galleryClaimStatusCanRetry("pending"), false);
-  assert.equal(galleryClaimStatusCanRetry("sent"), false);
+test("only a failed gallery claim can be retried immediately", () => {
+  assert.equal(galleryClaimCanRetry("failed", 0), true);
+  assert.equal(galleryClaimCanRetry("pending", 60_000), false);
+  assert.equal(galleryClaimCanRetry("sent", ABANDONED_GALLERY_CLAIM_MS), false);
+  assert.equal(
+    galleryClaimCanRetry("pending", ABANDONED_GALLERY_CLAIM_MS),
+    true
+  );
+});
+
+test("gallery texts abort; driver texts do not", () => {
+  assert.equal(smsAbortTimeoutMs("hike_photos"), 8_000);
+  assert.equal(smsAbortTimeoutMs("dropped_off"), null);
+  assert.equal(smsAbortTimeoutMs("en_route"), null);
+  assert.equal(fetchFailureOutcome("TimeoutError"), "unknown");
+  assert.equal(fetchFailureOutcome("AbortError"), "unknown");
+  assert.equal(fetchFailureOutcome("Error"), "failed");
+});
+
+test("a test-redirect prefix still matches the logged text", () => {
+  const logged = "Daisy had a great hike today! See the pics: https://packroute.app/p/abc";
+  assert.equal(outboundBodyMatches(`[Rachel] ${logged}`, logged), true);
+  assert.equal(outboundBodyMatches("a different text", logged), false);
+  assert.equal(twilioMessageIsAccepted("queued"), true);
+  assert.equal(twilioMessageIsAccepted("delivered"), true);
+  assert.equal(twilioMessageIsFailed("undelivered"), true);
+  assert.equal(twilioMessageIsFailed("sent"), false);
+});
+
+test("implausible image headers are ignored", () => {
+  assert.equal(saneImageDimensions({ width: 1, height: 1 }), null);
+  assert.equal(saneImageDimensions({ width: 100_000, height: 4000 }), null);
+  assert.equal(saneImageDimensions({ width: 4000, height: 20 }), null);
+  assert.deepEqual(saneImageDimensions({ width: 4000, height: 3000 }), {
+    width: 4000,
+    height: 3000,
+  });
 });
 
 test("bulk close-out warning cannot be undone and names the text count", () => {
