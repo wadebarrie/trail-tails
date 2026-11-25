@@ -8,6 +8,7 @@ import {
   areInvitesEnabled,
   isSelfSignupEnabled,
 } from "@/features/platform/settings";
+import { turnstileSiteKey } from "@/features/auth/signup-guards";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ function SignupsPausedMessage() {
 export default async function SignupPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; error?: string }>;
 }) {
   const invitesEnabled = await areInvitesEnabled();
 
@@ -51,7 +52,7 @@ export default async function SignupPage({
     return <SignupsPausedMessage />;
   }
 
-  const { token } = await searchParams;
+  const { token, error } = await searchParams;
   const selfSignup = await isSelfSignupEnabled();
 
   if (!token) {
@@ -62,10 +63,16 @@ export default async function SignupPage({
             Start your PackRoute trial
           </h1>
           <p className="mt-1 text-sm text-stone-600">
-            Create your company account — we&apos;ll guide you through adding your
-            first vehicle, drivers, customers, and dogs.
+            Confirm your email first. After that we create your company and open
+            the setup wizard.
           </p>
-          <SelfSignupForm />
+          {error === "expired" ? (
+            <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              That confirmation link expired before your company was created.
+              Start again below.
+            </p>
+          ) : null}
+          <SelfSignupForm siteKey={turnstileSiteKey()} />
           <Link
             href="/login"
             className="mt-6 inline-block text-sm font-medium text-[var(--color-trail-700)] hover:underline"

@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getLoginRedirect } from "@/features/auth/access";
-import { AUTH_ROUTES } from "@/features/auth/constants";
+import { postAuthDestination } from "@/features/auth/signup-guards";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 type MfaVerifyFormProps = {
@@ -64,12 +63,6 @@ export function MfaVerifyForm({ nextPath, stayOnPage }: MfaVerifyFormProps) {
       return;
     }
 
-    if (stayOnPage) {
-      router.replace(AUTH_ROUTES.adminHome);
-      router.refresh();
-      return;
-    }
-
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -82,7 +75,7 @@ export function MfaVerifyForm({ nextPath, stayOnPage }: MfaVerifyFormProps) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, is_active, can_drive")
+      .select("role, is_active, can_drive, company_id")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -93,11 +86,25 @@ export function MfaVerifyForm({ nextPath, stayOnPage }: MfaVerifyFormProps) {
       return;
     }
 
+    let onboardingCompletedAt: string | null = "complete";
+    if (profile.role === "admin") {
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .select("onboarding_completed_at")
+        .eq("id", profile.company_id)
+        .maybeSingle();
+      if (!companyError) {
+        onboardingCompletedAt = company?.onboarding_completed_at ?? null;
+      }
+    }
+
     router.replace(
-      getLoginRedirect(
-        profile as { role: "admin" | "driver"; can_drive: boolean },
-        nextPath
-      )
+      postAuthDestination({
+        role: profile.role as "admin" | "driver",
+        canDrive: profile.can_drive === true,
+        onboardingCompletedAt,
+        next: stayOnPage ? undefined : nextPath,
+      })
     );
     router.refresh();
   }

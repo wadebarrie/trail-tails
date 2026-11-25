@@ -13,9 +13,7 @@ import { driverProfileUpdate } from "@/features/drivers/profile-update";
 import { profileProvisioningMetadata } from "@/features/auth/profile-provisioning";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { safeAppReturnPath } from "@/lib/safe-return-path";
-import { getClientEnv, getSupabaseAnonKey } from "@/lib/env";
 import { getAuthCallbackUrl } from "@/lib/site-url";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 function normalizePhone(phone: string | undefined) {
   const trimmed = phone?.trim();
@@ -301,11 +299,9 @@ export async function resendDriverInviteAction(
   if (userError || !email) return { error: "No login email for this driver." };
 
   const redirectTo = getAuthCallbackUrl(AUTH_ROUTES.resetPassword);
-  const { NEXT_PUBLIC_SUPABASE_URL } = getClientEnv();
-  const anon = createSupabaseClient(NEXT_PUBLIC_SUPABASE_URL, getSupabaseAnonKey(), {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { error } = await anon.auth.resetPasswordForEmail(email, { redirectTo });
+  // Service role skips Auth captcha, so enabling Turnstile does not block
+  // an admin resending a driver invite from the dashboard.
+  const { error } = await service.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) return { error: error.message };
   return { ok: true };
 }

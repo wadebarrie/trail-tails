@@ -4,19 +4,24 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getLoginRedirect } from "@/features/auth/access";
 import { isDemoLogin } from "@/features/auth/demo-login";
+import { TurnstileField } from "@/features/auth/components/turnstile-field";
+import {
+  interactiveCaptchaDecision,
+  postAuthDestination,
+} from "@/features/auth/signup-guards";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { EmailOtpMfaForm } from "@/features/auth/components/email-otp-mfa-form";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 type LoginFormProps = {
   nextPath?: string;
+  siteKey: string | null;
 };
 
 type LoginStep = "credentials" | "mfa";
 
-export function LoginForm({ nextPath }: LoginFormProps) {
+export function LoginForm({ nextPath, siteKey }: LoginFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -31,9 +36,19 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
+    const captcha = interactiveCaptchaDecision({
+      siteKeyPresent: Boolean(siteKey),
+      token: formData.get("captcha_token")?.toString(),
+    });
 
     if (!email || !password) {
       setError("Email and password are required.");
+      setPending(false);
+      return;
+    }
+
+    if (!captcha.ok) {
+      setError(captcha.error);
       setPending(false);
       return;
     }
@@ -42,6 +57,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: captcha.token ? { captchaToken: captcha.token } : undefined,
     });
 
     if (signInError) {
@@ -62,7 +78,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("role, is_active, can_drive, is_platform_owner")
+      .select("role, is_active, can_drive, is_platform_owner, company_id")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -93,11 +109,25 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return;
     }
 
+    let onboardingCompletedAt: string | null = "complete";
+    if (profile.role === "admin") {
+      const { data: company, error: companyError } = await supabase
+        .from("companies")
+        .select("onboarding_completed_at")
+        .eq("id", profile.company_id)
+        .maybeSingle();
+      if (!companyError) {
+        onboardingCompletedAt = company?.onboarding_completed_at ?? null;
+      }
+    }
+
     router.replace(
-      getLoginRedirect(
-        profile as { role: "admin" | "driver"; can_drive: boolean },
-        nextPath
-      )
+      postAuthDestination({
+        role: profile.role as "admin" | "driver",
+        canDrive: profile.can_drive === true,
+        onboardingCompletedAt,
+        next: nextPath,
+      })
     );
     router.refresh();
   }
@@ -112,6 +142,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           <EmailOtpMfaForm
             nextPath={nextPath}
             showTotpOption={totpEnrolled}
+            siteKey={siteKey}
           />
         </div>
       </div>
@@ -169,6 +200,8 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           </Link>
         </p>
       </div>
+
+      <TurnstileField siteKey={siteKey} />
 
       <button
         type="submit"

@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { authErrorMessage } from "@/features/auth/lib/auth-error-message";
-import { getLoginRedirect } from "@/features/auth/access";
-import { AUTH_ROUTES } from "@/features/auth/constants";
+import { TurnstileField } from "@/features/auth/components/turnstile-field";
+import { postAuthDestination } from "@/features/auth/signup-guards";
 import { createClient } from "@/lib/supabase/client";
 import {
   primaryButtonClassName,
@@ -18,6 +18,7 @@ type EmailOtpMfaFormProps = {
   stayOnPage?: boolean;
   /** Show optional authenticator path if the account has TOTP enrolled. */
   showTotpOption?: boolean;
+  siteKey?: string | null;
 };
 
 const OTP_SENT_KEY = "packroute_mfa_otp_sent_at";
@@ -53,6 +54,7 @@ export function EmailOtpMfaForm({
   nextPath,
   stayOnPage,
   showTotpOption = false,
+  siteKey = null,
 }: EmailOtpMfaFormProps) {
   const router = useRouter();
   const [code, setCode] = useState("");
@@ -66,6 +68,8 @@ export function EmailOtpMfaForm({
   );
   const autoSendStarted = useRef(false);
   const verifyingRef = useRef(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [widgetEpoch, setWidgetEpoch] = useState(0);
 
   function showError(value: unknown, fallback: string) {
     setError(authErrorMessage(value, fallback));
@@ -96,11 +100,17 @@ export function EmailOtpMfaForm({
       return false;
     }
 
+    if (siteKey && !captchaToken) {
+      setError("Complete the captcha and try again.");
+      return false;
+    }
+
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: user.email,
       options: {
         shouldCreateUser: false,
         emailRedirectTo: emailOtpRedirectTo(),
+        ...(captchaToken ? { captchaToken } : {}),
       },
     });
 
@@ -114,10 +124,13 @@ export function EmailOtpMfaForm({
     }
 
     markOtpSent();
+    setCaptchaToken("");
+    setWidgetEpoch((value) => value + 1);
     return true;
   }
 
   useEffect(() => {
+    if (siteKey && !captchaToken) return;
     if (autoSendStarted.current) return;
     autoSendStarted.current = true;
 
@@ -134,9 +147,9 @@ export function EmailOtpMfaForm({
         showError(err, "Could not send the sign-in email. Try Resend.");
       }
     });
-    // Intentionally once on mount
+    // Send once the captcha token exists, or immediately when captcha is not configured.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [captchaToken, siteKey]);
 
   function resend() {
     if (verifyingRef.current) return;
@@ -211,12 +224,6 @@ export function EmailOtpMfaForm({
         // Prevent remount auto-send from racing the redirect.
         markOtpSent();
 
-        if (stayOnPage) {
-          router.replace(AUTH_ROUTES.adminHome);
-          router.refresh();
-          return;
-        }
-
         const {
           data: { user: verifiedUser },
         } = await supabase.auth.getUser();
@@ -227,7 +234,7 @@ export function EmailOtpMfaForm({
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("role, is_active, can_drive")
+          .select("role, is_active, can_drive, company_id")
           .eq("id", verifiedUser.id)
           .maybeSingle();
 
@@ -237,11 +244,25 @@ export function EmailOtpMfaForm({
           return;
         }
 
+        let onboardingCompletedAt: string | null = "complete";
+        if (profile.role === "admin") {
+          const { data: company, error: companyError } = await supabase
+            .from("companies")
+            .select("onboarding_completed_at")
+            .eq("id", profile.company_id)
+            .maybeSingle();
+          if (!companyError) {
+            onboardingCompletedAt = company?.onboarding_completed_at ?? null;
+          }
+        }
+
         router.replace(
-          getLoginRedirect(
-            profile as { role: "admin" | "driver"; can_drive: boolean },
-            nextPath
-          )
+          postAuthDestination({
+            role: profile.role as "admin" | "driver",
+            canDrive: profile.can_drive === true,
+            onboardingCompletedAt,
+            next: stayOnPage ? undefined : nextPath,
+          })
         );
         router.refresh();
       } catch (err) {
@@ -319,6 +340,12 @@ export function EmailOtpMfaForm({
           className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2 disabled:opacity-60"
         />
       </div>
+
+      <TurnstileField
+        key={widgetEpoch}
+        siteKey={siteKey}
+        onToken={setCaptchaToken}
+      />
 
       <button
         type="submit"
