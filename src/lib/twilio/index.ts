@@ -36,6 +36,9 @@ type SendSmsResult =
   | { ok: true; sid: string }
   | { ok: false; error: string };
 
+/** Hung Twilio calls must not hold a Netlify function until its platform limit. */
+const SMS_FETCH_TIMEOUT_MS = 8_000;
+
 /** Send an outbound SMS via Twilio REST API. */
 export async function sendSms(to: string, body: string): Promise<SendSmsResult> {
   return perfAsync("twilio send", async () => {
@@ -55,14 +58,24 @@ export async function sendSms(to: string, body: string): Promise<SendSmsResult> 
       Body: body,
     });
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Basic ${auth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: params.toString(),
-    });
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${auth}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+        signal: AbortSignal.timeout(SMS_FETCH_TIMEOUT_MS),
+      });
+    } catch (error) {
+      const name = error instanceof Error ? error.name : "";
+      if (name === "TimeoutError" || name === "AbortError") {
+        return { ok: false, error: "Twilio send timed out" };
+      }
+      return { ok: false, error: "Twilio send failed" };
+    }
 
     const data = (await response.json()) as { sid?: string; message?: string };
 

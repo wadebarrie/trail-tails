@@ -3,10 +3,13 @@ import {
   buildHikeGalleryMessage,
   bulkCloseOutConfirmBody,
   galleryLinkAlreadySent,
+  galleryClaimStatusCanRetry,
   gallerySendBudgetExceeded,
   galleryTokenLikePattern,
   galleryWhenLabel,
+  SINGLE_GALLERY_SMS_BUDGET_MS,
 } from "../src/features/hike-photos/gallery-sms-rules";
+import { imageSizeFromHeader } from "../src/features/hike-photos/compress-image";
 import { smsStatusTone, smsTypeLabel } from "../src/features/sms/labels";
 
 function test(name: string, fn: () => void) {
@@ -127,6 +130,33 @@ test("bulk gallery budget is one deadline, not per hike", () => {
   assert.equal(gallerySendBudgetExceeded(1_000, 1_000), true);
   assert.equal(gallerySendBudgetExceeded(999, 1_000), false);
   assert.equal(gallerySendBudgetExceeded(5_000, undefined), false);
+});
+
+test("single close-out text wait stays well under the function limit", () => {
+  assert.ok(SINGLE_GALLERY_SMS_BUDGET_MS <= 8_000);
+  assert.ok(SINGLE_GALLERY_SMS_BUDGET_MS >= 3_000);
+});
+
+test("jpeg header size does not upscale and finds the frame", () => {
+  const bytes = new Uint8Array(32);
+  bytes[0] = 0xff;
+  bytes[1] = 0xd8;
+  bytes[2] = 0xff;
+  bytes[3] = 0xc0;
+  bytes[4] = 0x00;
+  bytes[5] = 0x11;
+  bytes[7] = 0x0f;
+  bytes[8] = 0xa0;
+  bytes[9] = 0x12;
+  bytes[10] = 0xc0;
+  assert.deepEqual(imageSizeFromHeader(bytes), { width: 4800, height: 4000 });
+  assert.equal(imageSizeFromHeader(new Uint8Array([1, 2, 3])), null);
+});
+
+test("only a failed gallery claim can be retried", () => {
+  assert.equal(galleryClaimStatusCanRetry("failed"), true);
+  assert.equal(galleryClaimStatusCanRetry("pending"), false);
+  assert.equal(galleryClaimStatusCanRetry("sent"), false);
 });
 
 test("bulk close-out warning cannot be undone and names the text count", () => {

@@ -11,6 +11,7 @@ import {
   isUuid,
 } from "@/features/hike-photos/constants";
 import { generateShareToken } from "@/features/hike-photos/share";
+import { SINGLE_GALLERY_SMS_BUDGET_MS } from "@/features/hike-photos/gallery-sms-rules";
 import { logErrorFromException } from "@/lib/logger";
 
 export type HikePhotoActionResult =
@@ -54,23 +55,28 @@ export async function recordHikePhotoAction(input: {
 
   const supabase = await createClient();
 
-  const { data: hike } = await supabase
-    .from("hikes")
-    .select("id, company_id")
-    .eq("id", hikeId)
-    .maybeSingle();
+  const [hikeResult, stopsResult] = await Promise.all([
+    supabase
+      .from("hikes")
+      .select("id, company_id")
+      .eq("id", hikeId)
+      .maybeSingle(),
+    dogIds.length
+      ? supabase
+          .from("stops")
+          .select("dog_id")
+          .eq("hike_id", hikeId)
+          .in("dog_id", dogIds)
+      : Promise.resolve({ data: [] as { dog_id: string }[] }),
+  ]);
 
+  const hike = hikeResult.data;
   if (!hike || hike.company_id !== profile.company_id) {
     return { ok: false, error: "Hike not found." };
   }
 
   if (dogIds.length) {
-    const { data: stops } = await supabase
-      .from("stops")
-      .select("dog_id")
-      .eq("hike_id", hikeId)
-      .in("dog_id", dogIds);
-    const onHike = new Set((stops ?? []).map((s) => s.dog_id as string));
+    const onHike = new Set((stopsResult.data ?? []).map((s) => s.dog_id as string));
     if (dogIds.some((id) => !onHike.has(id))) {
       return { ok: false, error: "Tagged dog isn't on this hike." };
     }
@@ -93,18 +99,13 @@ export async function recordHikePhotoAction(input: {
   }
 
   if (dogIds.length) {
-    const { error: tagError } = await supabase
-      .from("hike_photo_dogs")
-      .insert(dogIds.map((dog_id) => ({ photo_id: photo.id, dog_id })));
-
-    if (tagError) {
-      await supabase.from("hike_photos").delete().eq("id", photo.id);
-      return { ok: false, error: "Could not tag dogs on the photo." };
-    }
-
     try {
-      await ensureSharesForDogs(profile.company_id, hikeId, dogIds);
+      await tagDogsAndShare(supabase, profile.company_id, hikeId, photo.id as string, dogIds);
     } catch (error) {
+      if (error instanceof Error && error.message === "tag") {
+        await supabase.from("hike_photos").delete().eq("id", photo.id);
+        return { ok: false, error: "Could not tag dogs on the photo." };
+      }
       // Photo is saved; sharing can be retried by the next upload.
       logErrorFromException("hike", "Hike photo share creation failed", error, {
         companyId: profile.company_id,
@@ -117,21 +118,29 @@ export async function recordHikePhotoAction(input: {
   return { ok: true, photoId: photo.id as string };
 }
 
-async function ensureSharesForDogs(
+async function tagDogsAndShare(
+  supabase: Awaited<ReturnType<typeof createClient>>,
   companyId: string,
   hikeId: string,
+  photoId: string,
   dogIds: string[]
 ) {
   const service = createServiceClient();
-  const { data: dogs, error } = await service
-    .from("dogs")
-    .select("customer_id")
-    .eq("company_id", companyId)
-    .in("id", dogIds);
-  if (error) throw new Error(error.message);
+  const [tagResult, dogsResult] = await Promise.all([
+    supabase
+      .from("hike_photo_dogs")
+      .insert(dogIds.map((dog_id) => ({ photo_id: photoId, dog_id }))),
+    service
+      .from("dogs")
+      .select("customer_id")
+      .eq("company_id", companyId)
+      .in("id", dogIds),
+  ]);
+  if (tagResult.error) throw new Error("tag");
+  if (dogsResult.error) throw new Error(dogsResult.error.message);
 
   const customerIds = [
-    ...new Set((dogs ?? []).map((d) => d.customer_id as string)),
+    ...new Set((dogsResult.data ?? []).map((dog) => dog.customer_id as string)),
   ];
   if (!customerIds.length) return;
 
@@ -287,7 +296,10 @@ export async function sendGalleryForClosedHikeAction(
   const { sendHikeGallerySmsForHike } = await import(
     "@/features/hike-photos/send-gallery-sms"
   );
-  const result = await sendHikeGallerySmsForHike(hikeId, { force: false });
+  const result = await sendHikeGallerySmsForHike(hikeId, {
+    force: false,
+    deadlineMs: Date.now() + SINGLE_GALLERY_SMS_BUDGET_MS,
+  });
 
   revalidatePath("/dashboard/photos");
   revalidatePath("/dashboard/sms");
@@ -299,10 +311,11 @@ export async function sendGalleryForClosedHikeAction(
       message: `Gallery text sent to ${result.sent} owner${result.sent === 1 ? "" : "s"}.`,
     };
   }
-  if (result.errors > 0) {
+  if (result.deferred > 0 || result.errors > 0) {
     return {
-      ok: false,
-      error: "Hike is closed out. The gallery text didn't send — try Send today's galleries.",
+      ok: true,
+      message:
+        "Hike closed out. The gallery text didn't finish — send it from Hike photos.",
     };
   }
   return { ok: true, message: "Hike closed out. No new gallery text to send." };

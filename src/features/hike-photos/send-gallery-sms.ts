@@ -3,6 +3,7 @@ import { getDateInTimezone } from "@/lib/dates";
 import { logNotification } from "@/features/notifications/log";
 import { buildGalleryUrl } from "@/features/hike-photos/share";
 import {
+  SINGLE_GALLERY_SMS_BUDGET_MS,
   buildHikeGalleryMessage,
   galleryLinkAlreadySent,
   gallerySendBudgetExceeded,
@@ -20,8 +21,6 @@ export type GallerySmsResult = {
   deferred: number;
 };
 
-/** Close-out waits for the text, but not forever if Twilio hangs. */
-const GALLERY_SMS_BUDGET_MS = 12_000;
 
 type ShareRow = {
   hikeId: string;
@@ -165,24 +164,19 @@ export async function sendHikeGallerySmsForHike(
 }
 
 /**
- * Await gallery SMS in the close-out request. Netlify can drop work that
- * is not awaited. The budget keeps a hung Twilio call from blocking close-out.
+ * Await gallery SMS in the driver close-out request. The send stops starting
+ * new texts after a short budget, and each Twilio call itself times out.
  */
 export async function awaitGallerySmsOnCloseOut(hikeId: string): Promise<void> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
-    await Promise.race([
-      sendHikeGallerySmsForHike(hikeId, { force: false }).then(() => undefined),
-      new Promise<void>((resolve) => {
-        timeout = setTimeout(resolve, GALLERY_SMS_BUDGET_MS);
-      }),
-    ]);
+    await sendHikeGallerySmsForHike(hikeId, {
+      force: false,
+      deadlineMs: Date.now() + SINGLE_GALLERY_SMS_BUDGET_MS,
+    });
   } catch (error) {
     logErrorFromException("sms", "Gallery SMS on close-out failed", error, {
       context: { hikeId },
     });
-  } finally {
-    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -333,8 +327,6 @@ async function loadDayGalleryContext(
   return { shares, tags };
 }
 
-const CLAIM_STALE_MS = 2 * 60 * 1000;
-
 type GalleryClaim = "claimed" | "taken" | "unprotected";
 
 /** Insert a pending row first so a second close-out cannot also send. */
@@ -374,28 +366,17 @@ async function claimGallerySend(
     return "unprotected";
   }
 
-  const now = new Date().toISOString();
-  const staleBefore = new Date(Date.now() - CLAIM_STALE_MS).toISOString();
+  // Pending rows are left alone. A slow Twilio send is still in flight, and
+  // reclaiming it would text the owner twice. Only a recorded failure retries.
   const reclaimedFailed = await supabase
     .from("hike_photo_gallery_sends")
-    .update({ status: "pending", created_at: now })
+    .update({ status: "pending", created_at: new Date().toISOString() })
     .eq("company_id", companyId)
     .eq("customer_id", customerId)
     .eq("hike_date", hikeDate)
     .eq("status", "failed")
     .select("id");
   if (reclaimedFailed.data?.length) return "claimed";
-
-  const reclaimedStale = await supabase
-    .from("hike_photo_gallery_sends")
-    .update({ status: "pending", created_at: now })
-    .eq("company_id", companyId)
-    .eq("customer_id", customerId)
-    .eq("hike_date", hikeDate)
-    .eq("status", "pending")
-    .lt("created_at", staleBefore)
-    .select("id");
-  if (reclaimedStale.data?.length) return "claimed";
 
   return "taken";
 }
@@ -407,7 +388,9 @@ async function markGalleryClaim(
   status: "sent" | "failed"
 ) {
   const supabase = createServiceClient();
-  const { error } = await supabase
+  // A late Twilio success must overwrite a timeout's "failed" mark.
+  // A late failure must not overwrite "sent".
+  let query = supabase
     .from("hike_photo_gallery_sends")
     .update({
       status,
@@ -416,6 +399,8 @@ async function markGalleryClaim(
     .eq("company_id", companyId)
     .eq("customer_id", customerId)
     .eq("hike_date", hikeDate);
+  if (status === "failed") query = query.eq("status", "pending");
+  const { error } = await query;
   if (error) {
     logWarn("sms", `Gallery send claim update failed: ${error.message}`);
   }

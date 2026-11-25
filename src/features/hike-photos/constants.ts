@@ -1,8 +1,11 @@
 export const HIKE_PHOTOS_BUCKET = "hike-photos";
 
-/** Client-side compression targets (issue #113). */
-export const PHOTO_MAX_DIMENSION = 1600;
-export const PHOTO_JPEG_QUALITY = 0.8;
+/**
+ * Client-side compression. 1280px on the long edge is enough for a phone
+ * gallery and keeps phone-camera uploads smaller than a 1600px JPEG.
+ */
+export const PHOTO_MAX_DIMENSION = 1280;
+export const PHOTO_JPEG_QUALITY = 0.72;
 
 /** Matches the bucket file_size_limit (5 MB). */
 export const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
