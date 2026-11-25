@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   nightBeforeBudgetExhausted,
+  nightBeforeConfirmAction,
   nightBeforeConfirmPlan,
   nightBeforePhonesToSend,
   nightBeforePriorDecision,
@@ -211,6 +212,61 @@ test("a shared body is not paired to one contact", () => {
   assert.equal(plan.shared.length, 1);
   assert.deepEqual(plan.shared[0].rowIds, ["a"]);
   assert.equal(plan.shared[0].contacts.length, 2);
+});
+
+function classifyLookups(
+  results: { phone: string; outcome: "sent" | "failed" | "absent" | "unknown" }[],
+  sharedBody: boolean
+) {
+  const sent: string[] = [];
+  const retry: string[] = [];
+  const hold: string[] = [];
+  for (const result of results) {
+    const action = nightBeforeConfirmAction(result.outcome, sharedBody);
+    if (action === "sent") sent.push(result.phone);
+    else if (action === "retry") retry.push(result.phone);
+    else hold.push(result.phone);
+  }
+  return { sent, retry, hold };
+}
+
+test("shared body retries a contact Twilio does not have", () => {
+  assert.deepEqual(
+    classifyLookups(
+      [
+        { phone: "+15551111", outcome: "sent" },
+        { phone: "+15552222", outcome: "absent" },
+      ],
+      true
+    ),
+    { sent: ["+15551111"], retry: ["+15552222"], hold: [] }
+  );
+});
+
+test("shared body holds both contacts when Twilio errors", () => {
+  assert.deepEqual(
+    classifyLookups(
+      [
+        { phone: "+15551111", outcome: "unknown" },
+        { phone: "+15552222", outcome: "unknown" },
+      ],
+      true
+    ),
+    { sent: [], retry: [], hold: ["+15551111", "+15552222"] }
+  );
+});
+
+test("distinct greetings still hold when Twilio has no message", () => {
+  assert.deepEqual(
+    classifyLookups(
+      [
+        { phone: "+15551111", outcome: "sent" },
+        { phone: "+15552222", outcome: "absent" },
+      ],
+      false
+    ),
+    { sent: ["+15551111"], retry: [], hold: ["+15552222"] }
+  );
 });
 
 console.log("\nAll night-before time tests passed.");
