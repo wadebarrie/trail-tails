@@ -1,4 +1,5 @@
 import { getLoginRedirect } from "@/features/auth/access";
+import { authCallbackDestination } from "@/features/auth/signup-guards";
 import { safeAuthNextPath } from "@/lib/auth/safe-redirect";
 
 type Case = { name: string; pass: boolean };
@@ -34,6 +35,50 @@ const cases: Case[] = [
   assert(
     "driver cannot use owner next",
     getLoginRedirect(driverProfile, "/owner") === "/today",
+  ),
+  assert(
+    "admin recovery callback lands on reset-password",
+    authCallbackDestination({
+      role: "admin",
+      canDrive: true,
+      onboardingCompletedAt: "2026-01-01T00:00:00.000Z",
+      nextParam: "/reset-password",
+      fallback: "/dashboard",
+    }) === "/reset-password",
+  ),
+  assert(
+    "driver recovery callback lands on reset-password",
+    authCallbackDestination({
+      role: "driver",
+      canDrive: false,
+      onboardingCompletedAt: null,
+      nextParam: "/reset-password",
+      fallback: "/today",
+    }) === "/reset-password",
+  ),
+  assert(
+    "unfinished admin recovery callback lands on reset-password",
+    authCallbackDestination({
+      role: "admin",
+      canDrive: true,
+      onboardingCompletedAt: null,
+      nextParam: "/reset-password",
+      fallback: "/dashboard",
+    }) === "/reset-password",
+  ),
+  assert(
+    "protocol-relative reset path is not a recovery redirect",
+    authCallbackDestination({
+      role: "admin",
+      canDrive: true,
+      onboardingCompletedAt: null,
+      nextParam: "//evil.com/reset-password",
+      fallback: "/dashboard",
+    }) === "/dashboard/onboarding",
+  ),
+  assert(
+    "lookalike reset path stays off the reset form",
+    getLoginRedirect(adminProfile, "/reset-password-extra") === "/dashboard",
   ),
 ];
 
