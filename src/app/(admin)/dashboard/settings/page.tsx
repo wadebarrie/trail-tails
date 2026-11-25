@@ -19,7 +19,7 @@ export default async function SettingsPage({
   const showBilling = tab === "billing";
   const supabase = await createClient();
 
-  const [{ data: company }, subscription] = await Promise.all([
+  const [{ data: company }, smsSettings, subscription] = await Promise.all([
     supabase
       .from("companies")
       .select(
@@ -27,6 +27,11 @@ export default async function SettingsPage({
       )
       .eq("id", profile.company_id)
       .single(),
+    supabase
+      .from("companies")
+      .select("sms_mode, sms_test_phone, sms_live_approved")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
     getSubscriptionForCompany(profile.company_id),
   ]);
 
@@ -83,6 +88,10 @@ export default async function SettingsPage({
           autoSendGalleryOnCloseout={
             company?.auto_send_gallery_on_closeout !== false
           }
+          smsSettingsAvailable={!smsSettings.error}
+          smsMode={smsSettings.data?.sms_mode === "test" ? "test" : "live"}
+          smsTestPhone={smsSettings.data?.sms_test_phone ?? ""}
+          smsLiveApproved={smsSettings.data?.sms_live_approved !== false}
         />
       </section>
       )}

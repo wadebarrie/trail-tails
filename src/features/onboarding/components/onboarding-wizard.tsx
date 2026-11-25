@@ -599,8 +599,9 @@ export function OnboardingWizard({
           <h2 className="text-lg font-semibold text-stone-900">You&apos;re set</h2>
           <p className="text-sm text-stone-600">
             Next: open Today / Tomorrow to confirm stops, then try a driver
-            login on your phone. SMS needs Twilio configured — support can help
-            if you&apos;re not there yet.
+            login on your phone. Texts start in test mode and go only to the
+            mobile number you save under Settings. Switch to live after
+            customers have agreed to receive them.
           </p>
           <OnboardingSupportCard compact />
           <button

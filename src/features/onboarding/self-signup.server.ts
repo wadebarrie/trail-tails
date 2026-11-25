@@ -381,6 +381,10 @@ export async function provisionConfirmedSelfSignup(userId: string): Promise<bool
 
   const clock = trialClockUpdate();
   await service.from("subscriptions").update(clock).eq("company_id", companyId);
+  await service
+    .from("companies")
+    .update({ sms_mode: "test", sms_live_approved: false })
+    .eq("id", companyId);
   const { data: company } = await service
     .from("companies")
     .select("timezone")

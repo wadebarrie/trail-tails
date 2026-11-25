@@ -31,6 +31,9 @@ jobs:
       - name: Trial lifecycle
         run: npm run test:trial-lifecycle
 
+      - name: SMS policy
+        run: npm run test:sms-policy
+
       - name: Safe redirect
         run: npm run test:safe-redirect
 

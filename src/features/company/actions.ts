@@ -5,6 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { COMMON_TIMEZONES } from "@/features/platform/timezones";
+import { digitsOnly } from "@/lib/phone";
 
 const baseSettingsSchema = z.object({
   company_name: z
@@ -17,6 +18,9 @@ const baseSettingsSchema = z.object({
   default_hike_rate: z.string().optional(),
   night_before_reminder_time: z.string().min(1, "Reminder time is required"),
   auto_send_gallery_on_closeout: z.enum(["true", "false"]).optional(),
+  sms_mode: z.enum(["test", "live"]).optional(),
+  sms_test_phone: z.string().optional(),
+  sms_customer_consent: z.enum(["yes"]).optional(),
 });
 
 function parseRateToCents(raw?: string): number | null {
@@ -43,11 +47,18 @@ export async function updateCompanySettingsAction(
   }
 
   const supabase = await createClient();
-  const { data: existing } = await supabase
-    .from("companies")
-    .select("timezone")
-    .eq("id", profile.company_id)
-    .maybeSingle();
+  const [{ data: existing }, smsRow] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("timezone")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("sms_mode, sms_live_approved")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+  ]);
 
   const allowedTimezones = new Set<string>(
     COMMON_TIMEZONES.map((tz) => tz.value)
@@ -56,6 +67,29 @@ export async function updateCompanySettingsAction(
 
   if (!allowedTimezones.has(parsed.data.timezone)) {
     return { error: "Choose a timezone from the list" };
+  }
+
+  const smsMode = parsed.data.sms_mode;
+  const saveSms = Boolean(smsMode) && !smsRow.error;
+  const testPhone = parsed.data.sms_test_phone?.trim() || null;
+  if (saveSms && smsMode === "test" && (!testPhone || digitsOnly(testPhone).length < 10)) {
+    return { error: "Enter the mobile number that should receive test texts." };
+  }
+  if (
+    saveSms &&
+    smsMode === "live" &&
+    smsRow.data?.sms_mode !== "live" &&
+    parsed.data.sms_customer_consent !== "yes"
+  ) {
+    return {
+      error: "Confirm that customers have agreed to receive texts before going live.",
+    };
+  }
+  if (saveSms && smsMode === "live" && smsRow.data?.sms_live_approved === false) {
+    return {
+      error:
+        "Live texts stay off until PackRoute approves this company. Keep test mode for now.",
+    };
   }
 
   const { error } = await supabase
@@ -68,6 +102,9 @@ export async function updateCompanySettingsAction(
       night_before_reminder_time: parsed.data.night_before_reminder_time,
       auto_send_gallery_on_closeout:
         parsed.data.auto_send_gallery_on_closeout !== "false",
+      ...(saveSms
+        ? { sms_mode: smsMode, sms_test_phone: testPhone }
+        : {}),
     })
     .eq("id", profile.company_id);
 

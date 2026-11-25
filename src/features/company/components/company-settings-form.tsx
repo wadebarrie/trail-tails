@@ -14,6 +14,10 @@ export function CompanySettingsForm({
   defaultRateCents,
   defaultNightBeforeReminderTime,
   autoSendGalleryOnCloseout = true,
+  smsSettingsAvailable = true,
+  smsMode = "live",
+  smsTestPhone = "",
+  smsLiveApproved = true,
 }: {
   companyName: string;
   timezone: string;
@@ -21,6 +25,10 @@ export function CompanySettingsForm({
   defaultRateCents: number | null;
   defaultNightBeforeReminderTime: string;
   autoSendGalleryOnCloseout?: boolean;
+  smsSettingsAvailable?: boolean;
+  smsMode?: "test" | "live";
+  smsTestPhone?: string;
+  smsLiveApproved?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(
     updateCompanySettingsAction,
@@ -164,6 +172,69 @@ export function CompanySettingsForm({
 
       <div>
         <h2 className="text-sm font-semibold text-stone-900">Customer texts</h2>
+        {smsSettingsAvailable ? (
+        <>
+        <p className="mt-1 text-xs text-stone-500">
+          Test mode sends every text to your phone, not to customers. Live mode
+          texts the numbers on each customer. Trial companies can send 25 texts
+          a day.
+        </p>
+        <fieldset className="mt-3 space-y-2">
+          <legend className="sr-only">Text mode</legend>
+          <label className="flex items-start gap-2 text-sm text-stone-800">
+            <input
+              type="radio"
+              name="sms_mode"
+              value="test"
+              defaultChecked={smsMode !== "live"}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="font-medium">Test</span>
+              <span className="mt-0.5 block text-xs text-stone-500">
+                All texts go to the mobile number below.
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-stone-800">
+            <input
+              type="radio"
+              name="sms_mode"
+              value="live"
+              defaultChecked={smsMode === "live"}
+              className="mt-0.5"
+              disabled={!smsLiveApproved}
+            />
+            <span>
+              <span className="font-medium">Live</span>
+              <span className="mt-0.5 block text-xs text-stone-500">
+                {smsLiveApproved
+                  ? "Texts go to each customer."
+                  : "PackRoute turns this on after a quick check during beta."}
+              </span>
+            </span>
+          </label>
+        </fieldset>
+        <label
+          htmlFor="sms_test_phone"
+          className="mt-4 block text-sm font-medium text-stone-700"
+        >
+          Your mobile for test texts
+        </label>
+        <input
+          id="sms_test_phone"
+          name="sms_test_phone"
+          type="tel"
+          defaultValue={smsTestPhone}
+          placeholder="+1 604 555 0100"
+          className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
+        />
+        <label className="mt-3 flex items-start gap-2 text-sm text-stone-700">
+          <input type="checkbox" name="sms_customer_consent" value="yes" className="mt-1" />
+          <span>Customers have agreed to receive schedule texts from this company.</span>
+        </label>
+        </>
+        ) : null}
         <label
           htmlFor="night_before_reminder_time"
           className="mt-3 block text-sm font-medium text-stone-700"
