@@ -144,54 +144,10 @@ export async function reorderStopsAction(
   return { success: true };
 }
 
-const TERMINAL_STOP_STATUSES = new Set([
-  "picked_up",
-  "dropped_off",
-  "skipped",
-  "cancelled",
-]);
+const OPEN_STOP_STATUSES = ["scheduled", "en_route", "arrived"] as const;
+const HIKE_ID_CHUNK = 80;
 
-/** Admin: close out a hike — finishes open stops and marks the hike completed. */
-export async function completeHikeAction(
-  hikeId: string
-): Promise<{ success?: true; error?: string }> {
-  await requireRole("admin");
-  const supabase = await createClient();
-
-  const { data: hike } = await supabase
-    .from("hikes")
-    .select("id, status, date")
-    .eq("id", hikeId)
-    .maybeSingle();
-
-  if (!hike) return { error: "Hike not found." };
-  if (hike.status === "completed") return { success: true };
-
-  const now = new Date().toISOString();
-  const { data: stops } = await supabase
-    .from("stops")
-    .select("id, stop_type, status")
-    .eq("hike_id", hikeId);
-
-  for (const stop of stops ?? []) {
-    if (TERMINAL_STOP_STATUSES.has(stop.status)) continue;
-
-    const status = stop.stop_type === "pickup" ? "picked_up" : "dropped_off";
-    const { error } = await supabase
-      .from("stops")
-      .update({ status, completed_at: now })
-      .eq("id", stop.id);
-
-    if (error) return { error: error.message };
-  }
-
-  const { error: hikeError } = await supabase
-    .from("hikes")
-    .update({ status: "completed" })
-    .eq("id", hikeId);
-
-  if (hikeError) return { error: hikeError.message };
-
+function revalidateCloseOutPaths() {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
@@ -201,6 +157,71 @@ export async function completeHikeAction(
   revalidatePath("/dashboard/sms");
   revalidatePath("/today");
   revalidatePath("/tomorrow");
+}
+
+/**
+ * Mark open stops picked up / dropped off and the hikes completed.
+ * Two updates per chunk, not one round trip per stop.
+ */
+async function closeOutHikes(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  hikeIds: string[],
+  companyId: string
+): Promise<{ closed: number; error?: string }> {
+  const now = new Date().toISOString();
+  let closed = 0;
+  for (let i = 0; i < hikeIds.length; i += HIKE_ID_CHUNK) {
+    const chunk = hikeIds.slice(i, i + HIKE_ID_CHUNK);
+    const [pickups, dropoffs] = await Promise.all([
+      supabase
+        .from("stops")
+        .update({ status: "picked_up", completed_at: now })
+        .in("hike_id", chunk)
+        .eq("stop_type", "pickup")
+        .in("status", [...OPEN_STOP_STATUSES]),
+      supabase
+        .from("stops")
+        .update({ status: "dropped_off", completed_at: now })
+        .in("hike_id", chunk)
+        .eq("stop_type", "dropoff")
+        .in("status", [...OPEN_STOP_STATUSES]),
+    ]);
+    if (pickups.error) return { closed, error: pickups.error.message };
+    if (dropoffs.error) return { closed, error: dropoffs.error.message };
+
+    const { error } = await supabase
+      .from("hikes")
+      .update({ status: "completed" })
+      .in("id", chunk)
+      .eq("company_id", companyId)
+      .neq("status", "completed");
+    if (error) return { closed, error: error.message };
+    closed += chunk.length;
+  }
+  return { closed };
+}
+
+/** Admin: close out a hike — finishes open stops and marks the hike completed. */
+export async function completeHikeAction(
+  hikeId: string
+): Promise<{ success?: true; error?: string }> {
+  const profile = await requireRole("admin");
+  const supabase = await createClient();
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("id, status")
+    .eq("id", hikeId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (!hike) return { error: "Hike not found." };
+  if (hike.status === "completed") return { success: true };
+
+  const closed = await closeOutHikes(supabase, [hikeId], profile.company_id);
+  if (closed.error) return { error: closed.error };
+
+  revalidateCloseOutPaths();
   return { success: true };
 }
 
@@ -239,13 +260,11 @@ export async function bulkCloseOutHikesInRangeAction(
 
   if (error) return { error: error.message };
 
-  let closed = 0;
-  const closedIds: string[] = [];
-  for (const hike of hikes ?? []) {
-    const result = await completeHikeAction(hike.id);
-    if (result.error) return { error: result.error, closed };
-    closed += 1;
-    closedIds.push(hike.id);
+  const closedIds = (hikes ?? []).map((hike) => hike.id as string);
+  const closed = await closeOutHikes(supabase, closedIds, profile.company_id);
+  if (closed.error) {
+    revalidateCloseOutPaths();
+    return { error: closed.error, closed: closed.closed };
   }
 
   const galleries = await sendGallerySmsForHikeIds(closedIds, {
@@ -258,13 +277,10 @@ export async function bulkCloseOutHikesInRangeAction(
     deferred: closedIds.length,
   }));
 
-  revalidatePath("/dashboard/billing");
-  revalidatePath("/dashboard/hike-report");
-  revalidatePath("/dashboard/photos");
-  revalidatePath("/dashboard/sms");
+  revalidateCloseOutPaths();
   return {
     success: true,
-    closed,
+    closed: closed.closed,
     gallerySent: galleries.sent,
     galleryDeferred: galleries.deferred,
   };

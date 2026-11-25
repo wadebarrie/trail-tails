@@ -58,6 +58,17 @@ export function galleryTokenLikePattern(token: string): string {
 /** Shared SMS wait for a bulk close-out, not 12s times the number of routes. */
 export const BULK_GALLERY_SMS_BUDGET_MS = 18_000;
 
+/**
+ * One close-out's gallery text. Short enough that a hung Twilio call cannot
+ * hold the Netlify function until its ~26s limit.
+ */
+export const SINGLE_GALLERY_SMS_BUDGET_MS = 8_000;
+
+/** Only a failed claim can be retried. A pending row may still be sending. */
+export function galleryClaimStatusCanRetry(status: string): boolean {
+  return status === "failed";
+}
+
 export function gallerySendBudgetExceeded(
   now: number,
   deadlineMs: number | undefined
