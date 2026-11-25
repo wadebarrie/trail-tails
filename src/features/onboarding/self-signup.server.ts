@@ -19,13 +19,34 @@ import { sendWelcomeEmail } from "@/features/subscription/welcome-email";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getClientEnv, getSupabaseAnonKey } from "@/lib/env";
 import { getSiteUrl } from "@/lib/site-url";
+import { logError } from "@/lib/logger";
+import { recordProductEvent } from "@/features/onboarding/product-events";
+import {
+  signupEmailConflict,
+  SIGNUP_GENERIC_ERROR,
+  SIGNUP_SIGN_IN_ERROR,
+} from "@/features/onboarding/signup-polish";
 
 export type SelfSignupResult =
   | { ok: true; step: "check_email"; email: string; warning?: string }
-  | { ok: false; error: string };
+  | {
+      ok: false;
+      error: string;
+      fieldErrors?: Partial<Record<string, string>>;
+      values?: {
+        company_name: string;
+        timezone: string;
+        admin_full_name: string;
+        admin_email: string;
+        admin_phone: string;
+        province: string;
+        password: string;
+        password_confirm: string;
+      };
+      revision?: number;
+    };
 
-const SIGN_IN_ERROR =
-  "An account with this email already exists. Try signing in instead.";
+const SIGN_IN_ERROR = SIGNUP_SIGN_IN_ERROR;
 const UNAVAILABLE = "Signup is temporarily unavailable. Try again shortly.";
 const RATE_LIMIT = "Too many signup attempts. Wait an hour and try again.";
 
@@ -110,12 +131,41 @@ async function deleteUnconfirmedUser(service: ServiceClient, userId: string) {
   await service.auth.admin.deleteUser(userId);
 }
 
+async function accountRoleForEmail(
+  service: ServiceClient,
+  email: string
+): Promise<"admin" | "driver" | null> {
+  const target = email.trim().toLowerCase();
+  let page = 1;
+  let userId: string | null = null;
+  for (;;) {
+    const { data, error } = await service.auth.admin.listUsers({ page, perPage: 200 });
+    if (error || !data?.users?.length) break;
+    const match = data.users.find((user) => user.email?.toLowerCase() === target);
+    if (match) {
+      userId = match.id;
+      break;
+    }
+    if (data.users.length < 200 || page >= 20) break;
+    page += 1;
+  }
+  if (!userId) return null;
+  const { data: profile } = await service
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  return profile?.role === "driver" ? "driver" : profile ? "admin" : null;
+}
+
 export async function requestSelfSignup(input: {
   companyName: string;
   timezone: string;
   fullName: string;
   email: string;
   password: string;
+  phone: string | null;
+  province: string | null;
   captchaToken: string | null;
 }): Promise<SelfSignupResult> {
   if (!(await areInvitesEnabled())) {
@@ -142,6 +192,20 @@ export async function requestSelfSignup(input: {
 
   const email = input.email.trim().toLowerCase();
   const service = createServiceClient();
+  const { data: openInvite } = await service
+    .from("company_invites")
+    .select("id, role, accepted_at, expires_at")
+    .ilike("email", email)
+    .is("accepted_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .limit(1)
+    .maybeSingle();
+  const conflict = signupEmailConflict({
+    pendingInvite: Boolean(openInvite),
+    existingRole: null,
+  });
+  if (conflict) return { ok: false, error: conflict };
+
   const limited = await enforceRateLimit(service, email);
   if (limited) return { ok: false, error: limited };
 
@@ -174,6 +238,11 @@ export async function requestSelfSignup(input: {
       : null,
     Date.now()
   );
+
+  await recordProductEvent({
+    name: "signup_started",
+    context: { stage: action },
+  });
 
   if (action === "create") {
     const { data: previous } = await service
@@ -221,15 +290,22 @@ export async function requestSelfSignup(input: {
     email,
     password: input.password,
     email_confirm: false,
-    user_metadata: { full_name: input.fullName },
+    user_metadata: {
+      full_name: input.fullName,
+      ...(input.phone ? { phone: input.phone } : {}),
+      ...(input.province ? { province: input.province } : {}),
+    },
   });
 
   if (createError || !created.user) {
     const message = createError?.message ?? "";
-    if (message.toLowerCase().includes("already")) {
-      return { ok: false, error: SIGN_IN_ERROR };
+    if (message.toLowerCase().includes("already") || message.toLowerCase().includes("registered")) {
+      const role = await accountRoleForEmail(service, email);
+      const taken = signupEmailConflict({ pendingInvite: false, existingRole: role });
+      return { ok: false, error: taken ?? SIGN_IN_ERROR };
     }
-    return { ok: false, error: message.trim() || "Could not start signup." };
+    logError("system", "Self-signup createUser failed", { context: { raw: message } });
+    return { ok: false, error: message.trim() || SIGNUP_GENERIC_ERROR };
   }
 
   const { error: insertError } = await service.from("pending_self_signups").insert({
@@ -367,6 +443,14 @@ export async function provisionConfirmedSelfSignup(userId: string): Promise<bool
     .eq("company_id", companyId)
     .maybeSingle();
 
+  const priorMeta = authData.user.user_metadata as {
+    phone?: unknown;
+    province?: unknown;
+  };
+  const signupPhone = typeof priorMeta.phone === "string" ? priorMeta.phone : "";
+  const signupProvince =
+    typeof priorMeta.province === "string" ? priorMeta.province : "";
+
   const metadata = profileProvisioningMetadata({
     companyId,
     role: "admin",
@@ -376,7 +460,11 @@ export async function provisionConfirmedSelfSignup(userId: string): Promise<bool
 
   await service.auth.admin.updateUserById(userId, {
     app_metadata: metadata.app_metadata,
-    user_metadata: metadata.user_metadata,
+    user_metadata: {
+      ...metadata.user_metadata,
+      ...(signupPhone ? { phone: signupPhone } : {}),
+      ...(signupProvince ? { province: signupProvince } : {}),
+    },
   });
 
   const clock = trialClockUpdate();
@@ -385,6 +473,22 @@ export async function provisionConfirmedSelfSignup(userId: string): Promise<bool
     .from("companies")
     .update({ sms_mode: "test", sms_live_approved: false })
     .eq("id", companyId);
+  if (signupPhone) {
+    await service.from("profiles").update({ phone: signupPhone }).eq("id", userId);
+    await service
+      .from("companies")
+      .update({ sms_test_phone: signupPhone })
+      .eq("id", companyId);
+  }
+  if (signupProvince) {
+    await service.from("companies").update({ province: signupProvince }).eq("id", companyId);
+  }
+  await recordProductEvent({
+    name: "signup_completed",
+    companyId,
+    once: true,
+    context: { stage: "company_created" },
+  });
   const { data: company } = await service
     .from("companies")
     .select("timezone")

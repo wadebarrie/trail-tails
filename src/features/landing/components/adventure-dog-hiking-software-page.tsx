@@ -23,7 +23,11 @@ const CAPABILITIES = [
   },
 ];
 
-export function AdventureDogHikingSoftwarePageContent() {
+export function AdventureDogHikingSoftwarePageContent({
+  showStartTrial = false,
+}: {
+  showStartTrial?: boolean;
+}) {
   return (
     <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
       <LandingHeader />
@@ -48,7 +52,7 @@ export function AdventureDogHikingSoftwarePageContent() {
             Google Sheets and group chats start falling apart.
           </p>
           <div className="mt-8">
-            <CtaButtons />
+            <CtaButtons showStartTrial={showStartTrial} />
           </div>
         </section>
 
@@ -126,13 +130,19 @@ export function AdventureDogHikingSoftwarePageContent() {
 
         <section className="bg-[var(--color-trail-700)] py-16 text-white sm:py-20">
           <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
-            <h2 className="text-3xl font-semibold">Book a demo</h2>
+            <h2 className="text-3xl font-semibold">
+              {showStartTrial ? "Start a free trial" : "Book a demo"}
+            </h2>
             <p className="mt-4 text-lg text-white/80">
               See PackRoute with your routes in mind — we&apos;ll reply within a
               business day.
             </p>
             <div className="mt-8">
-              <CtaButtons variant="dark" align="center" />
+              <CtaButtons
+                variant="dark"
+                align="center"
+                showStartTrial={showStartTrial}
+              />
             </div>
           </div>
         </section>

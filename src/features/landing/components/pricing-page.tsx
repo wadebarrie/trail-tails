@@ -9,6 +9,7 @@ import {
   PRICING_INCLUDED_FEATURES,
   PRICING_TIERS,
 } from "@/features/landing/pricing";
+import { pricingAnswerForSignup } from "@/features/onboarding/signup-polish";
 import { TrackedLink } from "@/features/landing/components/tracked-link";
 
 export function PricingPageContent({
@@ -182,7 +183,7 @@ export function PricingPageContent({
                     {item.q}
                   </dt>
                   <dd className="mt-2 text-sm leading-relaxed text-stone-600">
-                    {item.a}
+                    {pricingAnswerForSignup(item.q, item.a, showStartTrial)}
                   </dd>
                 </div>
               ))}

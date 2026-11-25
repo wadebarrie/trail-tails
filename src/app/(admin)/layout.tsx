@@ -20,6 +20,7 @@ import { TrialExpiringBanner } from "@/features/subscription/components/trial-ex
 import { createClient } from "@/lib/supabase/server";
 import { PerfTimer } from "@/lib/perf";
 import { SkipLink } from "@/features/shared/components/skip-link";
+import { GoogleAnalytics } from "@/features/landing/components/google-analytics";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -86,6 +87,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-dvh bg-atmosphere md:flex">
+      <GoogleAnalytics />
       <SkipLink />
       <AdminSidebar companyName={companyName} pendingRequestCount={pending} />
 

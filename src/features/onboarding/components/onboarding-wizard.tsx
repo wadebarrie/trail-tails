@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   dismissOnboardingAction,
@@ -37,6 +37,7 @@ import {
 } from "@/features/admin/components/button-styles";
 import { inputClassName } from "@/features/admin/components/form-styles";
 import { Card } from "@/features/admin/components/ui";
+import { trackEvent } from "@/features/landing/analytics";
 
 function ChoiceButton({
   selected,
@@ -136,6 +137,10 @@ export function OnboardingWizard({
   const [cadence, setCadence] = useState<OnboardingRouteCadence>(
     initialRouteCadence ?? "once"
   );
+
+  useEffect(() => {
+    trackEvent("onboarding_step", { step });
+  }, [step]);
 
   const preview =
     textState.preview ??

@@ -78,6 +78,7 @@ export interface Company {
   onboarding_welcome_at: string | null;
   onboarding_sample_text_at: string | null;
   outing_style: "walk" | "hike" | null;
+  province: string | null;
   /** once = one PackRoute period/day; twice = morning + afternoon. */
   route_cadence: "once" | "twice";
   /** test sends every text to sms_test_phone. live texts each customer. */

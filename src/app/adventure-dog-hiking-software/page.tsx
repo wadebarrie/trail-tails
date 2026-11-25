@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdventureDogHikingSoftwarePageContent } from "@/features/landing/components/adventure-dog-hiking-software-page";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
 import { buildAdventureDogHikingSoftwareJsonLdScriptProps } from "@/features/landing/seo";
 import {
   ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION,
@@ -13,11 +14,12 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/adventure-dog-hiking-software",
 });
 
-export default function AdventureDogHikingSoftwarePage() {
+export default async function AdventureDogHikingSoftwarePage() {
+  const showStartTrial = await isSelfSignupEnabled();
   return (
     <>
       <script {...buildAdventureDogHikingSoftwareJsonLdScriptProps()} />
-      <AdventureDogHikingSoftwarePageContent />
+      <AdventureDogHikingSoftwarePageContent showStartTrial={showStartTrial} />
     </>
   );
 }

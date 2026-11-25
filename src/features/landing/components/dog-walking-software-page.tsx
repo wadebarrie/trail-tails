@@ -24,7 +24,11 @@ const CAPABILITIES = [
   },
 ];
 
-export function DogWalkingSoftwarePageContent() {
+export function DogWalkingSoftwarePageContent({
+  showStartTrial = false,
+}: {
+  showStartTrial?: boolean;
+}) {
   return (
     <div className="min-h-dvh bg-[var(--color-trail-50)] text-stone-900">
       <LandingHeader />
@@ -49,7 +53,7 @@ export function DogWalkingSoftwarePageContent() {
             system.
           </p>
           <div className="mt-8">
-            <CtaButtons />
+            <CtaButtons showStartTrial={showStartTrial} />
           </div>
         </section>
 
@@ -182,10 +186,16 @@ export function DogWalkingSoftwarePageContent() {
               Get hours back every week
             </h2>
             <p className="mt-4 text-lg text-white/80">
-              Book a demo — we&apos;ll reply within a business day.
+              {showStartTrial
+                ? "Start a free trial, or book a demo and we'll reply within a business day."
+                : "Book a demo — we'll reply within a business day."}
             </p>
             <div className="mt-8">
-              <CtaButtons variant="dark" align="center" />
+              <CtaButtons
+                variant="dark"
+                align="center"
+                showStartTrial={showStartTrial}
+              />
             </div>
           </div>
         </section>

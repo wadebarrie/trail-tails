@@ -37,6 +37,9 @@ jobs:
       - name: Onboarding first value
         run: npm run test:onboarding-first-value
 
+      - name: Signup polish
+        run: npm run test:signup-polish
+
       - name: Safe redirect
         run: npm run test:safe-redirect
 

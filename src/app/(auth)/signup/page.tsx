@@ -12,11 +12,15 @@ import { turnstileSiteKey } from "@/features/auth/signup-guards";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Sign up",
-  description:
-    "PackRoute is invite-only while we onboard beta teams. Book a demo to get started.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const open = await isSelfSignupEnabled();
+  return {
+    title: "Sign up",
+    description: open
+      ? "Start a PackRoute trial. Confirm your email, then set up your first route."
+      : "PackRoute is invite-only while we onboard beta teams. Book a demo to get started.",
+  };
+}
 
 function SignupsPausedMessage() {
   return (
