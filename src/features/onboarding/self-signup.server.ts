@@ -14,6 +14,8 @@ import {
   turnstileSiteKey,
 } from "@/features/auth/signup-guards";
 import { areInvitesEnabled, isSelfSignupEnabled } from "@/features/platform/settings";
+import { formatTrialEndDate, trialClockUpdate } from "@/features/subscription/trial-clock";
+import { sendWelcomeEmail } from "@/features/subscription/welcome-email";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getClientEnv, getSupabaseAnonKey } from "@/lib/env";
 import { getSiteUrl } from "@/lib/site-url";
@@ -376,6 +378,23 @@ export async function provisionConfirmedSelfSignup(userId: string): Promise<bool
     app_metadata: metadata.app_metadata,
     user_metadata: metadata.user_metadata,
   });
+
+  const clock = trialClockUpdate();
+  await service.from("subscriptions").update(clock).eq("company_id", companyId);
+  const { data: company } = await service
+    .from("companies")
+    .select("timezone")
+    .eq("id", companyId)
+    .maybeSingle();
+  if (authData.user.email) {
+    await sendWelcomeEmail({
+      to: authData.user.email,
+      trialEndsOn: formatTrialEndDate(
+        clock.trial_ends_at,
+        company?.timezone ?? "America/Vancouver"
+      ),
+    });
+  }
 
   return true;
 }

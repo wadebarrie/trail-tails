@@ -28,6 +28,9 @@ jobs:
       - name: Subscription helpers
         run: npm run test:subscription
 
+      - name: Trial lifecycle
+        run: npm run test:trial-lifecycle
+
       - name: Safe redirect
         run: npm run test:safe-redirect
 

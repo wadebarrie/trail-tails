@@ -65,6 +65,7 @@ export function OnboardingWizard({
   defaultHikeRateCents,
   nightBeforeReminderTime,
   initialRouteCadence = null,
+  trialEndsOn = null,
 }: {
   step: OnboardingStepId;
   progress: OnboardingProgress;
@@ -73,6 +74,7 @@ export function OnboardingWizard({
   defaultHikeRateCents: number | null;
   nightBeforeReminderTime: string;
   initialRouteCadence?: OnboardingRouteCadence | null;
+  trialEndsOn?: string | null;
 }) {
   const [vehicleState, vehicleAction, vehiclePending] = useActionState(
     onboardingCreateVehicleAction,
@@ -114,6 +116,11 @@ export function OnboardingWizard({
           <h2 className="text-lg font-semibold text-stone-900">
             Ready when you are
           </h2>
+          {trialEndsOn ? (
+            <p className="text-sm font-medium text-[var(--color-trail-800)]">
+              Your trial ends on {trialEndsOn}.
+            </p>
+          ) : null}
           <p className="text-sm text-stone-600">
             PackRoute works best once you have one truck (or van), at least one
             driver, a customer with an address, their dog, and a route (a

@@ -9,6 +9,7 @@ import {
   type OnboardingStepId,
 } from "@/features/onboarding/constants";
 import { getOnboardingProgress } from "@/features/onboarding/queries";
+import { formatTrialEndDate } from "@/features/subscription/trial-clock";
 import { createClient } from "@/lib/supabase/server";
 
 function parseStep(raw: string | undefined): OnboardingStepId | null {
@@ -41,13 +42,28 @@ export default async function OnboardingPage({
   }
 
   const supabase = await createClient();
-  const { data: company } = await supabase
-    .from("companies")
-    .select(
-      "name, default_hike_rate_cents, night_before_reminder_time, route_cadence"
-    )
-    .eq("id", profile.company_id)
-    .maybeSingle();
+  const [{ data: company }, { data: subscription }] = await Promise.all([
+    supabase
+      .from("companies")
+      .select(
+        "name, timezone, default_hike_rate_cents, night_before_reminder_time, route_cadence"
+      )
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("subscriptions")
+      .select("status, trial_ends_at")
+      .eq("company_id", profile.company_id)
+      .maybeSingle(),
+  ]);
+
+  const trialEndsOn =
+    subscription?.status === "trial" && subscription.trial_ends_at
+      ? formatTrialEndDate(
+          subscription.trial_ends_at,
+          company?.timezone ?? "America/Vancouver"
+        )
+      : null;
 
   const requested = parseStep(rawStep);
   const step =
@@ -71,6 +87,7 @@ export default async function OnboardingPage({
           ? company.route_cadence
           : null
       }
+      trialEndsOn={trialEndsOn}
     />
   );
 }

@@ -1,3 +1,4 @@
+import { scheduledSendSkipReason } from "@/features/subscription/scheduled-send";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
 import { getDateInTimezone, getUtcBoundsForLocalDate } from "@/lib/dates";
@@ -58,6 +59,9 @@ async function deliverNightBeforeReminders(
   if (nightBeforeBudgetExhausted(smsBudgetRemaining())) {
     return { skipped: true as const, reason: "budget" };
   }
+
+  const blocked = await scheduledSendBlock(companyId);
+  if (blocked) return { skipped: true as const, reason: blocked };
 
   const today = getDateInTimezone(timeZone, 0);
   const tomorrow = getDateInTimezone(timeZone, 1);
@@ -472,6 +476,27 @@ async function runNightBeforeCronNow(): Promise<
   }
 
   return results;
+}
+
+async function scheduledSendBlock(companyId: string): Promise<string | null> {
+  const supabase = createServiceClient();
+  const [{ data: subscription }, { count }] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("status, trial_starts_at, trial_ends_at")
+      .eq("company_id", companyId)
+      .maybeSingle(),
+    supabase
+      .from("customers")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("is_active", true),
+  ]);
+
+  return scheduledSendSkipReason({
+    subscription,
+    activeCustomerCount: count ?? 0,
+  });
 }
 
 async function loadNightBeforeContacts(
