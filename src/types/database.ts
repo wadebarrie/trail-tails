@@ -76,6 +76,11 @@ export interface Company {
   onboarding_completed_at: string | null;
   /** once = one PackRoute period/day; twice = morning + afternoon. */
   route_cadence: "once" | "twice";
+  /** test sends every text to sms_test_phone. live texts each customer. */
+  sms_mode: "test" | "live";
+  sms_test_phone: string | null;
+  /** Self-serve companies stay in test mode until PackRoute sets this true. */
+  sms_live_approved: boolean;
   created_at: string;
   updated_at: string;
 }

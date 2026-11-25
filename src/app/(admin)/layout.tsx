@@ -9,6 +9,8 @@ import { getAdminMfaStatus } from "@/features/auth/mfa";
 import { companyNeedsOnboarding } from "@/features/onboarding/queries";
 import { OnboardingSetupBanner } from "@/features/onboarding/components/onboarding-setup-banner";
 import { getSubscriptionForCompany } from "@/features/subscription/queries";
+import { TRIAL_DAILY_SMS_CAP, trialOutboundCapReached } from "@/features/sms/sms-policy";
+import { getDateInTimezone, getUtcBoundsForLocalDate } from "@/lib/dates";
 import {
   daysRemainingInTrial,
   isTrial,
@@ -60,6 +62,26 @@ export default async function AdminLayout({
       ? daysRemainingInTrial(subscription)
       : null;
 
+  let trialSmsCapped = false;
+  if (subscription && isTrial(subscription)) {
+    const { data: companyTz } = await supabase
+      .from("companies")
+      .select("timezone")
+      .eq("id", profile.company_id)
+      .maybeSingle();
+    const timeZone = companyTz?.timezone ?? "America/Vancouver";
+    const today = getDateInTimezone(timeZone, 0);
+    const bounds = getUtcBoundsForLocalDate(timeZone, today);
+    const { count } = await supabase
+      .from("sms_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", profile.company_id)
+      .eq("direction", "outbound")
+      .gte("created_at", bounds.startIso)
+      .lt("created_at", bounds.endIso);
+    trialSmsCapped = trialOutboundCapReached(count ?? 0);
+  }
+
   const pending = pendingRequestCount ?? 0;
 
   return (
@@ -83,6 +105,15 @@ export default async function AdminLayout({
           className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] md:px-6 md:pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8"
         >
           {needsOnboarding ? <OnboardingSetupBanner /> : null}
+          {trialSmsCapped ? (
+            <p
+              className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+              role="status"
+            >
+              Trial text limit reached for today ({TRIAL_DAILY_SMS_CAP}). More
+              customer texts go out tomorrow.
+            </p>
+          ) : null}
           {trialDaysRemaining != null ? (
             <TrialExpiringBanner daysRemaining={trialDaysRemaining} />
           ) : null}

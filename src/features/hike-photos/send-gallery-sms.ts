@@ -13,7 +13,8 @@ import {
   galleryWhenLabel,
   type GalleryDeliveryRow,
 } from "@/features/hike-photos/gallery-sms-rules";
-import { findRecentOutboundSms, getSmsRedirectTo } from "@/lib/twilio";
+import { loadCompanyOutboundPlan } from "@/features/sms/company-sms-route";
+import { findRecentOutboundSms } from "@/lib/twilio";
 import {
   GALLERY_SMS_TIMEOUT_MS,
   SMS_LOOKUP_MAX_MS,
@@ -477,7 +478,7 @@ async function confirmAbandonedGallerySend(
   });
   if (!contacts.length) return "unknown";
 
-  const redirectTo = getSmsRedirectTo();
+  const redirectTo = (await loadCompanyOutboundPlan(companyId)).redirectTo;
   let sawFailure = false;
   for (const contact of contacts) {
     const wire = galleryWireMessage({

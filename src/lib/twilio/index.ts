@@ -27,16 +27,14 @@ export function isTwilioConfigured(): boolean {
   return getTwilioConfig() != null;
 }
 
-/** When set, all outbound SMS go here instead of the customer phone (pilot/testing).
- *  In production this only applies when TWILIO_ALLOW_SMS_REDIRECT=true — otherwise
- *  live customer numbers would be silently redirected. */
+/**
+ * Local-only override. Production always returns null so one env var cannot
+ * redirect every company's texts. Per-company test mode is the prod control.
+ */
 export function getSmsRedirectTo(): string | null {
+  if (process.env.NODE_ENV === "production") return null;
   const redirect = process.env.TWILIO_SMS_REDIRECT_TO?.trim();
-  if (!redirect) return null;
-  if (process.env.NODE_ENV === "production") {
-    if (process.env.TWILIO_ALLOW_SMS_REDIRECT !== "true") return null;
-  }
-  return redirect;
+  return redirect || null;
 }
 
 export type SendSmsResult =

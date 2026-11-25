@@ -8,9 +8,6 @@ import {
   validateTwilioSignature,
 } from "@/lib/twilio";
 
-/** MVP single-company fallback when inbound phone is not matched. */
-const DEFAULT_COMPANY_ID = "a0000000-0000-0000-0000-000000000001";
-
 export async function POST(request: Request) {
   const config = getTwilioConfig();
   if (!config) {
@@ -55,7 +52,6 @@ export async function POST(request: Request) {
       toNumber,
       body,
       twilioSid,
-      defaultCompanyId: DEFAULT_COMPANY_ID,
     })
   );
 }

@@ -15,7 +15,8 @@ import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
 import { listCustomerContacts } from "@/lib/customer-contacts";
 import { one } from "@/lib/supabase/relations";
-import { findRecentOutboundSms, getSmsRedirectTo } from "@/lib/twilio";
+import { loadCompanyOutboundPlan } from "@/features/sms/company-sms-route";
+import { findRecentOutboundSms } from "@/lib/twilio";
 import {
   NIGHT_BEFORE_CRON_BUDGET_MS,
   SMS_LOOKUP_MAX_MS,
@@ -62,6 +63,9 @@ async function deliverNightBeforeReminders(
 
   const blocked = await scheduledSendBlock(companyId);
   if (blocked) return { skipped: true as const, reason: blocked };
+
+  const outbound = await loadCompanyOutboundPlan(companyId);
+  const redirectTo = outbound.redirectTo;
 
   const today = getDateInTimezone(timeZone, 0);
   const tomorrow = getDateInTimezone(timeZone, 1);
@@ -255,7 +259,7 @@ async function deliverNightBeforeReminders(
     const logRows = (priorRows ?? []) as NightBeforeLogRow[];
     const confirmed =
       prior === "confirm"
-        ? await confirmUnconfirmedContacts(logRows, contacts, bodyFor)
+        ? await confirmUnconfirmedContacts(logRows, contacts, bodyFor, redirectTo)
         : {
             sentRowIds: [] as string[],
             retryPhones: [] as string[],
@@ -286,6 +290,7 @@ async function deliverNightBeforeReminders(
       onlyPhones = confirmed.retryPhones;
     } else if (targets.ambiguous) {
       const looked = await phonesAbsentSince(
+        companyId,
         contacts,
         typeof body === "function" ? body : () => previewBody,
         new Date(startIso)
@@ -338,7 +343,8 @@ async function deliverNightBeforeReminders(
 async function confirmUnconfirmedContacts(
   rows: NightBeforeLogRow[],
   contacts: { phone: string; ownerName: string }[],
-  bodyFor: (ownerName: string) => string
+  bodyFor: (ownerName: string) => string,
+  redirectTo: string | null
 ): Promise<{
   sentRowIds: string[];
   retryPhones: string[];
@@ -365,7 +371,8 @@ async function confirmUnconfirmedContacts(
     const outcome = await lookupNightBeforeContact(
       { phone: match.phone, ownerName: match.ownerName },
       match.body,
-      match.createdAt
+      match.createdAt,
+      redirectTo
     );
     const action = nightBeforeConfirmAction(outcome, false);
     if (action === "sent") {
@@ -381,7 +388,8 @@ async function confirmUnconfirmedContacts(
       const outcome = await lookupNightBeforeContact(
         contact,
         group.body,
-        group.createdAt
+        group.createdAt,
+        redirectTo
       );
       outcomes.push(outcome);
       const action = nightBeforeConfirmAction(outcome, true);
@@ -400,7 +408,8 @@ async function confirmUnconfirmedContacts(
 async function lookupNightBeforeContact(
   contact: { phone: string; ownerName: string },
   loggedBody: string,
-  createdAt?: string
+  createdAt: string | undefined,
+  redirectTo: string | null
 ): Promise<NightBeforeLookupOutcome> {
   const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
   if (timeout == null) return "unknown";
@@ -408,7 +417,7 @@ async function lookupNightBeforeContact(
     phone: contact.phone,
     ownerName: contact.ownerName,
     loggedBody,
-    redirectTo: getSmsRedirectTo(),
+    redirectTo,
   });
   const lookedUp = await findRecentOutboundSms(
     wire.to,
@@ -534,11 +543,12 @@ async function dismissBudgetSkips(
 
 /** Same logged body for both contacts: ask Twilio, per phone, since this morning. */
 async function phonesAbsentSince(
+  companyId: string,
   contacts: { phone: string; ownerName: string }[],
   bodyFor: (ownerName: string) => string,
   sentAfter: Date
 ): Promise<{ phones: string[]; inconclusive: boolean }> {
-  const redirectTo = getSmsRedirectTo();
+  const redirectTo = (await loadCompanyOutboundPlan(companyId)).redirectTo;
   const phones: string[] = [];
   let inconclusive = false;
   for (const contact of contacts) {

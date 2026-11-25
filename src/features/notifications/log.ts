@@ -3,7 +3,9 @@ import { formatTime } from "@/lib/dates";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { perfAsync } from "@/lib/perf";
-import { findRecentOutboundSms, getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
+import { loadCompanyOutboundPlan } from "@/features/sms/company-sms-route";
+import { TRIAL_DAILY_SMS_CAP } from "@/features/sms/sms-policy";
+import { findRecentOutboundSms, getTwilioConfig, sendSms } from "@/lib/twilio";
 import { SMS_LOOKUP_MAX_MS, resolveSmsDelivery, smsAbortTimeoutMs } from "@/lib/twilio/outcome";
 import { runWithSmsBudget, smsBudgetActive, takeSmsSlice } from "@/lib/sms-budget";
 import type { NotificationType } from "@/types";
@@ -52,13 +54,14 @@ async function resolveDogName(dogId: string | undefined): Promise<string | null>
 function smsDeliveryForContact(
   customerPhone: string,
   ownerName: string,
-  dogName: string | null
+  dogName: string | null,
+  redirectTo: string | null
 ): { to: string; body: string; redirected: boolean } {
   const delivery = resolveSmsDelivery(
     customerPhone,
     ownerName,
     dogName,
-    getSmsRedirectTo()
+    redirectTo
   );
   return {
     to: delivery.to,
@@ -133,6 +136,23 @@ export async function logNotification(
       const dogName =
       input.dogName ?? (await resolveDogName(input.dogId));
 
+      const plan = await loadCompanyOutboundPlan(input.companyId);
+      if (plan.blocked === "test_phone_missing") {
+        logWarn("sms", "SMS not sent — test mode has no owner phone", smsContext(input));
+        return none;
+      }
+      if (plan.blocked === "trial_cap") {
+        logWarn("sms", "Trial daily SMS cap reached", {
+          ...smsContext(input),
+          context: {
+            ...smsContext(input).context,
+            sentToday: plan.sentToday,
+            cap: TRIAL_DAILY_SMS_CAP,
+          },
+        });
+        return none;
+      }
+
       let sent = 0;
       let failed = 0;
       let unknown = 0;
@@ -147,7 +167,8 @@ export async function logNotification(
           input,
           contact,
           twilio,
-          dogName
+          dogName,
+          plan.redirectTo
         );
         if (outcome === "sent") sent += 1;
         else if (outcome === "unknown") unknown += 1;
@@ -170,7 +191,8 @@ async function sendNotificationToContact(
   input: LogNotificationInput,
   contact: { phone: string; ownerName: string },
   twilio: NonNullable<ReturnType<typeof getTwilioConfig>>,
-  dogName: string | null
+  dogName: string | null,
+  redirectTo: string | null
 ): Promise<"sent" | "failed" | "unknown"> {
   const supabase = createServiceClient();
   const smsBodyText = resolveNotificationBody(input.body, contact.ownerName);
@@ -202,7 +224,12 @@ async function sendNotificationToContact(
     return "failed";
   }
 
-  const delivery = smsDeliveryForContact(contact.phone, contact.ownerName, dogName);
+  const delivery = smsDeliveryForContact(
+    contact.phone,
+    contact.ownerName,
+    dogName,
+    redirectTo
+  );
   const smsBody = delivery.body + smsBodyText;
   const sendTimeout = takeSmsSlice(smsAbortTimeoutMs(input.notificationType));
   if (sendTimeout == null) {
