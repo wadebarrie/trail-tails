@@ -8,6 +8,7 @@ import {
 } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { formatCentsDisplay } from "@/features/billing/queries";
+import { CreatePayLinkButton } from "@/features/invoices/components/create-pay-link-button";
 import { MarkSentButton } from "@/features/invoices/components/mark-sent-button";
 import { RecordPaymentForm } from "@/features/invoices/components/record-payment-form";
 import { getInvoiceWithLines } from "@/features/invoices/queries";
@@ -165,15 +166,24 @@ export default async function InvoiceDetailPage({
       ) : null}
 
       {canRecordPayment ? (
-        <div className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-stone-900">
-            Record payment
-          </h2>
-          <RecordPaymentForm
-            invoiceId={invoice.id}
-            balanceCents={balanceCents}
-            today={today}
-          />
+        <div className="mt-8 space-y-8">
+          {(invoice.status === "sent" || invoice.status === "overdue") &&
+          invoice.currency.toUpperCase() === "CAD" ? (
+            <CreatePayLinkButton
+              invoiceId={invoice.id}
+              existingUrl={invoice.stripe_pay_url}
+            />
+          ) : null}
+          <div>
+            <h2 className="mb-3 text-sm font-semibold text-stone-900">
+              Record payment
+            </h2>
+            <RecordPaymentForm
+              invoiceId={invoice.id}
+              balanceCents={balanceCents}
+              today={today}
+            />
+          </div>
         </div>
       ) : null}
     </div>

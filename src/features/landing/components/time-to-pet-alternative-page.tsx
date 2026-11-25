@@ -84,7 +84,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Does PackRoute have invoicing?",
-    a: "Yes for CAD hike invoices: draft from closed-out hikes, mark sent, and record e-Transfer or cash. Online card pay links are next. CSV export remains on every plan — we are not asking hiking teams to keep Time to Pet just for billing.",
+    a: "Yes for CAD hike invoices: draft from closed-out hikes, mark sent, record e-Transfer or cash, or send a Stripe Checkout pay link for card. CSV export remains on every plan — we are not asking hiking teams to keep Time to Pet just for billing.",
   },
   {
     q: "Can I switch from Time to Pet?",
@@ -268,10 +268,10 @@ export function TimeToPetAlternativePageContent() {
             </h2>
             <p className="mt-4 text-stone-600">
               PackRoute tracks dogs and completed hikes, generates CAD invoice
-              drafts, and exports CSV for QuickBooks or Xero so you can bill
-              however you like (e.g. e-Transfer). Online card pay links are next
-              — so you can move off Time to Pet for the hiking day without
-              waiting on a full ledger rebuild.
+              drafts, sends Stripe Checkout pay links for card, and exports CSV
+              for QuickBooks or Xero so you can bill however you like (e.g.
+              e-Transfer) — so you can move off Time to Pet for the hiking day
+              without waiting on a full ledger rebuild.
             </p>
           </div>
         </section>

@@ -105,7 +105,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "Yes for CAD hike invoices: generate drafts from closed-out hikes, mark them sent, and record e-Transfer or cash. Online card pay links are next. Every plan still includes CSV export, and live QuickBooks Online / Xero sync are optional paid add-ons.",
+    a: "Yes for CAD hike invoices: generate drafts from closed-out hikes, mark them sent, record e-Transfer or cash, or send a Stripe Checkout pay link so owners can pay by card. Every plan still includes CSV export, and live QuickBooks Online / Xero sync are optional paid add-ons.",
   },
   {
     q: "Is PackRoute priced in Canadian dollars?",

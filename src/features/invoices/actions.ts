@@ -5,12 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/features/auth/queries";
 import { getBillingLineItems } from "@/features/billing/queries";
 import type { BillingLineItem } from "@/features/billing/queries";
+import { CUSTOMER_INVOICE_CHECKOUT_PURPOSE } from "@/features/invoices/apply-stripe-invoice-payment";
 import { nextInvoiceNumber } from "@/features/invoices/queries";
 import { getDateInTimezone } from "@/lib/dates";
+import { getSiteUrl } from "@/lib/site-url";
+import { createStripeClient, getStripeSecretKey } from "@/lib/stripe";
 import type { PaymentMethod } from "@/types";
 
 export type InvoiceActionResult =
-  | { ok: true; message?: string }
+  | { ok: true; message?: string; url?: string }
   | { ok: false; error: string };
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -372,4 +375,140 @@ export async function markOverdueFormAction(
   _prev: InvoiceActionResult | null
 ): Promise<InvoiceActionResult> {
   return markOverdueInvoicesAction();
+}
+
+/**
+ * Admin: create a Stripe Checkout link (CAD) for the remaining invoice balance.
+ * Share the URL with the dog owner; webhook marks the invoice paid on success.
+ */
+export async function createInvoicePayLinkAction(
+  invoiceId: string
+): Promise<InvoiceActionResult> {
+  const profile = await requireRole("admin");
+  const secretKey = getStripeSecretKey();
+  if (!secretKey) {
+    return {
+      ok: false,
+      error: "Card pay links need Stripe configured. Contact PackRoute support.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  const { data: invoice, error: invoiceError } = await supabase
+    .from("invoices")
+    .select(
+      "id, company_id, customer_id, status, currency, total_cents, invoice_number, period_start, period_end"
+    )
+    .eq("id", invoiceId)
+    .eq("company_id", profile.company_id)
+    .maybeSingle();
+
+  if (invoiceError) return { ok: false, error: invoiceError.message };
+  if (!invoice) return { ok: false, error: "Invoice not found." };
+  if (invoice.status !== "sent" && invoice.status !== "overdue") {
+    return {
+      ok: false,
+      error: "Mark the invoice as sent before creating a pay link.",
+    };
+  }
+  if (invoice.currency.toUpperCase() !== "CAD") {
+    return { ok: false, error: "Online pay links are CAD only for now." };
+  }
+
+  const { data: existingPayments, error: payError } = await supabase
+    .from("payments")
+    .select("amount_cents")
+    .eq("invoice_id", invoiceId);
+  if (payError) return { ok: false, error: payError.message };
+
+  const paidCents = (existingPayments ?? []).reduce(
+    (sum, row) => sum + (row as { amount_cents: number }).amount_cents,
+    0
+  );
+  const balanceCents = invoice.total_cents - paidCents;
+  if (balanceCents <= 0) {
+    return { ok: false, error: "This invoice has no remaining balance." };
+  }
+
+  const [{ data: company }, { data: customer }] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("name")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("customers")
+      .select("owner_name, email")
+      .eq("id", invoice.customer_id)
+      .maybeSingle(),
+  ]);
+
+  const companyName = company?.name?.trim() || "PackRoute";
+  const siteUrl = getSiteUrl();
+  const stripe = createStripeClient(secretKey);
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: customer?.email?.trim() || undefined,
+    client_reference_id: invoice.id,
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "cad",
+          unit_amount: balanceCents,
+          product_data: {
+            name: `${companyName} invoice ${invoice.invoice_number}`,
+            description: `Hikes ${invoice.period_start} – ${invoice.period_end}${
+              customer?.owner_name ? ` · ${customer.owner_name}` : ""
+            }`,
+          },
+        },
+      },
+    ],
+    success_url: `${siteUrl}/pay/thanks?invoice=${encodeURIComponent(invoice.invoice_number)}`,
+    cancel_url: `${siteUrl}/pay/thanks?cancelled=1&invoice=${encodeURIComponent(invoice.invoice_number)}`,
+    metadata: {
+      purpose: CUSTOMER_INVOICE_CHECKOUT_PURPOSE,
+      invoice_id: invoice.id,
+      company_id: profile.company_id,
+    },
+    payment_intent_data: {
+      metadata: {
+        purpose: CUSTOMER_INVOICE_CHECKOUT_PURPOSE,
+        invoice_id: invoice.id,
+        company_id: profile.company_id,
+      },
+    },
+  });
+
+  if (!session.url) {
+    return { ok: false, error: "Could not create a Stripe pay link." };
+  }
+
+  const { error: updateError } = await supabase
+    .from("invoices")
+    .update({
+      stripe_checkout_session_id: session.id,
+      stripe_pay_url: session.url,
+    })
+    .eq("id", invoiceId)
+    .eq("company_id", profile.company_id);
+
+  if (updateError) return { ok: false, error: updateError.message };
+
+  revalidateInvoicePaths(invoiceId);
+  return {
+    ok: true,
+    url: session.url,
+    message: "Pay link ready — copy it and send it to the customer.",
+  };
+}
+
+export async function createInvoicePayLinkFormAction(
+  invoiceId: string,
+  _prev: InvoiceActionResult | null
+): Promise<InvoiceActionResult> {
+  return createInvoicePayLinkAction(invoiceId);
 }

@@ -195,7 +195,7 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute handle payments or invoicing?",
-    a: "Generate CAD invoices from closed-out hikes, mark them sent, and record e-Transfer or cash. Online card pay is next. CSV export and optional QuickBooks Online / Xero sync remain available. See packroute.app/pricing for current CAD plans.",
+    a: "Generate CAD invoices from closed-out hikes, mark them sent, record e-Transfer or cash, or send a Stripe Checkout pay link for card. CSV export and optional QuickBooks Online / Xero sync remain available. See packroute.app/pricing for current CAD plans.",
   },
   {
     q: "How much does PackRoute cost?",
