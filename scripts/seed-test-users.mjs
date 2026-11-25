@@ -93,6 +93,13 @@ async function createUser(user) {
       email: user.email,
       password: user.password,
       email_confirm: true,
+      // app_metadata is what handle_new_user trusts. user_metadata mirrors
+      // it so seeds still work before that migration is applied.
+      app_metadata: {
+        company_id: COMPANY_ID,
+        role: user.role,
+        can_drive: user.can_drive ?? false,
+      },
       user_metadata: {
         company_id: COMPANY_ID,
         role: user.role,

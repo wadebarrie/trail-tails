@@ -9,6 +9,8 @@ import {
   driverCreateSchema,
   driverUpdateSchema,
 } from "@/features/drivers/schema";
+import { driverProfileUpdate } from "@/features/drivers/profile-update";
+import { profileProvisioningMetadata } from "@/features/auth/profile-provisioning";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { safeAppReturnPath } from "@/lib/safe-return-path";
 import { getClientEnv, getSupabaseAnonKey } from "@/lib/env";
@@ -49,6 +51,55 @@ async function findAuthUserIdByEmail(
   }
 }
 
+/**
+ * inviteUserByEmail cannot set app_metadata, and GoTrue applies app_metadata
+ * only after the auth user row is inserted. Create the user first so
+ * handle_new_user can read company_id and role, then send the invite email.
+ * email_confirm stays false so the invite link is what lets them set a password.
+ */
+async function createInvitedDriver(
+  service: ReturnType<typeof createServiceClient>,
+  input: { email: string; fullName: string; companyId: string }
+): Promise<
+  | { ok: true; userId: string }
+  | { ok: false; error: string; emailTaken: boolean }
+> {
+  const metadata = profileProvisioningMetadata({
+    companyId: input.companyId,
+    role: "driver",
+    fullName: input.fullName,
+    canDrive: true,
+  });
+
+  const created = await service.auth.admin.createUser({
+    email: input.email,
+    email_confirm: false,
+    app_metadata: metadata.app_metadata,
+    user_metadata: metadata.user_metadata,
+  });
+
+  if (created.error || !created.data.user) {
+    const message = created.error?.message ?? "Failed to create driver account.";
+    return {
+      ok: false,
+      error: message,
+      emailTaken: isEmailTakenError(created.error?.message),
+    };
+  }
+
+  const invited = await service.auth.admin.inviteUserByEmail(input.email, {
+    redirectTo: getAuthCallbackUrl(AUTH_ROUTES.resetPassword),
+    data: metadata.user_metadata,
+  });
+
+  if (invited.error) {
+    await service.auth.admin.deleteUser(created.data.user.id);
+    return { ok: false, error: invited.error.message, emailTaken: false };
+  }
+
+  return { ok: true, userId: created.data.user.id };
+}
+
 function revalidateDriverPaths(driverId?: string) {
   revalidatePath("/dashboard/drivers");
   if (driverId) revalidatePath(`/dashboard/drivers/${driverId}`);
@@ -70,19 +121,14 @@ export async function createDriverAction(
 
   const email = parsed.data.email.trim().toLowerCase();
   const service = createServiceClient();
-  const { data: authData, error: authError } =
-    await service.auth.admin.inviteUserByEmail(email, {
-      redirectTo: getAuthCallbackUrl(AUTH_ROUTES.resetPassword),
-      data: {
-        company_id: profile.company_id,
-        role: "driver",
-        full_name: parsed.data.full_name,
-        can_drive: true,
-      },
-    });
+  const invited = await createInvitedDriver(service, {
+    email,
+    fullName: parsed.data.full_name,
+    companyId: profile.company_id,
+  });
 
-  if (authError || !authData.user) {
-    if (isEmailTakenError(authError?.message)) {
+  if (!invited.ok) {
+    if (invited.emailTaken) {
       const existingId = await findAuthUserIdByEmail(service, email);
       if (existingId) {
         const { data: existingProfile } = await service
@@ -124,7 +170,7 @@ export async function createDriverAction(
           "That email already has an account. Company admins use the same login for the driver app — enable “Also drives” on their profile, or sign in as that admin.",
       };
     }
-    return { error: authError?.message ?? "Failed to create driver account." };
+    return { error: invited.error };
   }
 
   const phone = normalizePhone(parsed.data.phone);
@@ -132,7 +178,7 @@ export async function createDriverAction(
     const { error: profileError } = await service
       .from("profiles")
       .update({ phone })
-      .eq("id", authData.user.id)
+      .eq("id", invited.userId)
       .eq("company_id", profile.company_id);
 
     if (profileError) {
@@ -164,7 +210,7 @@ export async function updateDriverAction(
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("profiles")
-    .select("id, role, company_id, can_drive")
+    .select("id, role, company_id, can_drive, is_active")
     .eq("id", id)
     .eq("company_id", profile.company_id)
     .maybeSingle();
@@ -177,23 +223,27 @@ export async function updateDriverAction(
     return { error: "Driver not found." };
   }
 
-  const updates: {
-    full_name: string;
-    phone: string | null;
-    is_active: boolean;
-    can_drive?: boolean;
-  } = {
-    full_name: parsed.data.full_name,
-    phone: normalizePhone(parsed.data.phone),
-    is_active: formData.has("is_active"),
-  };
+  const decision = driverProfileUpdate({
+    actorId: profile.id,
+    targetId: id,
+    existingIsActive: existing.is_active === true,
+    existingCanDrive: existing.can_drive === true,
+    patch: {
+      full_name: parsed.data.full_name,
+      phone: normalizePhone(parsed.data.phone),
+      is_active: formData.has("is_active"),
+      ...(existing.role === "admin"
+        ? { can_drive: formData.has("can_drive") }
+        : {}),
+    },
+  });
 
-  if (existing.role === "admin") {
-    // Admins stay admins; toggling off removes them from the driver roster.
-    updates.can_drive = formData.has("can_drive");
-  }
+  if (!decision.ok) return { error: decision.error };
 
-  const { error } = await supabase.from("profiles").update(updates).eq("id", id);
+  const { error } = await supabase
+    .from("profiles")
+    .update(decision.updates)
+    .eq("id", id);
 
   if (error) return { error: error.message };
 
@@ -206,12 +256,16 @@ export async function updateDriverAction(
   redirect("/dashboard/drivers");
 }
 
-/** Enable the signed-in company admin to use /today with the same login. */
+/**
+ * Enable the signed-in company admin to use /today with the same login.
+ * Their JWT cannot change can_drive on their own row. This sets only that
+ * flag, and only for an admin in their own company.
+ */
 export async function enableSelfAsDriverAction(): Promise<{ error?: string }> {
   const profile = await requireRole("admin");
-  const supabase = await createClient();
+  const service = createServiceClient();
 
-  const { error } = await supabase
+  const { error } = await service
     .from("profiles")
     .update({ can_drive: true })
     .eq("id", profile.id)

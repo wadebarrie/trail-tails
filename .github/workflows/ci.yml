@@ -31,6 +31,9 @@ jobs:
       - name: Safe redirect
         run: npm run test:safe-redirect
 
+      - name: Profile privileges
+        run: npm run test:profile-privileges
+
       - name: Stripe map
         run: npm run test:stripe-map
 

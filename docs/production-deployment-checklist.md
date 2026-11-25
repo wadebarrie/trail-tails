@@ -47,7 +47,7 @@ Use this checklist before a public launch.
 ## Provider dashboard setup
 
 ### Supabase
-- [ ] **Disable public sign-up** in Auth settings (defense in depth — separate from Owner → Settings)
+- [ ] Supabase → Auth → Allow new users to sign up = OFF (defense in depth — separate from Owner → Settings)
 - [ ] Confirm RLS enabled on all tenant tables
 - [ ] Run migrations via `supabase db push` (not raw psql loop on prod)
 - [ ] Verify no test platform-owner email exists in production

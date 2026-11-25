@@ -41,17 +41,25 @@ List the full set with `ls supabase/migrations`.
 
 Public signup should stay **disabled** in the Supabase Auth dashboard (defense in depth). Product invite gates are controlled separately in Owner → Settings (`platform_settings.invites_enabled`).
 
-Create users via Supabase Dashboard or CLI with metadata:
+Create users via Supabase Dashboard or CLI. Put the privileged claims in **App Metadata** (`raw_app_meta_data`), which only the service role can write:
 
 ```json
 {
   "company_id": "a0000000-0000-0000-0000-000000000001",
   "role": "admin",
+  "can_drive": true
+}
+```
+
+Put the display name in **User Metadata**:
+
+```json
+{
   "full_name": "Office Admin"
 }
 ```
 
-The `handle_new_user` trigger auto-creates a `profiles` row. Because that trigger trusts `user_metadata`, never enable open public signup in production.
+The `handle_new_user` trigger creates the `profiles` row from app metadata. `company_id` and `role` in user metadata are ignored. Keep public signup disabled anyway: Supabase → Auth → Allow new users to sign up = OFF.
 
 ## Route sort order
 

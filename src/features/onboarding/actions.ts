@@ -9,6 +9,7 @@ import {
   ONBOARDING_PATH,
 } from "@/features/onboarding/constants";
 import { getOnboardingProgress } from "@/features/onboarding/queries";
+import { profileProvisioningMetadata } from "@/features/auth/profile-provisioning";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { passwordSchema } from "@/lib/password";
@@ -87,17 +88,19 @@ export async function selfSignupAction(
       return { ok: false, error: message };
     }
 
+    const metadata = profileProvisioningMetadata({
+      companyId: company.id,
+      role: "admin",
+      fullName: parsed.data.admin_full_name.trim(),
+      canDrive: true,
+    });
     const { data: authData, error: authError } =
       await service.auth.admin.createUser({
         email,
         password: parsed.data.password,
         email_confirm: true,
-        user_metadata: {
-          company_id: company.id,
-          role: "admin",
-          full_name: parsed.data.admin_full_name.trim(),
-          can_drive: true,
-        },
+        app_metadata: metadata.app_metadata,
+        user_metadata: metadata.user_metadata,
       });
 
     if (authError || !authData.user) {
@@ -202,13 +205,15 @@ export async function onboardingEnableSelfAsDriverAction(): Promise<{
   error?: string;
 }> {
   const profile = await requireRole("admin", { skipMfaCheck: true });
-  const supabase = await createClient();
+  // Own-row can_drive changes are rejected for the caller's JWT.
+  const service = createServiceClient();
 
-  const { error } = await supabase
+  const { error } = await service
     .from("profiles")
     .update({ can_drive: true })
     .eq("id", profile.id)
-    .eq("company_id", profile.company_id);
+    .eq("company_id", profile.company_id)
+    .eq("role", "admin");
 
   if (error) return { error: error.message };
 
