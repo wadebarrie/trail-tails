@@ -3,10 +3,12 @@ import { logErrorFromException, logInfo } from "@/lib/logger";
 import { getDateInTimezone, getUtcBoundsForLocalDate } from "@/lib/dates";
 import {
   nightBeforeBudgetExhausted,
+  nightBeforeConfirmAction,
   nightBeforeConfirmPlan,
   nightBeforePhonesToSend,
   nightBeforePriorDecision,
   nightBeforeSendDecision,
+  type NightBeforeLookupOutcome,
 } from "@/features/notifications/night-before-schedule";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
@@ -361,15 +363,16 @@ async function confirmUnconfirmedContacts(
       match.body,
       match.createdAt
     );
-    if (outcome === "sent") {
+    const action = nightBeforeConfirmAction(outcome, false);
+    if (action === "sent") {
       sentRowIds.push(match.rowId);
       sentPhones.push(match.phone);
-    } else if (outcome === "failed") retryPhones.push(match.phone);
+    } else if (action === "retry") retryPhones.push(match.phone);
     else holdPhones.push(match.phone);
   }
 
   for (const group of plan.shared) {
-    const outcomes: ("sent" | "failed" | "unknown")[] = [];
+    const outcomes: NightBeforeLookupOutcome[] = [];
     for (const contact of group.contacts) {
       const outcome = await lookupNightBeforeContact(
         contact,
@@ -377,8 +380,9 @@ async function confirmUnconfirmedContacts(
         group.createdAt
       );
       outcomes.push(outcome);
-      if (outcome === "sent") sentPhones.push(contact.phone);
-      else if (outcome === "failed") retryPhones.push(contact.phone);
+      const action = nightBeforeConfirmAction(outcome, true);
+      if (action === "sent") sentPhones.push(contact.phone);
+      else if (action === "retry") retryPhones.push(contact.phone);
       else holdPhones.push(contact.phone);
     }
     if (outcomes.length > 0 && outcomes.every((outcome) => outcome === "sent")) {
@@ -393,7 +397,7 @@ async function lookupNightBeforeContact(
   contact: { phone: string; ownerName: string },
   loggedBody: string,
   createdAt?: string
-): Promise<"sent" | "failed" | "unknown"> {
+): Promise<NightBeforeLookupOutcome> {
   const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
   if (timeout == null) return "unknown";
   const wire = galleryWireMessage({
@@ -410,6 +414,7 @@ async function lookupNightBeforeContact(
   );
   if (lookedUp.outcome === "sent") return "sent";
   if (lookedUp.outcome === "failed") return "failed";
+  if (lookedUp.outcome === "absent") return "absent";
   return "unknown";
 }
 

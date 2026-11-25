@@ -11,6 +11,23 @@ export function nightBeforeBudgetExhausted(remainingMs: number | null): boolean 
   return remainingMs != null && remainingMs < SMS_CALL_FLOOR_MS;
 }
 
+export type NightBeforeLookupOutcome = "sent" | "failed" | "absent" | "unknown";
+
+/**
+ * Shared-body texts cannot be told apart, so a Twilio miss means this phone
+ * was not sent and can be retried. An API error stays held. Distinct
+ * greetings still hold on a miss, because that row may have been sent.
+ */
+export function nightBeforeConfirmAction(
+  outcome: NightBeforeLookupOutcome,
+  sharedBody: boolean
+): "sent" | "retry" | "hold" {
+  if (outcome === "sent") return "sent";
+  if (outcome === "failed") return "retry";
+  if (outcome === "absent" && sharedBody) return "retry";
+  return "hold";
+}
+
 type NightBeforeContact = { phone: string; ownerName: string };
 
 type NightBeforeConfirmRow = {
