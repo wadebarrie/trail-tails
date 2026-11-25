@@ -35,6 +35,7 @@ export type NotificationType =
   | "arrived"
   | "picked_up"
   | "dropped_off"
+  | "hike_photos"
   | "request_received"
   | "request_approved"
   | "request_declined"
@@ -69,6 +70,8 @@ export interface Company {
   default_pickup_window_end: string | null;
   default_hike_rate_cents: number | null;
   night_before_reminder_time: string;
+  /** When true, closing out a hike with tagged photos texts owners a gallery link. */
+  auto_send_gallery_on_closeout: boolean;
   twilio_phone_number: string | null;
   onboarding_completed_at: string | null;
   /** once = one PackRoute period/day; twice = morning + afternoon. */

@@ -37,10 +37,21 @@ export function GalleryPhoto({
           />
         </div>
       </a>
-      {caption ? <p className="mt-2 text-stone-800">{caption}</p> : null}
-      {dogNames.length ? (
-        <p className="mt-1 text-sm text-stone-500">{dogNames.join(", ")}</p>
-      ) : null}
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          {caption ? <p className="text-stone-800">{caption}</p> : null}
+          {dogNames.length ? (
+            <p className="mt-1 text-sm text-stone-500">{dogNames.join(", ")}</p>
+          ) : null}
+        </div>
+        <a
+          href={src}
+          download
+          className="text-sm font-medium text-stone-700 underline-offset-2 hover:underline"
+        >
+          Save photo
+        </a>
+      </div>
     </li>
   );
 }

@@ -264,6 +264,12 @@ export function buildDroppedOffMessage(dogName: string, photosUrl?: string | nul
   return photosUrl ? `${base} Photos from the hike: ${photosUrl}` : base;
 }
 
+/** Dedicated close-out gallery text (one per owner per day). */
+export function buildHikeGalleryMessage(dogNames: string[], photosUrl: string) {
+  const dogs = formatDogList(dogNames);
+  return `${dogs} had a great hike today! See the pics: ${photosUrl}`;
+}
+
 function formatDogList(names: string[]): string {
   if (names.length === 0) return "Your dog";
   if (names.length === 1) return names[0];

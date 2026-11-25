@@ -13,12 +13,14 @@ export function CompanySettingsForm({
   routeCadence,
   defaultRateCents,
   defaultNightBeforeReminderTime,
+  autoSendGalleryOnCloseout = true,
 }: {
   companyName: string;
   timezone: string;
   routeCadence: RouteCadence;
   defaultRateCents: number | null;
   defaultNightBeforeReminderTime: string;
+  autoSendGalleryOnCloseout?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(
     updateCompanySettingsAction,
@@ -179,6 +181,40 @@ export function CompanySettingsForm({
           defaultValue={defaultNightBeforeReminderTime.slice(0, 5)}
           className="mt-2"
         />
+
+        <fieldset className="mt-5">
+          <legend className="text-sm font-medium text-stone-700">
+            Hike photo gallery texts
+          </legend>
+          <p className="mt-0.5 text-xs text-stone-500">
+            When a hike is closed out and owners have tagged photos, text them a
+            gallery link. Turn this off to review first on Hike photos.
+          </p>
+          <div className="mt-3 space-y-2">
+            <label className="flex items-start gap-2 text-sm text-stone-700">
+              <input
+                type="radio"
+                name="auto_send_gallery_on_closeout"
+                value="true"
+                defaultChecked={autoSendGalleryOnCloseout}
+                className="mt-1"
+              />
+              <span>Send automatically on close-out</span>
+            </label>
+            <label className="flex items-start gap-2 text-sm text-stone-700">
+              <input
+                type="radio"
+                name="auto_send_gallery_on_closeout"
+                value="false"
+                defaultChecked={!autoSendGalleryOnCloseout}
+                className="mt-1"
+              />
+              <span>
+                Review first — use Send today&apos;s galleries on Hike photos
+              </span>
+            </label>
+          </div>
+        </fieldset>
       </div>
 
       <SubmitButton pending={pending}>Save settings</SubmitButton>
