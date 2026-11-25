@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import {
   SMS_REQUEST_BUDGET_MS,
+  nestedBudgetMs,
   smsSliceMs,
 } from "@/lib/twilio/outcome";
 
@@ -18,13 +19,22 @@ export function smsBudgetActive(): boolean {
   return budget.getStore() != null;
 }
 
-/** Nested calls share the outer request budget. */
+/**
+ * Start a budget. Inside a parent budget, the child is
+ * min(requested, time still left) so a cron cannot hand each company a fresh 20s.
+ */
 export function runWithSmsBudget<T>(
   fn: () => Promise<T>,
   budgetMs = SMS_REQUEST_BUDGET_MS
 ): Promise<T> {
-  if (budget.getStore()) return fn();
-  return budget.run({ deadlineMs: Date.now() + budgetMs, reserveMs: 0 }, fn);
+  const parent = budget.getStore();
+  const now = Date.now();
+  const parentRemaining = parent ? Math.max(0, parent.deadlineMs - now) : null;
+  const slice = nestedBudgetMs(budgetMs, parentRemaining);
+  return budget.run(
+    { deadlineMs: now + slice, reserveMs: parent?.reserveMs ?? 0 },
+    fn
+  );
 }
 
 export function setSmsBudgetReserve(reserveMs: number) {

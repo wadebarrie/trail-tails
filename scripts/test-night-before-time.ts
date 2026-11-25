@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  nightBeforePhonesToSend,
   nightBeforePriorDecision,
   nightBeforeSendDecision,
 } from "../src/features/notifications/night-before-schedule";
@@ -94,8 +95,56 @@ test("a budget skip is retried and an unconfirmed row is checked first", () => {
       { status: "sent", errorMessage: null },
       { status: "pending", errorMessage: "Twilio send not confirmed" },
     ]),
-    "skip"
+    "confirm"
   );
+  assert.equal(
+    nightBeforePriorDecision([
+      { status: "sent", errorMessage: null },
+      {
+        status: "pending",
+        errorMessage: "Skipped — request time budget exhausted",
+      },
+    ]),
+    "send"
+  );
+});
+
+test("a sent primary contact does not block a skipped secondary contact", () => {
+  const targets = nightBeforePhonesToSend({
+    contacts: [
+      { phone: "+15551111", ownerName: "Rachel Lee" },
+      { phone: "+15552222", ownerName: "Sam Lee" },
+    ],
+    rows: [
+      { status: "sent", errorMessage: null, body: "Hi Rachel! Daisy tomorrow." },
+      {
+        status: "pending",
+        errorMessage: "Skipped — request time budget exhausted",
+        body: "Hi Sam! Daisy tomorrow.",
+      },
+    ],
+    bodyFor: (name) => `Hi ${name.split(" ")[0]}! Daisy tomorrow.`,
+  });
+  assert.deepEqual(targets, { phones: ["+15552222"], ambiguous: false });
+});
+
+test("identical bodies are not guessed", () => {
+  const targets = nightBeforePhonesToSend({
+    contacts: [
+      { phone: "+15551111", ownerName: "Rachel Lee" },
+      { phone: "+15552222", ownerName: "Sam Lee" },
+    ],
+    rows: [
+      { status: "sent", errorMessage: null, body: "Tomorrow: Daisy 8-10." },
+      {
+        status: "pending",
+        errorMessage: "Skipped — request time budget exhausted",
+        body: "Tomorrow: Daisy 8-10.",
+      },
+    ],
+    bodyFor: () => "Tomorrow: Daisy 8-10.",
+  });
+  assert.deepEqual(targets, { phones: [], ambiguous: true });
 });
 
 console.log("\nAll night-before time tests passed.");
