@@ -10,6 +10,7 @@ import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
 } from "@/features/hikes/stop-order";
+import { awaitGallerySmsOnCloseOut } from "@/features/hike-photos/send-gallery-sms";
 import { one } from "@/lib/supabase/relations";
 
 function revalidateHikePaths(options?: { includeDashboard?: boolean }) {
@@ -190,18 +191,15 @@ export async function completeHikeAction(
 
   if (hikeError) return { error: hikeError.message };
 
-  // Fire-and-forget: gallery SMS must not block close-out.
-  void import("@/features/hike-photos/send-gallery-sms")
-    .then(({ sendHikeGallerySmsForHike }) =>
-      sendHikeGallerySmsForHike(hikeId, { force: false })
-    )
-    .catch(() => undefined);
+  await awaitGallerySmsOnCloseOut(hikeId);
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");
   revalidatePath("/dashboard/billing");
   revalidatePath("/dashboard/hike-report");
+  revalidatePath("/dashboard/photos");
+  revalidatePath("/dashboard/sms");
   revalidatePath("/today");
   revalidatePath("/tomorrow");
   return { success: true };

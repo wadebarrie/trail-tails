@@ -52,6 +52,9 @@ export default async function PublicPhotoGalleryPage({
         <p className="mt-1 text-stone-600">
           {formatDateLabel(gallery.hikeDate, gallery.timeZone)}
         </p>
+        <p className="mt-1 text-sm text-stone-500">
+          Every tagged photo from this day&apos;s hikes.
+        </p>
       </header>
 
       {gallery.photos.length ? (

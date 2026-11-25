@@ -260,6 +260,11 @@ export async function sendTodaysGalleriesAction(
       `${result.skipped} already sent or skipped`
     );
   }
+  if (result.errors) {
+    parts.push(
+      `${result.errors} failed — try again`
+    );
+  }
   return { ok: true, message: `${parts.join(". ")}.` };
 }
 

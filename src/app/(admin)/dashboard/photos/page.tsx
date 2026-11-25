@@ -21,9 +21,35 @@ import {
   type AdminHikePhotoGroup,
 } from "@/features/hike-photos/queries";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
+import { formatAdminDateTime, formatDateLabel, getDateInTimezone } from "@/lib/dates";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function GalleryTextLabel({
+  state,
+  sentAt,
+  via,
+  timeZone,
+  revoked,
+}: {
+  state: "sent" | "unsent";
+  sentAt: string | null;
+  via: "gallery" | "dropoff" | null;
+  timeZone: string;
+  revoked: boolean;
+}) {
+  if (revoked) return <span>Link revoked</span>;
+  if (state === "sent") {
+    const when = sentAt ? ` · ${formatAdminDateTime(sentAt, timeZone)}` : "";
+    return (
+      <span className="text-green-800">
+        {via === "dropoff" ? "Link sent with drop-off" : "Gallery text sent"}
+        {when}
+      </span>
+    );
+  }
+  return <span className="text-amber-800">Gallery text not sent</span>;
+}
 
 export default async function HikePhotosPage({
   searchParams,
@@ -39,9 +65,14 @@ export default async function HikePhotosPage({
       : getDateInTimezone(tz, 0);
 
   let groups: AdminHikePhotoGroup[] = [];
+  let unsentOwners = 0;
+  let liveShares = 0;
   let failed = false;
   try {
-    groups = await listHikePhotosForDate(profile.company_id, date);
+    const listed = await listHikePhotosForDate(profile.company_id, date);
+    groups = listed.groups;
+    unsentOwners = listed.unsentOwners;
+    liveShares = listed.liveShares;
   } catch {
     failed = true;
   }
@@ -53,12 +84,6 @@ export default async function HikePhotosPage({
     .eq("id", profile.company_id)
     .maybeSingle();
   const autoSend = company?.auto_send_gallery_on_closeout !== false;
-
-  const activeOwnerCount = new Set(
-    groups.flatMap((g) =>
-      g.shares.filter((s) => !s.revoked).map((s) => s.customerName)
-    )
-  ).size;
 
   return (
     <div>
@@ -83,15 +108,15 @@ export default async function HikePhotosPage({
         }
       />
 
-      {!failed && activeOwnerCount > 0 ? (
+      {!failed && liveShares > 0 ? (
         <div className="mb-6 rounded-xl border border-stone-200 bg-white px-4 py-3">
           <p className="text-sm text-stone-600">
             {autoSend
-              ? "Gallery texts also go out automatically when a hike is closed out. Use the button to send (or re-check) for this date."
-              : "Auto-send is off in Settings — send gallery texts for this date when you are ready."}
+              ? "Gallery texts go out when a hike is closed out — one per owner for the whole day. Use the button for anyone still unsent."
+              : "Auto-send is off in Settings. Send gallery texts for this date when you are ready."}
           </p>
           <div className="mt-3">
-            <SendGalleriesButton date={date} ownerCount={activeOwnerCount} />
+            <SendGalleriesButton date={date} unsentCount={unsentOwners} />
           </div>
         </div>
       ) : null}
@@ -178,6 +203,15 @@ export default async function HikePhotosPage({
                       <div className="min-w-0">
                         <p className="font-medium text-stone-900">
                           {share.customerName}
+                        </p>
+                        <p className="text-xs text-stone-600">
+                          <GalleryTextLabel
+                            state={share.galleryText.state}
+                            sentAt={share.galleryText.sentAt}
+                            via={share.galleryText.via}
+                            timeZone={tz}
+                            revoked={share.revoked}
+                          />
                         </p>
                         <p className="truncate text-stone-500">{share.url}</p>
                       </div>

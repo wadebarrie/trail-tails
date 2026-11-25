@@ -9,21 +9,25 @@ import {
 
 export function SendGalleriesButton({
   date,
-  ownerCount,
+  unsentCount,
 }: {
   date: string;
-  ownerCount: number;
+  unsentCount: number;
 }) {
   const [state, formAction] = useActionState<SendGalleriesResult | null>(
     sendTodaysGalleriesFormAction.bind(null, date),
     null
   );
 
+  const label =
+    unsentCount === 0
+      ? "All galleries sent"
+      : `Send ${unsentCount} unsent galler${unsentCount === 1 ? "y" : "ies"}`;
+
   return (
     <form action={formAction} className="flex flex-col items-start gap-2">
-      <FormSubmitButton pendingLabel="Sending…">
-        Send today&apos;s galleries
-        {ownerCount > 0 ? ` (${ownerCount} owner${ownerCount === 1 ? "" : "s"})` : ""}
+      <FormSubmitButton pendingLabel="Sending…" disabled={unsentCount === 0}>
+        {label}
       </FormSubmitButton>
       {state?.ok === false ? (
         <p role="alert" className="text-sm text-red-700">

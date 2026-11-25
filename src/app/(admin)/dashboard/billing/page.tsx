@@ -52,7 +52,7 @@ export default async function BillingPage({
 
   const { data: company } = await supabase
     .from("companies")
-    .select("timezone, default_hike_rate_cents")
+      .select("timezone, default_hike_rate_cents, auto_send_gallery_on_closeout")
     .eq("id", profile.company_id)
     .single();
 
@@ -119,6 +119,7 @@ export default async function BillingPage({
             start={start}
             end={end}
             notClosedOutDays={summary.notClosedOutDays}
+            galleryTextsOn={company?.auto_send_gallery_on_closeout !== false}
           />
         </div>
       ) : null}

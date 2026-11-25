@@ -80,39 +80,60 @@ function resolveNotificationBody(
   return typeof body === "function" ? body(ownerName) : body;
 }
 
+export type NotificationSendResult = {
+  /** Contacts Twilio accepted. */
+  sent: number;
+  /** Contacts where the log row or Twilio call failed. */
+  failed: number;
+};
+
 /**
  * Logs outbound notifications and sends SMS when Twilio is configured.
  * Never throws — driver workflow must not be blocked.
+ * `sent` counts only messages Twilio accepted.
  */
-export async function logNotification(input: LogNotificationInput) {
+export async function logNotification(
+  input: LogNotificationInput
+): Promise<NotificationSendResult> {
   return perfAsync(`sms ${input.notificationType}`, async () => {
+    const none: NotificationSendResult = { sent: 0, failed: 0 };
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       logError("sms", "Notification skipped — SUPABASE_SERVICE_ROLE_KEY missing", {
         companyId: input.companyId,
         context: { notificationType: input.notificationType, stopId: input.stopId },
       });
-      return;
+      return none;
     }
 
     try {
       const contacts = await resolveCustomerContacts(input.customerId);
       if (!contacts.length) {
         logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
-        return;
+        return none;
       }
 
       const twilio = getTwilioConfig();
       if (!twilio) {
         logWarn("sms", "SMS not sent — Twilio is not configured", smsContext(input));
-        return;
+        return none;
       }
 
       const dogName =
       input.dogName ?? (await resolveDogName(input.dogId));
 
+      let sent = 0;
+      let failed = 0;
       for (const contact of contacts) {
-        await sendNotificationToContact(input, contact, twilio, dogName);
+        const outcome = await sendNotificationToContact(
+          input,
+          contact,
+          twilio,
+          dogName
+        );
+        if (outcome === "sent") sent += 1;
+        else failed += 1;
       }
+      return { sent, failed };
     } catch (error) {
       logErrorFromException(
         "sms",
@@ -120,6 +141,7 @@ export async function logNotification(input: LogNotificationInput) {
         error,
         smsContext(input)
       );
+      return { sent: 0, failed: 1 };
     }
   });
 }
@@ -129,7 +151,7 @@ async function sendNotificationToContact(
   contact: { phone: string; ownerName: string },
   twilio: NonNullable<ReturnType<typeof getTwilioConfig>>,
   dogName: string | null
-) {
+): Promise<"sent" | "failed"> {
   const supabase = createServiceClient();
   const smsBodyText = resolveNotificationBody(input.body, contact.ownerName);
 
@@ -157,7 +179,7 @@ async function sendNotificationToContact(
         recipient: contact.phone,
       },
     });
-    return;
+    return "failed";
   }
 
   const delivery = resolveSmsDelivery(contact.phone, contact.ownerName, dogName);
@@ -183,7 +205,7 @@ async function sendNotificationToContact(
         intendedPhone: contact.phone,
       },
     });
-    return;
+    return "failed";
   }
 
   const { data: smsMessage, error: smsInsertError } = await supabase
@@ -221,6 +243,8 @@ async function sendNotificationToContact(
       sms_message_id: smsMessage?.id ?? null,
     })
     .eq("id", notification.id);
+
+  return "sent";
 }
 
 export function buildEnRouteMessage(
@@ -262,12 +286,6 @@ export function buildPickedUpMessage(dogName: string) {
 export function buildDroppedOffMessage(dogName: string, photosUrl?: string | null) {
   const base = `${dogName} has been dropped off. Have a great day!`;
   return photosUrl ? `${base} Photos from the hike: ${photosUrl}` : base;
-}
-
-/** Dedicated close-out gallery text (one per owner per day). */
-export function buildHikeGalleryMessage(dogNames: string[], photosUrl: string) {
-  const dogs = formatDogList(dogNames);
-  return `${dogs} had a great hike today! See the pics: ${photosUrl}`;
 }
 
 function formatDogList(names: string[]): string {

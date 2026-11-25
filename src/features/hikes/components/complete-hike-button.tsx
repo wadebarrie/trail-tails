@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 import { Badge } from "@/features/admin/components/ui";
 import { secondaryButtonClassName } from "@/features/admin/components/button-styles";
 import { completeHikeAction } from "@/features/hikes/actions";
@@ -16,20 +17,13 @@ export function CompleteHikeButton({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   if (status === "completed") {
     return <HikeStatusBadge status={status} />;
   }
 
   function handleComplete() {
-    if (
-      !confirm(
-        "Mark this hike complete? Any open stops will be closed out as picked up / dropped off."
-      )
-    ) {
-      return;
-    }
-
     setError(null);
     startTransition(async () => {
       const result = await completeHikeAction(hikeId);
@@ -37,6 +31,7 @@ export function CompleteHikeButton({
         setError(result.error);
         return;
       }
+      setOpen(false);
       router.refresh();
     });
   }
@@ -48,7 +43,7 @@ export function CompleteHikeButton({
     <div className="flex flex-col items-end gap-1">
       <button
         type="button"
-        onClick={handleComplete}
+        onClick={() => setOpen(true)}
         disabled={pending}
         className={secondaryButtonClassName}
       >
@@ -59,6 +54,17 @@ export function CompleteHikeButton({
           {error}
         </p>
       ) : null}
+      <ConfirmDialog
+        open={open}
+        title={label}
+        body="Open stops will be marked picked up or dropped off. If gallery texts are on, each owner with tagged photos gets one text for that day's photos."
+        confirmLabel={label}
+        pending={pending}
+        onCancel={() => {
+          if (!pending) setOpen(false);
+        }}
+        onConfirm={handleComplete}
+      />
     </div>
   );
 }

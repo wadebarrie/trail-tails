@@ -49,6 +49,9 @@ jobs:
       - name: UX audit helpers
         run: npm run test:ux-audit
 
+      - name: Gallery SMS rules
+        run: npm run test:gallery-sms
+
       - name: Production build
         run: npm run build
         env:
