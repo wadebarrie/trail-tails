@@ -275,14 +275,26 @@ async function ensureInvoiceToken(
   const current = existing?.public_token as string | null;
   if (current) return { token: current };
   const token = generateShareToken();
-  const { error } = await service
+  const { data: updated, error } = await service
     .from("invoices")
     .update({ public_token: token })
     .eq("id", invoiceId)
     .eq("company_id", companyId)
-    .is("public_token", null);
+    .is("public_token", null)
+    .select("public_token");
   if (error) return { error: "Could not create the invoice link." };
-  return { token };
+  const written = updated?.[0]?.public_token as string | undefined;
+  if (written) return { token: written };
+
+  const { data: stored } = await service
+    .from("invoices")
+    .select("public_token")
+    .eq("id", invoiceId)
+    .eq("company_id", companyId)
+    .maybeSingle();
+  const saved = stored?.public_token as string | null;
+  if (saved) return { token: saved };
+  return { error: "Could not create the invoice link." };
 }
 
 export async function ensureInvoiceLinkAction(
@@ -321,7 +333,7 @@ export async function sendInvoiceAction(
       .maybeSingle(),
     supabase
       .from("companies")
-      .select("etransfer_email, show_card_payment")
+      .select("etransfer_email, show_card_payment, sms_mode")
       .eq("id", profile.company_id)
       .maybeSingle(),
   ]);
@@ -335,6 +347,7 @@ export async function sendInvoiceAction(
 
   const etransferEmail = (paymentSettings.data?.etransfer_email as string | null) ?? null;
   const showCard = paymentSettings.data?.show_card_payment === true;
+  const smsMode = (paymentSettings.data?.sms_mode as string | null) ?? null;
   const blocked = invoiceSendBlockReason({ etransferEmail, showCardPayment: showCard });
   if (blocked) return { ok: false, error: blocked };
 
@@ -369,14 +382,14 @@ export async function sendInvoiceAction(
     totalCents: invoice.total_cents as number,
     link,
     etransferEmail,
+    smsMode,
   });
 
   if (sms.sent === 0 && email !== "sent") {
+    revalidateInvoicePaths(invoiceId);
     return {
       ok: false,
-      error: hasPhone
-        ? "The text did not send. Check Texts sent, then try again. The invoice link is ready to copy."
-        : "This customer has no mobile number, and invoice email is not configured. Add a phone number or copy the link.",
+      error: `Nothing was delivered, so this invoice is still a draft. Copy this link and send it yourself: ${link}`,
     };
   }
 

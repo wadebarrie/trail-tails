@@ -8,6 +8,7 @@ import {
   publicInvoicePaymentState,
   resolveShowCardPayment,
 } from "@/features/invoices/etransfer";
+import { sendInvoiceEmail, shouldSendInvoiceEmail } from "@/features/invoices/invoice-email";
 import { companyOutboundTarget } from "@/features/sms/sms-policy";
 
 const sendAction = readFileSync(resolve("src/features/invoices/actions.ts"), "utf8");
@@ -98,6 +99,13 @@ const cases: { name: string; pass: boolean }[] = [
     pass: invoiceTaxCents(20000, 24000) === 4000 && invoiceTaxCents(24000, 24000) === null,
   },
   {
+    name: "test mode skips the invoice email",
+    pass:
+      shouldSendInvoiceEmail({ smsMode: "test" }) === false &&
+      shouldSendInvoiceEmail({ smsMode: "live" }) === true &&
+      shouldSendInvoiceEmail({ smsMode: null }) === true,
+  },
+  {
     name: "send uses the existing SMS path so test mode still redirects",
     pass:
       sendAction.includes('notificationType: "invoice"') &&
@@ -127,4 +135,36 @@ if (failed.length) {
   process.exit(1);
 }
 
-console.log(`All ${cases.length} invoice e-Transfer tests passed.`);
+async function assertTestModeSkipsEmail() {
+  const previousKey = process.env.RESEND_API_KEY;
+  const previousFrom = process.env.WELCOME_FROM_EMAIL;
+  process.env.RESEND_API_KEY = "test-key";
+  process.env.WELCOME_FROM_EMAIL = "invoices@example.com";
+  const testModeEmail = await sendInvoiceEmail({
+    to: "customer@example.com",
+    companyName: "Harbour Hikes",
+    invoiceNumber: "INV-2026-0007",
+    totalCents: 24000,
+    link: "https://packroute.app/i/token",
+    etransferEmail: "pay@example.com",
+    smsMode: "test",
+  });
+  if (previousKey === undefined) delete process.env.RESEND_API_KEY;
+  else process.env.RESEND_API_KEY = previousKey;
+  if (previousFrom === undefined) delete process.env.WELCOME_FROM_EMAIL;
+  else process.env.WELCOME_FROM_EMAIL = previousFrom;
+
+  if (testModeEmail !== "skipped") {
+    console.error("test mode invoice email was not skipped");
+    process.exit(1);
+  }
+}
+
+assertTestModeSkipsEmail()
+  .then(() => {
+    console.log(`All ${cases.length + 1} invoice e-Transfer tests passed.`);
+  })
+  .catch((error: unknown) => {
+    console.error(error);
+    process.exit(1);
+  });

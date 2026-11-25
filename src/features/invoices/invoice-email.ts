@@ -1,6 +1,13 @@
 import { buildInvoicePaymentMessage } from "@/features/invoices/etransfer";
 
-/** Uses the existing Resend welcome sender. Skips when it is not configured. */
+/** Test companies must not email a real customer. Live companies still need Resend. */
+export function shouldSendInvoiceEmail(input: {
+  smsMode: string | null | undefined;
+}): boolean {
+  return input.smsMode !== "test";
+}
+
+/** Uses the existing Resend welcome sender. Skips when it is not configured or the company is in test mode. */
 export async function sendInvoiceEmail(input: {
   to: string;
   companyName: string;
@@ -8,7 +15,9 @@ export async function sendInvoiceEmail(input: {
   totalCents: number;
   link: string;
   etransferEmail: string | null;
+  smsMode: string | null | undefined;
 }): Promise<"sent" | "skipped"> {
+  if (!shouldSendInvoiceEmail(input)) return "skipped";
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = process.env.WELCOME_FROM_EMAIL?.trim();
   const to = input.to.trim();
