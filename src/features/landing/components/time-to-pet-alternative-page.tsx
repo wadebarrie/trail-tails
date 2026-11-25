@@ -2,12 +2,13 @@ import Link from "next/link";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
+import { PRICING_TIERS } from "@/features/landing/pricing";
 import { TIME_TO_PET_ALTERNATIVE_TITLE } from "@/lib/seo/metadata";
 
 const FIT_POINTS = [
   {
-    title: "Built for pickup routes and group hikes",
-    body: "Morning and afternoon routes, recurring dogs, multi-driver days, and stop order you control — not visit calendars designed for in-home pet sitting.",
+    title: "Group hike time slots and pickup routes",
+    body: "Morning and afternoon periods, recurring dogs, multi-driver days, and stop order you control — not visit calendars designed for in-home pet sitting.",
   },
   {
     title: "Driver workflow that answers “what next?”",
@@ -18,8 +19,8 @@ const FIT_POINTS = [
     body: "Night-before reminders, en-route ETAs, and pickup or drop-off confirmations fire from intentional driver actions. Schedule-change texts go to your office first.",
   },
   {
-    title: "Calm ops for adventure dog hiking teams",
-    body: "PackRoute is for operators with roughly one to ten hikers or walkers and dozens to hundreds of active dogs — not a consumer marketplace or facility boarding system.",
+    title: "Canadian pricing for hiking teams",
+    body: "Built in BC, priced in CAD, for walking and adventure hiking companies that want a lighter product than an all-in-one US pet-care suite.",
   },
 ];
 
@@ -29,43 +30,73 @@ const COMPARISON_ROWS = [
     fit: "PackRoute",
   },
   {
-    need: "Multi-driver route days + automated SMS ETAs (replace Sheets / WhatsApp)",
+    need: "Group hike time slots + multi-driver route days",
     fit: "PackRoute",
   },
   {
-    need: "Deep CRM, owner portals, and in-app invoicing / payments",
-    fit: "Time to Pet and similar all-in-one pet care platforms (or keep them alongside PackRoute for billing)",
+    need: "Automated SMS ETAs (replace Sheets / WhatsApp)",
+    fit: "PackRoute",
   },
   {
-    need: "Broad pet sitting, daycare, boarding, or photo visit reports",
+    need: "Clear CAD pricing for a hiking-sized team",
+    fit: "PackRoute",
+  },
+  {
+    need: "Completed-hike billing export (invoicing coming soon)",
+    fit: "PackRoute",
+  },
+  {
+    need: "Boarding, daycare, pet sitting, or facility check-in",
     fit: "Time to Pet, Pet Sitter Plus, Gingr, Precise Petcare, Scout, and similar",
   },
   {
     need: "Pack school vans with owner portal, AI booking, lock-screen widgets",
     fit: "BarkBus and similar pack-school tools — or compare PackRoute if hiking pickups and SMS are the core day",
   },
+];
+
+const COST_ROWS = [
   {
-    need: "Long walking routes with key management emphasis",
-    fit: "LeashTime or similar walking specialists — compare against PackRoute if hiking pickups are your core day",
+    team: "1 driver",
+    timeToPet: "Solo US$50/mo",
+    packroute: PRICING_TIERS[0].priceLabel,
+  },
+  {
+    team: "2 drivers",
+    timeToPet: "Team ~US$72/mo ($40 + $16 × 2 staff)",
+    packroute: PRICING_TIERS[1].priceLabel,
+  },
+  {
+    team: "3 drivers",
+    timeToPet: "Team ~US$88/mo ($40 + $16 × 3 staff)",
+    packroute: PRICING_TIERS[2].priceLabel,
   },
 ];
 
 const FAQ_ITEMS = [
   {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking and group pack-walk companies, yes — PackRoute is a focused alternative for pickup route planning, multi-driver field days, and customer SMS. It is not a full pet-sitting, boarding, daycare, or deep CRM/invoicing suite.",
+    a: "Yes for Canadian adventure dog hiking and group pack-walk companies. PackRoute is a lighter replacement focused on group hike time slots, multi-driver pickup routes, and customer SMS — priced in CAD, without boarding and pet-sitting features you do not use.",
   },
   {
     q: "How is PackRoute different from Time to Pet?",
-    a: "Time to Pet is strong for broad pet sitting, facility workflows, CRM, and in-app invoicing. PackRoute is built specifically for adventure dog hiking teams that run recurring pickup routes with drivers on the road and keep customers updated by automated SMS ETAs. Billing is CSV hike export into QuickBooks or your own process — not a replacement for a full pet-care ledger.",
+    a: "Time to Pet is a broad US pet-care suite (sitting, walking, CRM, payments). PackRoute is built for hiking and pack-walk days: recurring routes, morning and afternoon slots, a mobile driver Today view, and automated SMS. Billing starts with completed-hike CSV export; built-in CAD invoicing is on the roadmap.",
   },
   {
-    q: "Does PackRoute lack invoicing and CRM compared to Time to Pet?",
-    a: "PackRoute does not try to match Time to Pet’s full business-administration depth. A dedicated logistics product won’t necessarily have the invoicing, CRM, and business administration depth of mature pet-care platforms — and for adventure hiking teams that is the point. PackRoute owns proactive SMS, multi-driver routes, and the driver phone workflow; you still get completed-hike CSV export for QuickBooks. Keep Time to Pet (or QuickBooks) if you need owner CRM and payment collection in one pet-care suite.",
+    q: "Does PackRoute have invoicing?",
+    a: "Today every plan includes completed-hike CSV export for QuickBooks, Xero, or e-Transfer. Built-in invoicing and CAD payments are coming soon — we are not asking hiking teams to keep Time to Pet just for billing.",
   },
   {
-    q: "Who should keep using Time to Pet?",
-    a: "Operators whose core work is pet sitting, daycare, boarding, photo-and-visit reporting, or deep in-app CRM and invoicing may be better served by Time to Pet. PackRoute is for hiking and pack-walk teams that need proactive customer SMS and calmer multi-driver route operations.",
+    q: "Can I switch from Time to Pet?",
+    a: "Yes. Bring a CSV of clients and dogs, or we help you import during onboarding. Most teams are sending real customer texts the same day after a short screenshare.",
+  },
+  {
+    q: "Is PackRoute priced in Canadian dollars?",
+    a: "Yes. Public pricing is CAD. First month free after a short demo, then pick the driver tier that fits. See the pricing page for current beta rates.",
+  },
+  {
+    q: "Who is Time to Pet still a better fit for?",
+    a: "Operators whose core work is pet sitting, daycare, boarding, or facility check-in. PackRoute is for hiking and pack-walk teams that need calmer multi-driver route days and automated customer SMS.",
   },
 ];
 
@@ -77,25 +108,31 @@ export function TimeToPetAlternativePageContent() {
       <main id="main-content">
         <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
           <p className="text-sm font-medium uppercase tracking-widest text-[var(--color-trail-600)]">
-            Time to Pet alternative
+            Time to Pet alternative · Canada
           </p>
           <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
             {TIME_TO_PET_ALTERNATIVE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            Searching for a Time to Pet alternative because your day is group
-            hikes and pickup routes — not in-home visits? PackRoute is dog
-            walking operations software built for adventure dog hiking teams
-            replacing Google Sheets and WhatsApp with multi-driver routes and
-            automated SMS ETAs.
+            The lightweight Time to Pet replacement for Canadian dog hiking
+            teams. If Time to Pet feels limited for{" "}
+            <strong className="font-medium text-stone-800">
+              route planning
+            </strong>{" "}
+            and{" "}
+            <strong className="font-medium text-stone-800">
+              group hike time slots
+            </strong>
+            , and expensive for what you actually use, PackRoute is built for
+            the day you run: vans, routes, drivers, and customer SMS — priced in
+            CAD.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
-            Time to Pet, Pet Sitter Plus, Gingr, LeashTime, Precise Petcare, and
-            Scout serve many pet care businesses well — especially on CRM and
-            invoicing. PackRoute is different on purpose: office-owned
-            schedules, driver-owned routes, automatic customer SMS around real
-            field stops, and CSV hike exports for the billing tool you already
-            use.
+            Built in BC for walking and adventure hiking companies. You get
+            office-owned schedules, driver-owned routes, automatic customer SMS
+            around real field stops, and hike exports for billing today —
+            without paying for boarding, daycare, and pet-sitting workflows you
+            do not run.
           </p>
           <div className="mt-8">
             <CtaButtons />
@@ -105,12 +142,13 @@ export function TimeToPetAlternativePageContent() {
         <section className="border-y border-stone-200/80 bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
-              Why hiking teams look beyond generic pet care software
+              Why Canadian hiking teams look beyond Time to Pet
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
-              All-in-one pet sitting platforms optimize for visits, staff check-ins,
-              and client portals. Adventure dog hiking companies usually need
-              something narrower and calmer for multi-stop pickup days.
+              All-in-one pet sitting platforms optimize for visits, staff
+              check-ins, and client portals. Adventure dog hiking companies
+              usually need something narrower — and a clear CAD price — for
+              multi-stop pickup days.
             </p>
             <ul className="mt-10 grid gap-5 sm:grid-cols-2">
               {FIT_POINTS.map((item) => (
@@ -133,11 +171,70 @@ export function TimeToPetAlternativePageContent() {
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-              Quick fit guide vs Time to Pet and other tools
+              What you&apos;ll pay
             </h2>
             <p className="mt-4 text-stone-600">
-              Honest positioning — choose the product that matches how your days
-              actually run.
+              PackRoute is priced in{" "}
+              <strong className="font-medium text-stone-800">CAD</strong>. Time
+              to Pet publishes USD plans that scale per active staff. Figures
+              below are from Time to Pet&apos;s public pricing page as of{" "}
+              <strong className="font-medium text-stone-800">
+                November 24, 2026
+              </strong>
+              ; confirm on their site before you buy. CAD vs USD means Canadian
+              teams also eat FX when paying a US vendor.
+            </p>
+            <div className="mt-8 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
+              <table className="w-full min-w-[28rem] text-left text-sm">
+                <thead className="border-b border-stone-200 bg-stone-50 text-stone-600">
+                  <tr>
+                    <th className="px-4 py-3 font-medium" scope="col">
+                      Team size
+                    </th>
+                    <th className="px-4 py-3 font-medium" scope="col">
+                      Time to Pet (USD)
+                    </th>
+                    <th className="px-4 py-3 font-medium" scope="col">
+                      PackRoute (CAD)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {COST_ROWS.map((row) => (
+                    <tr key={row.team}>
+                      <td className="px-4 py-3 text-stone-800">{row.team}</td>
+                      <td className="px-4 py-3 text-stone-600">
+                        {row.timeToPet}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-stone-800">
+                        {row.packroute}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4 text-sm text-stone-500">
+              PackRoute includes automated customer SMS and unlimited office
+              logins on every tier, with the first month free after a demo. See{" "}
+              <Link
+                href="/pricing"
+                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                full CAD pricing
+              </Link>
+              .
+            </p>
+          </div>
+        </section>
+
+        <section className="border-t border-stone-200/80 bg-white py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
+              Quick fit guide
+            </h2>
+            <p className="mt-4 text-stone-600">
+              Choose the product that matches how your days actually run.
             </p>
             <div className="mt-8 overflow-x-auto rounded-2xl border border-stone-200 bg-white">
               <table className="w-full min-w-[28rem] text-left text-sm">
@@ -161,6 +258,20 @@ export function TimeToPetAlternativePageContent() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </section>
+
+        <section className="border-t border-stone-200/80 py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6">
+            <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
+              Billing while you switch
+            </h2>
+            <p className="mt-4 text-stone-600">
+              PackRoute already tracks dogs and completed hikes and exports them
+              for easy billing. Built-in CAD invoicing and payments are on the
+              roadmap — so you can move off Time to Pet for the hiking day
+              without waiting on a full ledger rebuild.
+            </p>
           </div>
         </section>
 
@@ -190,27 +301,21 @@ export function TimeToPetAlternativePageContent() {
               Compare PackRoute for your operation
             </h2>
             <p className="mt-4 text-stone-600">
-              See the full product tour, route planning details, or adventure dog
-              hiking software overview — then book a demo if it fits.
+              See CAD pricing, the product tour, or the adventure dog hiking
+              overview — then book a demo if it fits.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm">
+              <Link
+                href="/pricing"
+                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+              >
+                CAD pricing
+              </Link>
               <Link
                 href="/"
                 className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
               >
                 Product overview
-              </Link>
-              <Link
-                href="/barkbus-alternative"
-                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-              >
-                BarkBus alternative
-              </Link>
-              <Link
-                href="/dog-walking-software"
-                className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-              >
-                Dog walking software
               </Link>
               <Link
                 href="/adventure-dog-hiking-software"
@@ -219,10 +324,10 @@ export function TimeToPetAlternativePageContent() {
                 Adventure dog hiking software
               </Link>
               <Link
-                href="/#faq"
+                href="/dog-walking-software"
                 className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
               >
-                FAQ
+                Dog walking software
               </Link>
             </div>
           </div>

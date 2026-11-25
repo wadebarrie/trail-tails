@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import { ContactForm } from "@/features/landing/components/contact-form";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
@@ -45,16 +44,22 @@ export function ContactPageContent() {
           <ContactForm />
         </div>
 
-        <ContactEmailFallback className="mt-6" />
-
         <p className="mt-8 text-sm text-stone-500">
-          Already on PackRoute?{" "}
+          Want a walkthrough?{" "}
+          <Link
+            href="/demo"
+            className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+          >
+            Book a demo
+          </Link>
+          . Already on PackRoute?{" "}
           <Link
             href="/login"
             className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
           >
             Team login
           </Link>
+          .
         </p>
       </main>
 

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
-import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
 import { ContactForm } from "@/features/landing/components/contact-form";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import {
@@ -50,9 +49,9 @@ const FEATURES = [
       "Drivers open Today on their phone, follow stops in order, and tap status updates. Those taps are what send customer texts — no app store download.",
   },
   {
-    title: "Billing prep, not a full CRM",
+    title: "Billing that follows the hikes",
     description:
-      "Track completed hikes and export CSV for QuickBooks, Xero, or your own invoicing. Live QuickBooks Online and Xero sync are paid add-ons when you need them. PackRoute stays focused on the field day and customer communication.",
+      "Track completed hikes and export CSV for QuickBooks, Xero, or e-Transfer today. Built-in CAD invoicing is on the roadmap. Live QuickBooks Online and Xero sync are paid add-ons when you need them.",
   },
 ] as const;
 
@@ -366,18 +365,24 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
             </div>
 
             <div className="mt-8 rounded-[var(--radius-card)] border border-white/15 surface-glass-dark p-6 sm:p-8">
-              <ContactForm variant="dark" />
+              <ContactForm
+                variant="dark"
+                subject="PackRoute demo request"
+                submitLabel="Request a demo"
+              />
             </div>
-
-            <ContactEmailFallback variant="dark" className="mt-4 text-center" />
 
             <p className="mt-6 text-center text-sm text-white/60">
               <Link href="/login" className="underline-offset-2 hover:underline">
                 Team login
               </Link>
               {" · "}
+              <Link href="/demo" className="underline-offset-2 hover:underline">
+                Book a demo
+              </Link>
+              {" · "}
               <Link href="/contact" className="underline-offset-2 hover:underline">
-                Full contact page
+                Contact
               </Link>
             </p>
           </div>

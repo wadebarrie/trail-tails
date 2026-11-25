@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CtaButtons } from "@/features/landing/components/cta-buttons";
-import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
 import { LandingHeader } from "@/features/landing/components/landing-header";
 import { MarketingFooter } from "@/features/legal/components/marketing-footer";
 import { landingPrimaryButtonClassName } from "@/features/admin/components/button-styles";
@@ -11,10 +10,6 @@ import {
   PRICING_TIERS,
 } from "@/features/landing/pricing";
 import { TrackedLink } from "@/features/landing/components/tracked-link";
-import {
-  PRICING_EMAIL_SUBJECT,
-  ACCOUNTING_ADDON_EMAIL_SUBJECT,
-} from "@/features/landing/contact-email-actions";
 
 export function PricingPageContent({
   showStartTrial = false,
@@ -40,8 +35,8 @@ export function PricingPageContent({
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-stone-600">
               {showStartTrial
-                ? "Start a free trial with no card required, or book a short demo if you would rather walk through it with us. When the trial ends, pick the tier that fits — every tier includes the same features; tiers only set how large you can run."
-                : "Book a short demo, get set up, and run your first month on us. When the trial ends, pick the tier that fits — every tier includes the same features; tiers only set how large you can run."}
+                ? "Same features on every tier — pay in CAD for the size of your team. Start a free trial with no card, or book a short demo if you would rather walk through it with us."
+                : "Same features on every tier — pay in CAD for the size of your team. Book a short demo, get set up, and run your first month on us."}
             </p>
           </div>
         </section>
@@ -109,13 +104,14 @@ export function PricingPageContent({
                       Start free trial →
                     </TrackedLink>
                   ) : (
-                    <ContactEmailButton
-                      subject={`${PRICING_EMAIL_SUBJECT} — ${tier.name}`}
-                      label="Book a demo →"
+                    <TrackedLink
+                      href="/demo"
                       className={`${landingPrimaryButtonClassName} w-full justify-center`}
                       eventName="book_demo"
                       eventLocation={`pricing_${tier.id}`}
-                    />
+                    >
+                      Book a demo →
+                    </TrackedLink>
                   )}
                 </div>
               </article>
@@ -160,13 +156,14 @@ export function PricingPageContent({
                   {addon.summary}
                 </p>
                 <div className="mt-6">
-                  <ContactEmailButton
-                    subject={`${ACCOUNTING_ADDON_EMAIL_SUBJECT} — ${addon.name}`}
-                    label="Request this add-on →"
+                  <TrackedLink
+                    href="/contact"
                     className={`${landingPrimaryButtonClassName} w-full justify-center`}
                     eventName="book_demo"
                     eventLocation={`pricing_addon_${addon.id}`}
-                  />
+                  >
+                    Request this add-on →
+                  </TrackedLink>
                 </div>
               </article>
             ))}

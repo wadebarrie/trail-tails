@@ -72,10 +72,10 @@ export const ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION =
   "Adventure dog hiking software that texts customers for you: night-before reminders, en-route ETAs, and pickup confirmations — with multi-driver routes and office-approved skip requests behind the scenes.";
 
 export const TIME_TO_PET_ALTERNATIVE_TITLE =
-  "Time to Pet Alternative for Adventure Dog Hiking Teams";
+  "Lightweight Canadian Time to Pet Alternative for Dog Hiking Teams";
 
 export const TIME_TO_PET_ALTERNATIVE_DESCRIPTION =
-  "Looking for a Time to Pet alternative built for pickup routes and group dog hikes? PackRoute focuses on multi-driver route days, driver workflows, and customer SMS ETAs. It exports completed hikes for QuickBooks — it is not a full CRM or invoicing suite.";
+  "A lighter, CAD-priced Time to Pet alternative for Canadian adventure dog hiking teams. PackRoute handles group hike time slots, multi-driver pickup routes, and customer SMS — without paying for boarding and pet-sitting features you do not use.";
 
 export const BARKBUS_ALTERNATIVE_TITLE =
   "BarkBus Alternative for Adventure Dog Hiking & Pickup Routes";
@@ -83,10 +83,10 @@ export const BARKBUS_ALTERNATIVE_TITLE =
 export const BARKBUS_ALTERNATIVE_DESCRIPTION =
   "Looking for a BarkBus alternative focused on adventure dog hiking pickups? PackRoute plans multi-van routes, guides drivers on mobile web, and updates customers by SMS — without an owner app or AI booking suite.";
 
-export const PRICING_TITLE = "PackRoute Pricing — First Month Free";
+export const PRICING_TITLE = "PackRoute Pricing — First Month Free (CAD)";
 
 export const PRICING_DESCRIPTION =
-  "Simple pricing by hikers/walkers and dogs for adventure dog hiking teams. First month free, no card required to start. Beta rates from $99/month — every tier includes routes, driver workflows, and automated customer SMS.";
+  "Canadian pricing by drivers and dogs for walking and hiking teams. First month free, no card required to start. Beta rates from CA$99/month — every tier includes routes, group hike slots, and automated customer SMS.";
 
 type FaqItem = { readonly q: string; readonly a: string };
 
@@ -126,15 +126,19 @@ export const LANDING_FAQ: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute include CRM and invoicing like Time to Pet?",
-    a: "No — and that is intentional. PackRoute is operations software for routes, drivers, and customer SMS. It tracks completed hikes by date range and exports CSV for QuickBooks or your own billing process. Mature all-in-one pet care platforms often go deeper on CRM, owner portals, and in-app invoicing; PackRoute stays focused on field-day logistics so hiking teams are not paying for boarding and pet-sitting workflows they do not use.",
+    a: "PackRoute is a lighter product focused on routes, group hike time slots, drivers, and customer SMS. Completed hikes export as CSV for QuickBooks, Xero, or e-Transfer today, and built-in CAD invoicing is on the roadmap. Hiking teams are not paying for boarding and pet-sitting workflows they do not use.",
   },
   {
     q: "Does PackRoute handle payments or invoicing?",
-    a: "No built-in owner invoices or payment collection. It tracks completed hikes by date range and exports CSV so you can bill in QuickBooks, Xero, Stripe, or your existing process. Live QuickBooks Online and Xero sync are optional paid add-ons when you request them. If you need a full pet-care CRM and invoicing suite, keep or pair with Time to Pet (or similar) for that layer. See packroute.app/pricing for current plans.",
+    a: "Today every plan includes completed-hike CSV export so you can bill in QuickBooks, Xero, or e-Transfer. Built-in CAD invoicing and payments are coming soon. Live QuickBooks Online and Xero sync are optional paid add-ons. See packroute.app/pricing for current CAD plans.",
   },
   {
     q: "How much does PackRoute cost?",
-    a: "Beta pricing starts at $99/month for one hiker (up to 20 dogs/week), $179 for two hikers (up to 40 dogs/week), and $299 for three or more hikers (up to 70 dogs/week). First month free after a short demo. Every tier includes the same features — tiers only change capacity. Subscribe during beta and your rate is locked. Details at packroute.app/pricing.",
+    a: "Beta pricing is in CAD: CA$99/month for one driver (up to 20 dogs/week), CA$179 for two drivers (up to 40 dogs/week), and CA$299 for three or more drivers (up to 70 dogs/week). First month free after a short demo. Every tier includes the same features — tiers only change capacity. Subscribe during beta and your rate is locked. Details at packroute.app/pricing.",
+  },
+  {
+    q: "Is PackRoute priced in Canadian dollars?",
+    a: "Yes. Public pricing is in CAD for Canadian walking and hiking teams. First month free after a demo.",
   },
   {
     q: "Is PackRoute built for pet sitting businesses too?",
@@ -183,7 +187,7 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute include CRM and invoicing like Time to Pet?",
-    a: "No — on purpose. A dedicated logistics product won’t match mature pet-care platforms on deep CRM or in-app invoicing. PackRoute focuses on proactive SMS, routes, and drivers, then exports completed hikes as CSV for QuickBooks. Keep a CRM if you need owner portals and payment collection.",
+    a: "PackRoute is lighter on purpose: routes, group hike slots, drivers, and SMS. You get CSV hike export for billing today, and CAD invoicing is on the roadmap — without paying for boarding and pet-sitting features you do not use.",
   },
   {
     q: "How do dog hiking companies send automated SMS without drivers texting each family?",
@@ -195,11 +199,11 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "How much does PackRoute cost?",
-    a: "From $99/month during beta (one driver). First month free after a demo. See the pricing page for tiers.",
+    a: "From CA$99/month during beta (one driver). First month free after a demo. See the pricing page for CAD tiers.",
   },
   {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For adventure dog hiking teams, yes — a focused alternative for proactive customer SMS and pickup-route ops, not a full pet-sitting or CRM suite.",
+    a: "For Canadian adventure dog hiking teams, yes — a lighter, CAD-priced replacement for pickup routes, group hike slots, and customer SMS.",
   },
 ];
 /** Prevent indexing of authenticated / internal app surfaces. */

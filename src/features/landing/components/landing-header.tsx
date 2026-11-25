@@ -6,8 +6,6 @@ import {
   landingPrimaryButtonClassName,
   secondaryButtonClassName,
 } from "@/features/admin/components/button-styles";
-import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
-import { DEMO_EMAIL_SUBJECT } from "@/features/landing/contact-email-actions";
 import { GoogleAnalytics } from "@/features/landing/components/google-analytics";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
 import { NAV_LINKS } from "@/features/landing/constants";
@@ -65,13 +63,13 @@ export function LandingHeader({
               Start free trial
             </Link>
           ) : (
-            <ContactEmailButton
-              subject={DEMO_EMAIL_SUBJECT}
-              label="Book a demo"
+            <Link
+              href="/demo"
               className={`${landingPrimaryButtonClassName} min-h-11 px-4 py-2 text-sm`}
-              eventName="book_demo"
-              eventLocation="header"
-            />
+              onClick={() => trackEvent("book_demo", { location: "header" })}
+            >
+              Book a demo
+            </Link>
           )}
         </div>
 
@@ -122,13 +120,16 @@ export function LandingHeader({
                 Start free trial
               </Link>
             ) : (
-              <ContactEmailButton
-                subject={DEMO_EMAIL_SUBJECT}
-                label="Book a demo"
+              <Link
+                href="/demo"
                 className={`${landingPrimaryButtonClassName} mt-2 min-h-11 w-full px-4 py-2.5 text-sm`}
-                eventName="book_demo"
-                eventLocation="header_mobile"
-              />
+                onClick={() => {
+                  trackEvent("book_demo", { location: "header_mobile" });
+                  setOpen(false);
+                }}
+              >
+                Book a demo
+              </Link>
             )}
           </nav>
         </div>
