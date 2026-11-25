@@ -9,11 +9,16 @@ import {
   ONBOARDING_PATH,
 } from "@/features/onboarding/constants";
 import { getOnboardingProgress } from "@/features/onboarding/queries";
-import { profileProvisioningMetadata } from "@/features/auth/profile-provisioning";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { passwordSchema } from "@/lib/password";
 import { areInvitesEnabled, isSelfSignupEnabled } from "@/features/platform/settings";
+import {
+  abandonSelfSignup,
+  requestSelfSignup,
+  resendSelfSignup,
+  type SelfSignupResult,
+} from "@/features/onboarding/self-signup.server";
 import {
   parseVehicleCapacity,
   vehicleSchema,
@@ -33,9 +38,7 @@ const selfSignupSchema = z
     path: ["password_confirm"],
   });
 
-export type SelfSignupResult =
-  | { ok: true }
-  | { ok: false; error: string };
+export type { SelfSignupResult };
 
 export async function selfSignupAction(
   _prev: SelfSignupResult | { error?: string },
@@ -66,92 +69,40 @@ export async function selfSignupAction(
       };
     }
 
-    const email = parsed.data.admin_email.trim().toLowerCase();
-    const service = createServiceClient();
-
-    const { data: company, error: companyError } = await service
-      .from("companies")
-      .insert({
-        name: parsed.data.company_name.trim(),
-        timezone: parsed.data.timezone,
-        // Explicit null so first-run wizard runs (backfill set existing rows).
-        onboarding_completed_at: null,
-      })
-      .select("id")
-      .single();
-
-    if (companyError || !company) {
-      const message =
-        typeof companyError?.message === "string" && companyError.message.trim()
-          ? companyError.message.trim()
-          : "Could not create your company.";
-      return { ok: false, error: message };
-    }
-
-    const metadata = profileProvisioningMetadata({
-      companyId: company.id,
-      role: "admin",
+    return await requestSelfSignup({
+      companyName: parsed.data.company_name.trim(),
+      timezone: parsed.data.timezone,
       fullName: parsed.data.admin_full_name.trim(),
-      canDrive: true,
-    });
-    const { data: authData, error: authError } =
-      await service.auth.admin.createUser({
-        email,
-        password: parsed.data.password,
-        email_confirm: true,
-        app_metadata: metadata.app_metadata,
-        user_metadata: metadata.user_metadata,
-      });
-
-    if (authError || !authData.user) {
-      await service.from("companies").delete().eq("id", company.id);
-      const authMessage =
-        typeof authError?.message === "string" ? authError.message : "";
-      if (authMessage.toLowerCase().includes("already")) {
-        return {
-          ok: false,
-          error:
-            "An account with this email already exists. Try signing in instead.",
-        };
-      }
-      return {
-        ok: false,
-        error: authMessage.trim() || "Could not create your account.",
-      };
-    }
-
-    const supabase = await createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
+      email: parsed.data.admin_email,
       password: parsed.data.password,
+      captchaToken: formData.get("captcha_token")?.toString() ?? null,
     });
-
-    if (signInError) {
-      return {
-        ok: false,
-        error: "Account created — please sign in to continue setup.",
-      };
-    }
-
-    revalidatePath("/signup");
-    redirect(ONBOARDING_PATH);
   } catch (error) {
-    // redirect() throws a special Next.js error — rethrow it.
-    if (
-      error &&
-      typeof error === "object" &&
-      "digest" in error &&
-      typeof (error as { digest?: unknown }).digest === "string" &&
-      String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-    ) {
-      throw error;
-    }
     const message =
       error instanceof Error && error.message.trim()
         ? error.message.trim()
         : "Could not complete signup. Try again.";
-    return { ok: false, error: message === "{}" ? "Could not complete signup. Try again." : message };
+    return {
+      ok: false,
+      error: message === "{}" ? "Could not complete signup. Try again." : message,
+    };
   }
+}
+
+export async function resendSelfSignupAction(
+  _prev: { error?: string; warning?: string },
+  formData: FormData
+): Promise<{ error?: string; warning?: string }> {
+  const result = await resendSelfSignup(
+    formData.get("email")?.toString() ?? "",
+    formData.get("captcha_token")?.toString() ?? null
+  );
+  if (!result.ok) return { error: result.error };
+  return { warning: result.warning };
+}
+
+export async function changeSelfSignupEmailAction(email: string): Promise<void> {
+  await abandonSelfSignup(email);
 }
 
 export async function completeOnboardingAction(): Promise<{ error?: string }> {

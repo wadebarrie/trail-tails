@@ -87,7 +87,7 @@ const otherAdmin = driverProfileUpdate({
 
 const callerFiles = [
   "src/features/drivers/actions.ts",
-  "src/features/onboarding/actions.ts",
+  "src/features/onboarding/self-signup.server.ts",
   "src/features/platform/actions.ts",
   "scripts/seed-test-users.mjs",
   "scripts/seed-demo-company.mjs",
@@ -203,7 +203,7 @@ const cases: Case[] = [
   ),
   assert(
     "server actions share the provisioning helper",
-    ["src/features/drivers/actions.ts", "src/features/onboarding/actions.ts", "src/features/platform/actions.ts"].every(
+    ["src/features/drivers/actions.ts", "src/features/onboarding/self-signup.server.ts", "src/features/platform/actions.ts"].every(
       (file) => readFileSync(resolve(file), "utf8").includes("profileProvisioningMetadata")
     )
   ),

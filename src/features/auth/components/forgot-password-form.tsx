@@ -4,23 +4,35 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { AUTH_ROUTES } from "@/features/auth/constants";
+import { TurnstileField } from "@/features/auth/components/turnstile-field";
+import { interactiveCaptchaDecision } from "@/features/auth/signup-guards";
 import { getAuthCallbackUrl } from "@/lib/site-url";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({ siteKey }: { siteKey: string | null }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
     setError(null);
 
-    const trimmed = email.trim();
+    const formData = new FormData(event.currentTarget);
+    const trimmed = String(formData.get("email") ?? email).trim();
+    const captcha = interactiveCaptchaDecision({
+      siteKeyPresent: Boolean(siteKey),
+      token: formData.get("captcha_token")?.toString(),
+    });
     if (!trimmed) {
       setError("Email is required.");
+      setPending(false);
+      return;
+    }
+    if (!captcha.ok) {
+      setError(captcha.error);
       setPending(false);
       return;
     }
@@ -28,6 +40,7 @@ export function ForgotPasswordForm() {
     const supabase = createClient();
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmed, {
       redirectTo: getAuthCallbackUrl(AUTH_ROUTES.resetPassword),
+      captchaToken: captcha.token,
     });
 
     if (resetError) {
@@ -82,6 +95,8 @@ export function ForgotPasswordForm() {
           className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-stone-900 outline-none ring-[var(--color-trail-600)] focus:ring-2 disabled:opacity-60"
         />
       </div>
+
+      <TurnstileField siteKey={siteKey} />
 
       <button
         type="submit"

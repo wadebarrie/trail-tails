@@ -48,6 +48,12 @@ Use this checklist before a public launch.
 
 ### Supabase
 - [ ] Supabase → Auth → Allow new users to sign up = OFF (defense in depth — separate from Owner → Settings)
+- [ ] Supabase → Auth → Email → Confirm email = ON (self-serve owners confirm before a company exists)
+- [ ] Supabase → Auth → Bot and Abuse Protection → Cloudflare Turnstile, with the Turnstile secret stored there (not in Netlify)
+- [ ] `NEXT_PUBLIC_TURNSTILE_SITE_KEY` set in Netlify before captcha is enabled. Self-signup fails closed without it. Login and password reset skip the widget until the key exists, so do not enable the dashboard captcha until the key is deployed.
+- [ ] Supabase → Auth → URL configuration: Site URL `https://packroute.app`, redirect allow list includes `https://packroute.app/auth/callback`
+- [ ] Supabase → Auth → Password → Leaked password protection = ON
+- [ ] Custom SMTP and branded templates for signup confirmation, OTP, driver invite, and password reset (the built-in mailer rate limit will strand new owners on "Check your email")
 - [ ] Confirm RLS enabled on all tenant tables
 - [ ] Run migrations via `supabase db push` (not raw psql loop on prod)
 - [ ] Verify no test platform-owner email exists in production

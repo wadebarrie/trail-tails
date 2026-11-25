@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { AUTH_ROUTES } from "@/features/auth/constants";
-import { getLoginRedirect, canAccessDriver } from "@/features/auth/access";
+import { canAccessDriver } from "@/features/auth/access";
+import { postAuthDestination, turnstileSiteKey } from "@/features/auth/signup-guards";
 import { getCurrentProfile } from "@/features/auth/queries";
+import { companyNeedsOnboarding } from "@/features/onboarding/queries";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -29,7 +31,16 @@ export default async function LoginPage({
       role === "driver" && canAccessDriver(profile)
         ? AUTH_ROUTES.driverHome
         : undefined;
-    redirect(getLoginRedirect(profile, next ?? driverHintNext));
+    const needsOnboarding =
+      profile.role === "admin" && (await companyNeedsOnboarding(profile.company_id));
+    redirect(
+      postAuthDestination({
+        role: profile.role,
+        canDrive: profile.can_drive,
+        onboardingCompletedAt: needsOnboarding ? null : "complete",
+        next: next ?? driverHintNext,
+      })
+    );
   }
 
   const isDriverHint = role === "driver";
@@ -63,7 +74,10 @@ export default async function LoginPage({
         </p>
       ) : null}
 
-      <LoginForm nextPath={next && next !== AUTH_ROUTES.login ? next : undefined} />
+      <LoginForm
+        siteKey={turnstileSiteKey()}
+        nextPath={next && next !== AUTH_ROUTES.login ? next : undefined}
+      />
     </div>
   );
 }

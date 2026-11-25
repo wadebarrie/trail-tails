@@ -34,6 +34,9 @@ jobs:
       - name: Profile privileges
         run: npm run test:profile-privileges
 
+      - name: Signup verification
+        run: npm run test:signup-verification
+
       - name: Stripe map
         run: npm run test:stripe-map
 

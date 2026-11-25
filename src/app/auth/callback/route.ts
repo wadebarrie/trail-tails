@@ -1,9 +1,8 @@
-import {
-  canAccessAdmin,
-  getLoginRedirect,
-} from "@/features/auth/access";
+import { canAccessAdmin } from "@/features/auth/access";
 import { AUTH_ROUTES, getHomeRouteForRole } from "@/features/auth/constants";
+import { postAuthDestination } from "@/features/auth/signup-guards";
 import { getCurrentProfile } from "@/features/auth/queries";
+import { provisionConfirmedSelfSignup } from "@/features/onboarding/self-signup.server";
 import { buildAdminEmailMfaCookie } from "@/lib/auth/admin-email-mfa";
 import { createClient } from "@/lib/supabase/server";
 import { safeAuthNextPath } from "@/lib/auth/safe-redirect";
@@ -15,9 +14,18 @@ export async function GET(request: Request) {
   const nextParam = searchParams.get("next");
   const mfaStepUp = searchParams.get("mfa") === "1";
 
+  const supabase = await createClient();
+
   if (code) {
-    const supabase = await createClient();
     await supabase.auth.exchangeCodeForSession(code);
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user?.email_confirmed_at) {
+    await provisionConfirmedSelfSignup(user.id);
   }
 
   const profile = await getCurrentProfile();
@@ -26,12 +34,26 @@ export async function GET(request: Request) {
     ? getHomeRouteForRole(profile.role)
     : AUTH_ROUTES.login;
 
-  const destination =
-    nextParam && profile
-      ? getLoginRedirect(profile, safeAuthNextPath(nextParam, fallback))
-      : nextParam
-        ? safeAuthNextPath(nextParam, fallback)
-        : fallback;
+  let onboardingCompletedAt: string | null = "complete";
+  if (profile?.role === "admin") {
+    const { data: company, error: companyError } = await supabase
+      .from("companies")
+      .select("onboarding_completed_at")
+      .eq("id", profile.company_id)
+      .maybeSingle();
+    if (!companyError) {
+      onboardingCompletedAt = company?.onboarding_completed_at ?? null;
+    }
+  }
+
+  const destination = profile
+    ? postAuthDestination({
+        role: profile.role,
+        canDrive: profile.can_drive,
+        onboardingCompletedAt,
+        next: nextParam ? safeAuthNextPath(nextParam, fallback) : null,
+      })
+    : `${AUTH_ROUTES.login}?error=no_profile`;
 
   const response = NextResponse.redirect(`${origin}${destination}`);
 

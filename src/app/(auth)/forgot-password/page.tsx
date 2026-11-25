@@ -1,4 +1,5 @@
 import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
+import { turnstileSiteKey } from "@/features/auth/signup-guards";
 
 export default async function ForgotPasswordPage({
   searchParams,
@@ -22,7 +23,7 @@ export default async function ForgotPasswordPage({
         </p>
       ) : null}
 
-      <ForgotPasswordForm />
+      <ForgotPasswordForm siteKey={turnstileSiteKey()} />
     </div>
   );
 }

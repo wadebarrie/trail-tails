@@ -31,16 +31,16 @@ export function getDefaultHomeRoute(profile: Pick<Profile, "role">): string {
 }
 
 export function getLoginRedirect(
-  profile: Pick<Profile, "role" | "can_drive">,
+  profile: AccessProfile,
   next?: string
 ): string {
-  if (next?.startsWith("/dashboard") && canAccessAdmin(profile as AccessProfile)) {
+  if (next?.startsWith("/dashboard") && canAccessAdmin(profile)) {
     return next;
   }
   if (
     next &&
     DRIVER_PATH_PREFIXES.some((p) => next.startsWith(p)) &&
-    canAccessDriver(profile as AccessProfile)
+    canAccessDriver(profile)
   ) {
     return next;
   }

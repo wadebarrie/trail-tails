@@ -4,6 +4,7 @@ import { getSupabaseAnonKey } from "@/lib/env";
 import { PerfTimer } from "@/lib/perf";
 import type { UserRole } from "@/types";
 import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
+import { postAuthDestination } from "@/features/auth/signup-guards";
 import {
   AUTH_ROUTES,
   getHomeRouteForRole,
@@ -67,7 +68,25 @@ export async function handleAuth(request: NextRequest) {
     if (user && pathname === AUTH_ROUTES.login) {
       const profile = await fetchProfile(supabase, user.id);
       if (profile?.is_active) {
-        return redirectTo(request, getHomeRouteForRole(profile.role));
+        let onboardingCompletedAt: string | null = "complete";
+        if (profile.role === "admin") {
+          const { data: company, error: companyError } = await supabase
+            .from("companies")
+            .select("onboarding_completed_at")
+            .eq("id", profile.company_id)
+            .maybeSingle();
+          if (!companyError) {
+            onboardingCompletedAt = company?.onboarding_completed_at ?? null;
+          }
+        }
+        return redirectTo(
+          request,
+          postAuthDestination({
+            role: profile.role,
+            canDrive: profile.can_drive,
+            onboardingCompletedAt,
+          })
+        );
       }
     }
     return supabaseResponse;
