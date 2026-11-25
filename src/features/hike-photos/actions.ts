@@ -274,6 +274,11 @@ export async function sendTodaysGalleriesAction(
       `${result.errors} failed — try again`
     );
   }
+  if (result.deferred) {
+    parts.push(
+      `${result.deferred} not confirmed yet — check Texts sent before sending again`
+    );
+  }
   return { ok: true, message: `${parts.join(". ")}.` };
 }
 
@@ -311,11 +316,18 @@ export async function sendGalleryForClosedHikeAction(
       message: `Gallery text sent to ${result.sent} owner${result.sent === 1 ? "" : "s"}.`,
     };
   }
-  if (result.deferred > 0 || result.errors > 0) {
+  if (result.errors > 0) {
     return {
       ok: true,
       message:
-        "Hike closed out. The gallery text didn't finish — send it from Hike photos.",
+        "Hike closed out. The gallery text didn't send — try again from Hike photos.",
+    };
+  }
+  if (result.deferred > 0) {
+    return {
+      ok: true,
+      message:
+        "Hike closed out. The gallery text may still be on its way — check Texts sent before sending again.",
     };
   }
   return { ok: true, message: "Hike closed out. No new gallery text to send." };

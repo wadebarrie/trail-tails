@@ -43,16 +43,36 @@ export function imageSizeFromHeader(
   return null;
 }
 
+const MIN_IMAGE_PX = 32;
+const MAX_IMAGE_PX = 16_000;
+const MAX_IMAGE_ASPECT = 6;
+
+/** Reject header sizes that would squash or explode the bitmap. */
+export function saneImageDimensions(
+  size: { width: number; height: number } | null
+): { width: number; height: number } | null {
+  if (!size) return null;
+  const { width, height } = size;
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
+  if (width < MIN_IMAGE_PX || height < MIN_IMAGE_PX) return null;
+  if (width > MAX_IMAGE_PX || height > MAX_IMAGE_PX) return null;
+  const aspect = width / height;
+  if (aspect > MAX_IMAGE_ASPECT || aspect < 1 / MAX_IMAGE_ASPECT) return null;
+  return { width, height };
+}
+
 function downsampleOptions(
   size: { width: number; height: number } | null
 ): ResizeOptions {
   const options: ResizeOptions = { imageOrientation: "from-image" };
-  if (!size || size.width < 1 || size.height < 1) return options;
-  const longEdge = Math.max(size.width, size.height);
+  const sane = saneImageDimensions(size);
+  if (!sane) return options;
+  const { width, height } = sane;
+  const longEdge = Math.max(width, height);
   if (longEdge <= PHOTO_MAX_DIMENSION) return options;
   const scale = PHOTO_MAX_DIMENSION / longEdge;
-  options.resizeWidth = Math.max(1, Math.round(size.width * scale));
-  options.resizeHeight = Math.max(1, Math.round(size.height * scale));
+  options.resizeWidth = Math.max(1, Math.round(width * scale));
+  options.resizeHeight = Math.max(1, Math.round(height * scale));
   options.resizeQuality = "medium";
   return options;
 }
@@ -64,7 +84,7 @@ async function decode(file: File): Promise<Decoded> {
       const header = new Uint8Array(await file.slice(0, 256 * 1024).arrayBuffer());
       const bitmap = await createImageBitmap(
         file,
-        downsampleOptions(imageSizeFromHeader(header))
+        downsampleOptions(saneImageDimensions(imageSizeFromHeader(header)))
       );
       return {
         source: bitmap,

@@ -3,7 +3,8 @@ import { formatTime } from "@/lib/dates";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { perfAsync } from "@/lib/perf";
-import { getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
+import { findRecentOutboundSms, getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
+import { smsAbortTimeoutMs } from "@/lib/twilio/outcome";
 import type { NotificationType } from "@/types";
 
 type NotificationBody = string | ((ownerName: string) => string);
@@ -81,10 +82,12 @@ function resolveNotificationBody(
 }
 
 export type NotificationSendResult = {
-  /** Contacts Twilio accepted. */
+  /** Contacts Twilio accepted, including a timeout we later matched by lookup. */
   sent: number;
-  /** Contacts where the log row or Twilio call failed. */
+  /** Confirmed Twilio rejections. Safe to retry. */
   failed: number;
+  /** Timed out or unreachable. The text may still arrive — not a retry. */
+  unknown: number;
 };
 
 /**
@@ -96,7 +99,7 @@ export async function logNotification(
   input: LogNotificationInput
 ): Promise<NotificationSendResult> {
   return perfAsync(`sms ${input.notificationType}`, async () => {
-    const none: NotificationSendResult = { sent: 0, failed: 0 };
+    const none: NotificationSendResult = { sent: 0, failed: 0, unknown: 0 };
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       logError("sms", "Notification skipped — SUPABASE_SERVICE_ROLE_KEY missing", {
         companyId: input.companyId,
@@ -123,6 +126,7 @@ export async function logNotification(
 
       let sent = 0;
       let failed = 0;
+      let unknown = 0;
       for (const contact of contacts) {
         const outcome = await sendNotificationToContact(
           input,
@@ -131,9 +135,10 @@ export async function logNotification(
           dogName
         );
         if (outcome === "sent") sent += 1;
+        else if (outcome === "unknown") unknown += 1;
         else failed += 1;
       }
-      return { sent, failed };
+      return { sent, failed, unknown };
     } catch (error) {
       logErrorFromException(
         "sms",
@@ -141,7 +146,7 @@ export async function logNotification(
         error,
         smsContext(input)
       );
-      return { sent: 0, failed: 1 };
+      return { sent: 0, failed: 0, unknown: 1 };
     }
   });
 }
@@ -151,7 +156,7 @@ async function sendNotificationToContact(
   contact: { phone: string; ownerName: string },
   twilio: NonNullable<ReturnType<typeof getTwilioConfig>>,
   dogName: string | null
-): Promise<"sent" | "failed"> {
+): Promise<"sent" | "failed" | "unknown"> {
   const supabase = createServiceClient();
   const smsBodyText = resolveNotificationBody(input.body, contact.ownerName);
 
@@ -184,28 +189,54 @@ async function sendNotificationToContact(
 
   const delivery = resolveSmsDelivery(contact.phone, contact.ownerName, dogName);
   const smsBody = delivery.body + smsBodyText;
-  const result = await sendSms(delivery.to, smsBody);
+  const result = await sendSms(delivery.to, smsBody, {
+    timeoutMs: smsAbortTimeoutMs(input.notificationType),
+  });
 
-  if (!result.ok) {
-    await supabase
-      .from("notification_log")
-      .update({
-        status: "failed",
-        error_message: result.error,
-      })
-      .eq("id", notification.id);
+  let sid: string | null = result.ok ? result.sid : null;
+  let outcome: "sent" | "failed" | "unknown" = result.ok ? "sent" : result.outcome;
+  let errorMessage = result.ok ? "" : result.error;
 
-    logError("sms", "Twilio send failed", {
+  if (!result.ok && result.outcome === "unknown") {
+    const lookedUp = await findRecentOutboundSms(delivery.to, smsBody);
+    if (lookedUp.outcome === "sent") {
+      sid = lookedUp.sid;
+      outcome = "sent";
+    } else if (lookedUp.outcome === "failed") {
+      outcome = "failed";
+      errorMessage = lookedUp.error;
+    }
+  }
+
+  if (outcome !== "sent" || !sid) {
+    if (outcome === "failed") {
+      await supabase
+        .from("notification_log")
+        .update({
+          status: "failed",
+          error_message: errorMessage,
+        })
+        .eq("id", notification.id);
+    } else {
+      await supabase
+        .from("notification_log")
+        .update({
+          error_message: errorMessage || "Twilio send not confirmed",
+        })
+        .eq("id", notification.id);
+    }
+
+    logError("sms", outcome === "failed" ? "Twilio send failed" : "Twilio send not confirmed", {
       ...smsContext(input),
       context: {
         ...smsContext(input).context,
-        twilioError: result.error,
+        twilioError: errorMessage,
         to: delivery.to,
         redirected: delivery.redirected,
         intendedPhone: contact.phone,
       },
     });
-    return "failed";
+    return outcome === "failed" ? "failed" : "unknown";
   }
 
   const { data: smsMessage, error: smsInsertError } = await supabase
@@ -217,7 +248,7 @@ async function sendNotificationToContact(
       from_number: twilio.fromNumber,
       to_number: delivery.to,
       body: smsBody,
-      twilio_sid: result.sid,
+      twilio_sid: sid,
       // Twilio accepted the message — align with notification_log "sent".
       // Delivery receipts would need StatusCallback (not wired yet).
       status: "sent",
@@ -230,7 +261,7 @@ async function sendNotificationToContact(
       ...smsContext(input),
       context: {
         ...smsContext(input).context,
-        twilioSid: result.sid,
+        twilioSid: sid,
         dbError: smsInsertError.message,
       },
     });
