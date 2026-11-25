@@ -121,22 +121,21 @@ export async function logNotification(
     }
 
     try {
-      const contacts = await resolveCustomerContacts(input.customerId);
-      if (!contacts.length) {
-        logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
-        return none;
-      }
-
       const twilio = getTwilioConfig();
       if (!twilio) {
         logWarn("sms", "SMS not sent — Twilio is not configured", smsContext(input));
         return none;
       }
 
-      const dogName =
-      input.dogName ?? (await resolveDogName(input.dogId));
-
-      const plan = await loadCompanyOutboundPlan(input.companyId);
+      const [contacts, dogName, plan] = await Promise.all([
+        resolveCustomerContacts(input.customerId),
+        input.dogName ? Promise.resolve(input.dogName) : resolveDogName(input.dogId),
+        loadCompanyOutboundPlan(input.companyId),
+      ]);
+      if (!contacts.length) {
+        logWarn("sms", "SMS not sent — customer has no phone number", smsContext(input));
+        return none;
+      }
       if (plan.blocked === "test_phone_missing") {
         logWarn("sms", "SMS not sent — test mode has no owner phone", smsContext(input));
         return none;

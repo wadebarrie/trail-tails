@@ -60,9 +60,26 @@ export async function sendHikeGallerySmsForHike(
   if (!smsBudgetActive()) {
     return runWithSmsBudget(() => sendHikeGallerySmsForHike(hikeId, options));
   }
+  const deliver = await preloadHikeGallerySms(hikeId, options);
+  return deliver();
+}
+
+/**
+ * Load gallery recipients while close-out writes run. Sending stays in
+ * `deliver`, so a failed close-out does not text anyone.
+ */
+export async function preloadHikeGallerySms(
+  hikeId: string,
+  options: { force?: boolean; deadlineMs?: number } = {}
+): Promise<() => Promise<GallerySmsResult>> {
   const force = options.force === true;
   const supabase = createServiceClient();
-  const result: GallerySmsResult = { sent: 0, skipped: 0, errors: 0, deferred: 0 };
+  const empty = async (): Promise<GallerySmsResult> => ({
+    sent: 0,
+    skipped: 0,
+    errors: 0,
+    deferred: 0,
+  });
 
   const { data: hike, error: hikeError } = await supabase
     .from("hikes")
@@ -72,24 +89,26 @@ export async function sendHikeGallerySmsForHike(
 
   if (hikeError || !hike) {
     logWarn("sms", `Gallery SMS skipped — hike ${hikeId} not found`);
-    return result;
+    return empty;
   }
 
-  const { data: company } = await supabase
-    .from("companies")
-    .select("timezone, auto_send_gallery_on_closeout")
-    .eq("id", hike.company_id)
-    .maybeSingle();
+  const companyId = hike.company_id as string;
+  const hikeDate = hike.date as string;
+  const [companyResult, day] = await Promise.all([
+    supabase
+      .from("companies")
+      .select("timezone, auto_send_gallery_on_closeout")
+      .eq("id", companyId)
+      .maybeSingle(),
+    loadDayGalleryContext(companyId, hikeDate),
+  ]);
+  const company = companyResult.data;
 
   if (!force && company?.auto_send_gallery_on_closeout === false) {
-    return result;
+    return empty;
   }
 
   const timeZone = company?.timezone ?? "America/Vancouver";
-  const companyId = hike.company_id as string;
-  const hikeDate = hike.date as string;
-
-  const day = await loadDayGalleryContext(companyId, hikeDate);
   const sharesOnHike = day.shares.filter((share) => share.hikeId === hikeId);
 
   const prior = await sentGalleryMessages(
@@ -100,6 +119,8 @@ export async function sendHikeGallerySmsForHike(
   const today = getDateInTimezone(timeZone, 0);
   const whenLabel = galleryWhenLabel(hikeDate, today, timeZone);
 
+  return async () => {
+    const result: GallerySmsResult = { sent: 0, skipped: 0, errors: 0, deferred: 0 };
   for (const share of sharesOnHike) {
     if (
       gallerySendBudgetExceeded(Date.now(), options.deadlineMs) ||
@@ -181,6 +202,7 @@ export async function sendHikeGallerySmsForHike(
   }
 
   return result;
+  };
 }
 
 /**

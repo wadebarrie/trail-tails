@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 import { Badge } from "@/features/admin/components/ui";
 import { secondaryButtonClassName } from "@/features/admin/components/button-styles";
-import { sendGalleryForClosedHikeAction } from "@/features/hike-photos/actions";
 import { completeHikeAction } from "@/features/hikes/actions";
 
 export function CompleteHikeButton({
@@ -16,7 +15,7 @@ export function CompleteHikeButton({
   status: string;
 }) {
   const router = useRouter();
-  const [phase, setPhase] = useState<"idle" | "closing" | "sending">("idle");
+  const [phase, setPhase] = useState<"idle" | "closing">("idle");
   const [closed, setClosed] = useState(status === "completed");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -34,11 +33,8 @@ export function CompleteHikeButton({
 
     setClosed(true);
     setOpen(false);
-    setPhase("sending");
-    const sms = await sendGalleryForClosedHikeAction(hikeId);
     setPhase("idle");
-    if (sms.ok) setNotice(sms.message);
-    else setError(sms.error);
+    if (result.message) setNotice(result.message);
     router.refresh();
   }
 
@@ -49,11 +45,6 @@ export function CompleteHikeButton({
     return (
       <div className="flex flex-col items-end gap-1">
         <HikeStatusBadge status="completed" />
-        {phase === "sending" ? (
-          <p className="max-w-xs text-right text-xs text-stone-600">
-            Sending gallery texts…
-          </p>
-        ) : null}
         {notice ? (
           <p className="max-w-xs text-right text-xs text-stone-600">{notice}</p>
         ) : null}

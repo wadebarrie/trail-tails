@@ -10,8 +10,13 @@ import {
   applyPickupReorderWithReverseDropoff,
   resyncHikeStopSortForRoute,
 } from "@/features/hikes/stop-order";
-import { BULK_GALLERY_SMS_BUDGET_MS } from "@/features/hike-photos/gallery-sms-rules";
-import { sendGallerySmsForHikeIds } from "@/features/hike-photos/send-gallery-sms";
+import { BULK_GALLERY_SMS_BUDGET_MS, SINGLE_GALLERY_SMS_BUDGET_MS } from "@/features/hike-photos/gallery-sms-rules";
+import {
+  preloadHikeGallerySms,
+  sendGallerySmsForHikeIds,
+  type GallerySmsResult,
+} from "@/features/hike-photos/send-gallery-sms";
+import { runWithSmsBudget } from "@/lib/sms-budget";
 import { one } from "@/lib/supabase/relations";
 
 function revalidateHikePaths(options?: { includeDashboard?: boolean }) {
@@ -201,10 +206,23 @@ async function closeOutHikes(
   return { closed };
 }
 
+function galleryCloseOutMessage(result: GallerySmsResult): string {
+  if (result.sent > 0) {
+    return `Hike closed out. Gallery text sent to ${result.sent} owner${result.sent === 1 ? "" : "s"}.`;
+  }
+  if (result.errors > 0) {
+    return "Hike closed out. The gallery text didn't send — try again from Hike photos.";
+  }
+  if (result.deferred > 0) {
+    return "Hike closed out. The gallery text may still be on its way — check Texts sent before sending again.";
+  }
+  return "Hike closed out. No new gallery text to send.";
+}
+
 /** Admin: close out a hike — finishes open stops and marks the hike completed. */
 export async function completeHikeAction(
   hikeId: string
-): Promise<{ success?: true; error?: string }> {
+): Promise<{ success?: true; message?: string; error?: string }> {
   const profile = await requireRole("admin");
   const supabase = await createClient();
 
@@ -216,13 +234,31 @@ export async function completeHikeAction(
     .maybeSingle();
 
   if (!hike) return { error: "Hike not found." };
-  if (hike.status === "completed") return { success: true };
+  if (hike.status === "completed") {
+    return { success: true, message: "Hike is already closed out." };
+  }
 
-  const closed = await closeOutHikes(supabase, [hikeId], profile.company_id);
-  if (closed.error) return { error: closed.error };
+  return runWithSmsBudget(async () => {
+    const [closed, deliver] = await Promise.all([
+      closeOutHikes(supabase, [hikeId], profile.company_id),
+      preloadHikeGallerySms(hikeId, {
+        force: false,
+        deadlineMs: Date.now() + SINGLE_GALLERY_SMS_BUDGET_MS,
+      }),
+    ]);
+    if (closed.error) return { error: closed.error };
 
-  revalidateCloseOutPaths();
-  return { success: true };
+    let message = "Hike closed out. No new gallery text to send.";
+    try {
+      message = galleryCloseOutMessage(await deliver());
+    } catch {
+      message =
+        "Hike closed out. The gallery text didn't send — try again from Hike photos.";
+    }
+
+    revalidateCloseOutPaths();
+    return { success: true, message };
+  });
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
