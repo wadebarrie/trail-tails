@@ -16,6 +16,7 @@ import {
 import { findRecentOutboundSms, getSmsRedirectTo } from "@/lib/twilio";
 import {
   GALLERY_SMS_TIMEOUT_MS,
+  SMS_LOOKUP_MAX_MS,
   abandonedLookupAllowsRetry,
   galleryWireMessage,
 } from "@/lib/twilio/outcome";
@@ -485,7 +486,9 @@ async function confirmAbandonedGallerySend(
       loggedBody,
       redirectTo,
     });
-    const lookedUp = await findRecentOutboundSms(wire.to, wire.body);
+    const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
+    if (timeout == null) return "unknown";
+    const lookedUp = await findRecentOutboundSms(wire.to, wire.body, timeout);
     if (lookedUp.outcome === "sent") return "sent";
     if (lookedUp.outcome === "unknown") return "unknown";
     sawFailure = true;

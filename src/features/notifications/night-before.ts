@@ -1,15 +1,22 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
 import { getDateInTimezone, getUtcBoundsForLocalDate } from "@/lib/dates";
-import { nightBeforeSendDecision } from "@/features/notifications/night-before-schedule";
+import {
+  nightBeforePriorDecision,
+  nightBeforeSendDecision,
+} from "@/features/notifications/night-before-schedule";
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
+import { listCustomerContacts } from "@/lib/customer-contacts";
 import { one } from "@/lib/supabase/relations";
+import { findRecentOutboundSms, getSmsRedirectTo } from "@/lib/twilio";
+import { SMS_LOOKUP_MAX_MS, galleryWireMessage } from "@/lib/twilio/outcome";
 import {
   SMS_CALL_FLOOR_MS,
   runWithSmsBudget,
   smsBudgetActive,
   smsBudgetRemaining,
+  takeSmsSlice,
 } from "@/lib/sms-budget";
 
 const DEFAULT_NIGHT_BEFORE_REMINDER_TIME = "19:30:00";
@@ -166,17 +173,44 @@ export async function sendNightBeforeRemindersForCompany(
 
     const { startIso, endIso } = getUtcBoundsForLocalDate(timeZone, today);
 
-    const { data: alreadySent } = await supabase
+    const { data: priorRows } = await supabase
       .from("notification_log")
-      .select("id")
+      .select("id, status, error_message, body")
       .eq("company_id", companyId)
       .eq("customer_id", customerId)
       .eq("notification_type", "night_before")
       .gte("created_at", startIso)
       .lt("created_at", endIso)
-      .limit(1);
+      .order("created_at", { ascending: false });
 
-    if (alreadySent?.length) continue;
+    const prior = nightBeforePriorDecision(
+      (priorRows ?? []).map((row) => ({
+        status: row.status as string,
+        errorMessage: (row.error_message as string | null) ?? null,
+      }))
+    );
+    if (prior === "skip") continue;
+    if (prior === "confirm") {
+      const loggedBody = (priorRows ?? []).find((row) => row.body)?.body as
+        | string
+        | undefined;
+      const confirmed = loggedBody
+        ? await confirmPendingNightBefore(supabase, customerId, loggedBody)
+        : "unknown";
+      if (confirmed === "sent") {
+        const pendingIds = (priorRows ?? [])
+          .filter((row) => row.status === "pending")
+          .map((row) => row.id as string);
+        if (pendingIds.length) {
+          await supabase
+            .from("notification_log")
+            .update({ status: "sent" })
+            .in("id", pendingIds);
+        }
+        continue;
+      }
+      if (confirmed !== "failed") continue;
+    }
 
     const sameWindow = windows.every(
       (w) => w.start === windows[0].start && w.end === windows[0].end
@@ -200,7 +234,7 @@ export async function sendNightBeforeRemindersForCompany(
           }))
         );
 
-    await logNotification({
+    const result = await logNotification({
       companyId,
       customerId,
       dogId: undefined,
@@ -209,18 +243,55 @@ export async function sendNightBeforeRemindersForCompany(
       body,
     });
 
-    sent += 1;
+    if (result.sent > 0) sent += 1;
   }
 
   return { sent };
 }
 
+async function confirmPendingNightBefore(
+  supabase: ReturnType<typeof createServiceClient>,
+  customerId: string,
+  loggedBody: string
+): Promise<"sent" | "failed" | "unknown"> {
+  const { data: customer } = await supabase
+    .from("customers")
+    .select("owner_name, phone, secondary_owner_name, secondary_phone")
+    .eq("id", customerId)
+    .maybeSingle();
+  if (!customer) return "unknown";
+
+  const contacts = listCustomerContacts({
+    owner_name: (customer.owner_name as string) ?? "",
+    phone: (customer.phone as string) ?? "",
+    secondary_owner_name: (customer.secondary_owner_name as string | null) ?? null,
+    secondary_phone: (customer.secondary_phone as string | null) ?? null,
+  });
+  if (!contacts.length) return "unknown";
+
+  const redirectTo = getSmsRedirectTo();
+  let sawFailure = false;
+  for (const contact of contacts) {
+    const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
+    if (timeout == null) return "unknown";
+    const wire = galleryWireMessage({
+      phone: contact.phone,
+      ownerName: contact.ownerName,
+      loggedBody,
+      redirectTo,
+    });
+    const lookedUp = await findRecentOutboundSms(wire.to, wire.body, timeout);
+    if (lookedUp.outcome === "sent") return "sent";
+    if (lookedUp.outcome === "unknown") return "unknown";
+    sawFailure = true;
+  }
+  return sawFailure ? "failed" : "unknown";
+}
+
 export async function runNightBeforeCron(): Promise<
   { companyId: string; sent?: number; skipped?: string }[]
 > {
-  if (!smsBudgetActive()) {
-    return runWithSmsBudget(() => runNightBeforeCron());
-  }
+  // Each company starts its own budget inside sendNightBeforeRemindersForCompany.
   const supabase = createServiceClient();
   const { data: companies } = await supabase
     .from("companies")

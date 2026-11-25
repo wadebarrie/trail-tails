@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { nightBeforeSendDecision } from "../src/features/notifications/night-before-schedule";
+import {
+  nightBeforePriorDecision,
+  nightBeforeSendDecision,
+} from "../src/features/notifications/night-before-schedule";
 
 function test(name: string, fn: () => void) {
   fn();
@@ -64,6 +67,35 @@ test("standard time still uses the company clock (PST)", () => {
   assert.equal(nightBeforeSendDecision(TZ, REMINDER, at).send, true);
   const morning = new Date("2026-01-16T11:00:00.000Z"); // 03:00 PST
   assert.equal(nightBeforeSendDecision(TZ, REMINDER, morning).send, false);
+});
+
+test("a sent night-before row is not sent again", () => {
+  assert.equal(
+    nightBeforePriorDecision([{ status: "sent", errorMessage: null }]),
+    "skip"
+  );
+});
+
+test("a budget skip is retried and an unconfirmed row is checked first", () => {
+  assert.equal(
+    nightBeforePriorDecision([
+      { status: "pending", errorMessage: "Skipped — request time budget exhausted" },
+    ]),
+    "send"
+  );
+  assert.equal(
+    nightBeforePriorDecision([
+      { status: "pending", errorMessage: "Twilio send not confirmed" },
+    ]),
+    "confirm"
+  );
+  assert.equal(
+    nightBeforePriorDecision([
+      { status: "sent", errorMessage: null },
+      { status: "pending", errorMessage: "Twilio send not confirmed" },
+    ]),
+    "skip"
+  );
 });
 
 console.log("\nAll night-before time tests passed.");
