@@ -60,9 +60,22 @@ async function markHikeCompletedIfDone(hikeId: string) {
       s.status === "skipped"
   );
 
-  if (allDone && (stops ?? []).length > 0) {
-    await supabase.from("hikes").update({ status: "completed" }).eq("id", hikeId);
-  }
+  if (!allDone || !(stops ?? []).length) return;
+
+  const { data: hike } = await supabase
+    .from("hikes")
+    .select("status")
+    .eq("id", hikeId)
+    .maybeSingle();
+  if (hike?.status === "completed") return;
+
+  await supabase.from("hikes").update({ status: "completed" }).eq("id", hikeId);
+
+  void import("@/features/hike-photos/send-gallery-sms")
+    .then(({ sendHikeGallerySmsForHike }) =>
+      sendHikeGallerySmsForHike(hikeId, { force: false })
+    )
+    .catch(() => undefined);
 }
 
 /**

@@ -190,6 +190,13 @@ export async function completeHikeAction(
 
   if (hikeError) return { error: hikeError.message };
 
+  // Fire-and-forget: gallery SMS must not block close-out.
+  void import("@/features/hike-photos/send-gallery-sms")
+    .then(({ sendHikeGallerySmsForHike }) =>
+      sendHikeGallerySmsForHike(hikeId, { force: false })
+    )
+    .catch(() => undefined);
+
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/hikes/today");
   revalidatePath("/dashboard/hikes/tomorrow");

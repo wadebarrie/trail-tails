@@ -15,10 +15,12 @@ import {
   DeletePhotoButton,
   RevokeShareButton,
 } from "@/features/hike-photos/components/delete-photo-button";
+import { SendGalleriesButton } from "@/features/hike-photos/components/send-galleries-button";
 import {
   listHikePhotosForDate,
   type AdminHikePhotoGroup,
 } from "@/features/hike-photos/queries";
+import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -44,6 +46,20 @@ export default async function HikePhotosPage({
     failed = true;
   }
 
+  const supabase = await createClient();
+  const { data: company } = await supabase
+    .from("companies")
+    .select("auto_send_gallery_on_closeout")
+    .eq("id", profile.company_id)
+    .maybeSingle();
+  const autoSend = company?.auto_send_gallery_on_closeout !== false;
+
+  const activeOwnerCount = new Set(
+    groups.flatMap((g) =>
+      g.shares.filter((s) => !s.revoked).map((s) => s.customerName)
+    )
+  ).size;
+
   return (
     <div>
       <PageHeader
@@ -66,6 +82,19 @@ export default async function HikePhotosPage({
           </form>
         }
       />
+
+      {!failed && activeOwnerCount > 0 ? (
+        <div className="mb-6 rounded-xl border border-stone-200 bg-white px-4 py-3">
+          <p className="text-sm text-stone-600">
+            {autoSend
+              ? "Gallery texts also go out automatically when a hike is closed out. Use the button to send (or re-check) for this date."
+              : "Auto-send is off in Settings — send gallery texts for this date when you are ready."}
+          </p>
+          <div className="mt-3">
+            <SendGalleriesButton date={date} ownerCount={activeOwnerCount} />
+          </div>
+        </div>
+      ) : null}
 
       {failed ? <QueryErrorBanner /> : null}
 

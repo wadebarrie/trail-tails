@@ -23,7 +23,7 @@ export default async function SettingsPage({
     supabase
       .from("companies")
       .select(
-        "name, timezone, route_cadence, default_hike_rate_cents, night_before_reminder_time"
+        "name, timezone, route_cadence, default_hike_rate_cents, night_before_reminder_time, auto_send_gallery_on_closeout"
       )
       .eq("id", profile.company_id)
       .single(),
@@ -79,6 +79,9 @@ export default async function SettingsPage({
           defaultNightBeforeReminderTime={
             company?.night_before_reminder_time ??
             DEFAULT_NIGHT_BEFORE_REMINDER_TIME
+          }
+          autoSendGalleryOnCloseout={
+            company?.auto_send_gallery_on_closeout !== false
           }
         />
       </section>

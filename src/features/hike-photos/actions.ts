@@ -220,3 +220,52 @@ export async function revokeHikePhotoShareAction(
   revalidatePhotoPaths();
   return { ok: true };
 }
+
+export type SendGalleriesResult =
+  | { ok: true; message: string }
+  | { ok: false; error: string };
+
+/** Admin: manually text gallery links for every hike on a company local date. */
+export async function sendTodaysGalleriesAction(
+  date: string
+): Promise<SendGalleriesResult> {
+  const profile = await requireRole("admin");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { ok: false, error: "Choose a valid date." };
+  }
+
+  const { sendGallerySmsForCompanyDate } = await import(
+    "@/features/hike-photos/send-gallery-sms"
+  );
+  const result = await sendGallerySmsForCompanyDate(profile.company_id, date);
+
+  revalidatePath("/dashboard/photos");
+  revalidatePath("/dashboard/sms");
+  revalidatePath("/dashboard/notifications");
+
+  if (result.errors && !result.sent) {
+    return {
+      ok: false,
+      error: "Could not send gallery texts. Check Twilio and try again.",
+    };
+  }
+
+  const parts = [
+    result.sent
+      ? `Sent ${result.sent} gallery text${result.sent === 1 ? "" : "s"}`
+      : "No new gallery texts to send",
+  ];
+  if (result.skipped) {
+    parts.push(
+      `${result.skipped} already sent or skipped`
+    );
+  }
+  return { ok: true, message: `${parts.join(". ")}.` };
+}
+
+export async function sendTodaysGalleriesFormAction(
+  date: string,
+  _prev: SendGalleriesResult | null
+): Promise<SendGalleriesResult> {
+  return sendTodaysGalleriesAction(date);
+}

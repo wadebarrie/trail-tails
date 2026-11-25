@@ -16,6 +16,7 @@ const baseSettingsSchema = z.object({
   route_cadence: z.enum(["once", "twice"]),
   default_hike_rate: z.string().optional(),
   night_before_reminder_time: z.string().min(1, "Reminder time is required"),
+  auto_send_gallery_on_closeout: z.enum(["true", "false"]).optional(),
 });
 
 function parseRateToCents(raw?: string): number | null {
@@ -65,6 +66,8 @@ export async function updateCompanySettingsAction(
       route_cadence: parsed.data.route_cadence,
       default_hike_rate_cents: rateCents,
       night_before_reminder_time: parsed.data.night_before_reminder_time,
+      auto_send_gallery_on_closeout:
+        parsed.data.auto_send_gallery_on_closeout !== "false",
     })
     .eq("id", profile.company_id);
 
