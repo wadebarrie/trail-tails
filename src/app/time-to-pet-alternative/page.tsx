@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TimeToPetAlternativePageContent } from "@/features/landing/components/time-to-pet-alternative-page";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
 import { buildTimeToPetAlternativeJsonLdScriptProps } from "@/features/landing/seo";
 import {
   TIME_TO_PET_ALTERNATIVE_DESCRIPTION,
@@ -24,11 +25,12 @@ export const metadata: Metadata = buildPageMetadata({
   ],
 });
 
-export default function TimeToPetAlternativePage() {
+export default async function TimeToPetAlternativePage() {
+  const showStartTrial = await isSelfSignupEnabled();
   return (
     <>
       <script {...buildTimeToPetAlternativeJsonLdScriptProps()} />
-      <TimeToPetAlternativePageContent />
+      <TimeToPetAlternativePageContent showStartTrial={showStartTrial} />
     </>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
+import { GoogleAnalytics } from "@/features/landing/components/google-analytics";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-atmosphere-auth">
+      <GoogleAnalytics />
       <header className="px-6 py-4">
         <PackRouteLogo href="/" markSize="sm" />
       </header>

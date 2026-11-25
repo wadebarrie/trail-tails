@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BarkBusAlternativePageContent } from "@/features/landing/components/barkbus-alternative-page";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
 import { buildBarkBusAlternativeJsonLdScriptProps } from "@/features/landing/seo";
 import {
   BARKBUS_ALTERNATIVE_DESCRIPTION,
@@ -23,11 +24,12 @@ export const metadata: Metadata = buildPageMetadata({
   ],
 });
 
-export default function BarkBusAlternativePage() {
+export default async function BarkBusAlternativePage() {
+  const showStartTrial = await isSelfSignupEnabled();
   return (
     <>
       <script {...buildBarkBusAlternativeJsonLdScriptProps()} />
-      <BarkBusAlternativePageContent />
+      <BarkBusAlternativePageContent showStartTrial={showStartTrial} />
     </>
   );
 }

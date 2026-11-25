@@ -6,6 +6,8 @@ import { canAccessDriver } from "@/features/auth/access";
 import { postAuthDestination, turnstileSiteKey } from "@/features/auth/signup-guards";
 import { getCurrentProfile } from "@/features/auth/queries";
 import { companyNeedsOnboarding } from "@/features/onboarding/queries";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -44,6 +46,7 @@ export default async function LoginPage({
   }
 
   const isDriverHint = role === "driver";
+  const showStartTrial = !isDriverHint && (await isSelfSignupEnabled());
 
   return (
     <div className="w-full max-w-sm">
@@ -78,6 +81,17 @@ export default async function LoginPage({
         siteKey={turnstileSiteKey()}
         nextPath={next && next !== AUTH_ROUTES.login ? next : undefined}
       />
+      {showStartTrial ? (
+        <p className="mt-6 text-sm text-stone-600">
+          New company?{" "}
+          <Link
+            href="/signup"
+            className="font-medium text-[var(--color-trail-700)] hover:underline"
+          >
+            Start a free trial
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

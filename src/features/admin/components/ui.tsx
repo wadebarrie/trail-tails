@@ -200,11 +200,13 @@ export function SubmitButton({
   pending,
   disabled,
   className = "",
+  pendingLabel = "Saving…",
 }: {
   children: React.ReactNode;
   pending?: boolean;
   disabled?: boolean;
   className?: string;
+  pendingLabel?: string;
 }) {
   return (
     <button
@@ -212,7 +214,7 @@ export function SubmitButton({
       disabled={pending || disabled}
       className={`${primaryButtonClassName} ${className}`.trim()}
     >
-      {pending ? "Saving…" : children}
+      {pending ? pendingLabel : children}
     </button>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DogWalkingSoftwarePageContent } from "@/features/landing/components/dog-walking-software-page";
+import { isSelfSignupEnabled } from "@/features/platform/settings";
 import { buildDogWalkingSoftwareJsonLdScriptProps } from "@/features/landing/seo";
 import {
   DOG_WALKING_SOFTWARE_DESCRIPTION,
@@ -13,11 +14,12 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/dog-walking-software",
 });
 
-export default function DogWalkingSoftwarePage() {
+export default async function DogWalkingSoftwarePage() {
+  const showStartTrial = await isSelfSignupEnabled();
   return (
     <>
       <script {...buildDogWalkingSoftwareJsonLdScriptProps()} />
-      <DogWalkingSoftwarePageContent />
+      <DogWalkingSoftwarePageContent showStartTrial={showStartTrial} />
     </>
   );
 }
