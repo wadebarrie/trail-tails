@@ -67,7 +67,28 @@ export type OnboardingProgress = {
   outingStyle: "walk" | "hike" | null;
 };
 
-export { nextIncompleteStep, isFirstValueReady as isOnboardingComplete } from "@/features/onboarding/first-value";
+export function nextIncompleteStep(
+  progress: OnboardingProgress
+): OnboardingStepId {
+  if (!progress.welcomeSaved) return "welcome";
+  if (!progress.hasCustomer) return "customer";
+  if (!progress.hasDog) return "dog";
+  if (!progress.hasRoute) return "route";
+  if (!progress.hasCompanyInfo) return "prices";
+  if (!progress.hasSampleText && !progress.hasGallery && !progress.hasDraftInvoice) {
+    return "try";
+  }
+  return "done";
+}
+
+export function isOnboardingComplete(progress: OnboardingProgress): boolean {
+  return (
+    progress.hasCustomer &&
+    progress.hasDog &&
+    progress.hasRoute &&
+    progress.hasCompanyInfo
+  );
+}
 
 export function onboardingStepLabel(step: OnboardingStepId): string {
   switch (step) {

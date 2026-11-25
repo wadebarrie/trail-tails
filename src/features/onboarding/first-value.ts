@@ -1,5 +1,10 @@
-import { buildNightBeforeMessage } from "@/features/notifications/log";
-import type { OnboardingProgress, OnboardingStepId } from "@/features/onboarding/constants";
+import { formatTime } from "@/lib/dates";
+import {
+  nextIncompleteStep,
+  type OnboardingProgress,
+} from "@/features/onboarding/constants";
+
+export { nextIncompleteStep };
 
 export type OutingStyle = "walk" | "hike";
 export type WizardSmsMode = "test" | "live";
@@ -10,27 +15,6 @@ export function onboardingStillRequired(input: {
   dismissedAt: string | null | undefined;
 }): boolean {
   return !input.completedAt && !input.dismissedAt;
-}
-
-export function nextIncompleteStep(progress: OnboardingProgress): OnboardingStepId {
-  if (!progress.welcomeSaved) return "welcome";
-  if (!progress.hasCustomer) return "customer";
-  if (!progress.hasDog) return "dog";
-  if (!progress.hasRoute) return "route";
-  if (!progress.hasCompanyInfo) return "prices";
-  if (!progress.hasSampleText && !progress.hasGallery && !progress.hasDraftInvoice) {
-    return "try";
-  }
-  return "done";
-}
-
-export function isFirstValueReady(progress: OnboardingProgress): boolean {
-  return (
-    progress.hasCustomer &&
-    progress.hasDog &&
-    progress.hasRoute &&
-    progress.hasCompanyInfo
-  );
 }
 
 /** One route is enough. A second daily outing is optional and does not block setup. */
@@ -48,12 +32,11 @@ export function sampleReminderPreview(input: {
   windowStart?: string;
   windowEnd?: string;
 }): string {
-  return buildNightBeforeMessage(
-    input.ownerName.trim() || "there",
-    [input.dogName?.trim() || "your dog"],
-    input.windowStart ?? "08:00",
-    input.windowEnd ?? "08:30"
-  );
+  const first = input.ownerName.trim().split(" ")[0] || "there";
+  const dog = input.dogName?.trim() || "your dog";
+  const start = formatTime(input.windowStart ?? "08:00");
+  const end = formatTime(input.windowEnd ?? "08:30");
+  return `Hi ${first}! ${dog} is booked for a hike tomorrow and will be picked up between ${start} and ${end}.`;
 }
 
 /** The sample text always goes to the owner, even when the company is live. */
