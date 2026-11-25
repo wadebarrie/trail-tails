@@ -45,9 +45,9 @@ export type SendSmsResult =
 
 /**
  * Send an outbound SMS via Twilio REST API.
- * `timeoutMs: null` waits for Twilio (driver texts). A number aborts the HTTP
- * call only — that is "unknown", not a confirmed failure, because Twilio may
- * still have accepted the message.
+ * `timeoutMs` aborts the HTTP call after that many milliseconds. Aborting does
+ * not prove Twilio rejected the message — callers treat a timeout as unknown.
+ * The request budget chooses the value; it is not a per-kind "wait forever".
  */
 export async function sendSms(
   to: string,
@@ -133,14 +133,15 @@ type TwilioMessageRow = {
  */
 export async function findRecentOutboundSms(
   to: string,
-  body: string
+  body: string,
+  timeoutMs = 5_000
 ): Promise<
   | { outcome: "sent"; sid: string }
   | { outcome: "failed"; error: string }
   | { outcome: "unknown" }
 > {
   const config = getTwilioConfig();
-  if (!config || !body) return { outcome: "unknown" };
+  if (!config || !body || timeoutMs <= 0) return { outcome: "unknown" };
 
   const url = new URL(
     `https://api.twilio.com/2010-04-01/Accounts/${config.accountSid}/Messages.json`
@@ -155,7 +156,7 @@ export async function findRecentOutboundSms(
   try {
     const response = await fetch(url, {
       headers: { Authorization: `Basic ${auth}` },
-      signal: AbortSignal.timeout(5_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) return { outcome: "unknown" };
     const data = (await response.json()) as { messages?: TwilioMessageRow[] };

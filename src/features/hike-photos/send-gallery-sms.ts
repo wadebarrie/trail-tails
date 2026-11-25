@@ -14,7 +14,12 @@ import {
   type GalleryDeliveryRow,
 } from "@/features/hike-photos/gallery-sms-rules";
 import { findRecentOutboundSms, getSmsRedirectTo } from "@/lib/twilio";
-import { abandonedLookupAllowsRetry, galleryWireMessage } from "@/lib/twilio/outcome";
+import {
+  GALLERY_SMS_TIMEOUT_MS,
+  abandonedLookupAllowsRetry,
+  galleryWireMessage,
+} from "@/lib/twilio/outcome";
+import { runWithSmsBudget, smsBudgetActive, takeSmsSlice } from "@/lib/sms-budget";
 import { listCustomerContacts } from "@/lib/customer-contacts";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 
@@ -50,6 +55,9 @@ export async function sendHikeGallerySmsForHike(
   hikeId: string,
   options: { force?: boolean; deadlineMs?: number } = {}
 ): Promise<GallerySmsResult> {
+  if (!smsBudgetActive()) {
+    return runWithSmsBudget(() => sendHikeGallerySmsForHike(hikeId, options));
+  }
   const force = options.force === true;
   const supabase = createServiceClient();
   const result: GallerySmsResult = { sent: 0, skipped: 0, errors: 0, deferred: 0 };
@@ -91,7 +99,10 @@ export async function sendHikeGallerySmsForHike(
   const whenLabel = galleryWhenLabel(hikeDate, today, timeZone);
 
   for (const share of sharesOnHike) {
-    if (gallerySendBudgetExceeded(Date.now(), options.deadlineMs)) {
+    if (
+      gallerySendBudgetExceeded(Date.now(), options.deadlineMs) ||
+      takeSmsSlice(GALLERY_SMS_TIMEOUT_MS) == null
+    ) {
       result.deferred += 1;
       continue;
     }
@@ -213,6 +224,9 @@ export async function sendGallerySmsForHikeIds(
   hikeIds: string[],
   options: { force?: boolean; deadlineMs?: number } = {}
 ): Promise<GallerySmsResult> {
+  if (!smsBudgetActive()) {
+    return runWithSmsBudget(() => sendGallerySmsForHikeIds(hikeIds, options));
+  }
   const aggregate: GallerySmsResult = { sent: 0, skipped: 0, errors: 0, deferred: 0 };
   for (const hikeId of hikeIds) {
     if (gallerySendBudgetExceeded(Date.now(), options.deadlineMs)) {
