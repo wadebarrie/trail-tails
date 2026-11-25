@@ -8,6 +8,7 @@ import {
   buildPickedUpMessage,
   logNotification,
 } from "@/features/notifications/log";
+import { awaitGallerySmsOnCloseOut } from "@/features/hike-photos/send-gallery-sms";
 import { getHikePhotoShareUrlForCustomer } from "@/features/hike-photos/queries";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 import type { LatLng } from "@/lib/google-maps/eta";
@@ -71,11 +72,7 @@ async function markHikeCompletedIfDone(hikeId: string) {
 
   await supabase.from("hikes").update({ status: "completed" }).eq("id", hikeId);
 
-  void import("@/features/hike-photos/send-gallery-sms")
-    .then(({ sendHikeGallerySmsForHike }) =>
-      sendHikeGallerySmsForHike(hikeId, { force: false })
-    )
-    .catch(() => undefined);
+  await awaitGallerySmsOnCloseOut(hikeId);
 }
 
 /**

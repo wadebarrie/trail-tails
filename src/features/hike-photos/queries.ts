@@ -5,6 +5,7 @@ import {
   GALLERY_IMAGE_URL_TTL_SECONDS,
   HIKE_PHOTOS_BUCKET,
 } from "@/features/hike-photos/constants";
+import { galleryTextStatusForDate } from "@/features/hike-photos/send-gallery-sms";
 import {
   buildGalleryUrl,
   isValidShareTokenShape,
@@ -22,10 +23,17 @@ export type AdminHikePhoto = {
 
 export type AdminHikePhotoShare = {
   id: string;
+  customerId: string;
   customerName: string;
+  token: string;
   url: string;
   expiresAt: string;
   revoked: boolean;
+  galleryText: {
+    state: "sent" | "unsent";
+    sentAt: string | null;
+    via: "gallery" | "dropoff" | null;
+  };
 };
 
 export type AdminHikePhotoGroup = {
@@ -42,7 +50,11 @@ type NameRow = { name: string } | { name: string }[] | null;
 export async function listHikePhotosForDate(
   companyId: string,
   date: string
-): Promise<AdminHikePhotoGroup[]> {
+): Promise<{
+  groups: AdminHikePhotoGroup[];
+  unsentOwners: number;
+  liveShares: number;
+}> {
   const supabase = await createClient();
 
   const { data: hikes, error: hikesError } = await supabase
@@ -53,7 +65,7 @@ export async function listHikePhotosForDate(
   if (hikesError) throw new Error(hikesError.message);
 
   const hikeIds = (hikes ?? []).map((h) => h.id as string);
-  if (!hikeIds.length) return [];
+  if (!hikeIds.length) return { groups: [], unsentOwners: 0, liveShares: 0 };
 
   const [photosResult, sharesResult] = await Promise.all([
     supabase
@@ -66,7 +78,9 @@ export async function listHikePhotosForDate(
       .order("created_at", { ascending: true }),
     supabase
       .from("hike_photo_shares")
-      .select("id, hike_id, token, expires_at, revoked_at, customers ( owner_name )")
+      .select(
+        "id, hike_id, customer_id, token, expires_at, revoked_at, customers ( owner_name )"
+      )
       .eq("company_id", companyId)
       .in("hike_id", hikeIds),
   ]);
@@ -89,7 +103,7 @@ export async function listHikePhotosForDate(
     }
   }
 
-  return (hikes ?? [])
+  const groups = (hikes ?? [])
     .map((hike) => {
       const route = one(hike.routes as NameRow);
       const photos: AdminHikePhoto[] = photoRows
@@ -123,10 +137,13 @@ export async function listHikePhotosForDate(
           );
           return {
             id: s.id as string,
+            customerId: s.customer_id as string,
             customerName: customer?.owner_name ?? "Customer",
+            token: s.token as string,
             url: buildGalleryUrl(s.token as string),
             expiresAt: s.expires_at as string,
             revoked: Boolean(s.revoked_at),
+            galleryText: { state: "unsent" as const, sentAt: null, via: null },
           };
         })
         .sort((a, b) => a.customerName.localeCompare(b.customerName));
@@ -141,6 +158,41 @@ export async function listHikePhotosForDate(
     })
     .filter((g) => g.photos.length > 0 || g.shares.length > 0)
     .sort((a, b) => a.routeName.localeCompare(b.routeName));
+
+  const shareRefs = groups.flatMap((group) =>
+    group.shares.map((share) => ({
+      customerId: share.customerId,
+      token: share.token,
+    }))
+  );
+  let textStatus = new Map<
+    string,
+    { state: "sent" | "unsent"; sentAt: string | null; via: "gallery" | "dropoff" | null }
+  >();
+  try {
+    textStatus = await galleryTextStatusForDate(companyId, date, shareRefs);
+  } catch {
+    textStatus = new Map();
+  }
+
+  const now = Date.now();
+  let unsentOwners = 0;
+  let liveShares = 0;
+  const seenUnsent = new Set<string>();
+  for (const group of groups) {
+    for (const share of group.shares) {
+      const status = textStatus.get(share.customerId);
+      if (status) share.galleryText = status;
+      if (share.revoked || new Date(share.expiresAt).getTime() < now) continue;
+      liveShares += 1;
+      if (share.galleryText.state === "unsent" && !seenUnsent.has(share.customerId)) {
+        seenUnsent.add(share.customerId);
+        unsentOwners += 1;
+      }
+    }
+  }
+
+  return { groups, unsentOwners, liveShares };
 }
 
 export type GalleryPhoto = {
@@ -202,6 +254,15 @@ export async function getGalleryByToken(token: string): Promise<GalleryResult> {
 
   if (!hikeResult.data || !companyResult.data) return { status: "not_found" };
 
+  const hikeDate = hikeResult.data.date as string;
+  const { data: dayHikes } = await service
+    .from("hikes")
+    .select("id")
+    .eq("company_id", share.company_id)
+    .eq("date", hikeDate);
+  const dayHikeIds = (dayHikes ?? []).map((hike) => hike.id as string);
+  if (!dayHikeIds.length) dayHikeIds.push(share.hike_id as string);
+
   const dogs = dogsResult.data ?? [];
   const dogNameById = new Map(dogs.map((d) => [d.id as string, d.name as string]));
 
@@ -218,7 +279,7 @@ export async function getGalleryByToken(token: string): Promise<GalleryResult> {
         "dog_id, hike_photos!inner ( id, hike_id, storage_path, caption, created_at )"
       )
       .in("dog_id", [...dogNameById.keys()])
-      .eq("hike_photos.hike_id", share.hike_id);
+      .in("hike_photos.hike_id", dayHikeIds);
 
     for (const tag of tags ?? []) {
       const photo = one(
@@ -273,7 +334,7 @@ export async function getGalleryByToken(token: string): Promise<GalleryResult> {
     gallery: {
       companyName: companyResult.data.name as string,
       timeZone: (companyResult.data.timezone as string) ?? "America/Los_Angeles",
-      hikeDate: hikeResult.data.date as string,
+      hikeDate,
       customerName: (customerResult.data?.owner_name as string) ?? "",
       photos: ordered
         .map((p) => ({
