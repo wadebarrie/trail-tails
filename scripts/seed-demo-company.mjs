@@ -240,11 +240,14 @@ async function getAuthUserByEmail(email) {
 }
 
 async function ensureUser(companyId, user) {
-  const metadata = {
+  const claims = {
     company_id: companyId,
     role: user.role,
-    full_name: user.full_name,
     can_drive: user.can_drive,
+  };
+  const metadata = {
+    ...claims,
+    full_name: user.full_name,
   };
   const existing = await getAuthUserByEmail(user.email);
 
@@ -257,7 +260,10 @@ async function ensureUser(companyId, user) {
         password: PASSWORD,
         email_confirm: true,
         user_metadata: metadata,
-        app_metadata: user.demo_login ? { demo_login: true } : {},
+        app_metadata: {
+          ...claims,
+          ...(user.demo_login ? { demo_login: true } : {}),
+        },
       }),
     });
     const body = await res.json().catch(() => ({}));
@@ -275,6 +281,7 @@ async function ensureUser(companyId, user) {
         user_metadata: { ...existing.user_metadata, ...metadata },
         app_metadata: {
           ...existing.app_metadata,
+          ...claims,
           ...(user.demo_login ? { demo_login: true } : {}),
         },
       }),

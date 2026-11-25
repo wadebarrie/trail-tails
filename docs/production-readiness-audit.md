@@ -21,7 +21,7 @@ See `docs/production-deployment-checklist.md` for launch verification steps.
 | ID | Area | Current behavior | Risk | Fix | Status |
 |----|------|------------------|------|-----|--------|
 | C1 | Cron | `/api/cron/night-before` not in public paths; Netlify scheduled function gets login redirect | Night-before SMS never runs in production | Add `/api/cron` to public prefixes; Bearer-only auth | **Fixed** |
-| C2 | Auth config | Supabase `handle_new_user` trusts `user_metadata` for role/company | Horizontal privilege escalation if public signup enabled | Verify signup disabled in Supabase dashboard; document in deploy checklist | **Deferred (ops)** |
+| C2 | Auth config | `handle_new_user` reads `company_id` and `role` from `app_metadata`. Profile column grants and a BEFORE UPDATE trigger block self-service changes to `is_platform_owner`, `company_id`, `role`, `can_drive`, and `is_active` | Privilege escalation if public signup is enabled, or if a signed-in user updates their own profile | Migration `20261125120000_profile_privileged_columns.sql`; keep Supabase signup OFF | **Fixed** (apply with `supabase db push`) |
 
 ---
 

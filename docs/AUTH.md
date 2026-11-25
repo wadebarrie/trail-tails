@@ -77,17 +77,27 @@ ADMIN_MFA_COOKIE_SECRET=
 
 ## Manual user creation (legacy / emergencies)
 
-You can still create users via Supabase Dashboard + user metadata if needed:
+You can still create users in the Supabase Dashboard. Put company and role in **App Metadata** (only the service role can write this). User metadata is only the display name — `handle_new_user` ignores `company_id` and `role` there.
+
+App metadata:
 
 ```json
 {
   "company_id": "<company-uuid>",
   "role": "admin",
+  "can_drive": true
+}
+```
+
+User metadata:
+
+```json
+{
   "full_name": "Office Admin"
 }
 ```
 
-The `handle_new_user` trigger creates the `profiles` row automatically.
+The `handle_new_user` trigger creates the `profiles` row from app metadata. Keep Supabase → Auth → Allow new users to sign up = OFF.
 
 ## Environment
 

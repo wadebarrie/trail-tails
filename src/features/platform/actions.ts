@@ -10,6 +10,7 @@ import {
 } from "@/features/platform/invite-tokens";
 import { areInvitesEnabled } from "@/features/platform/settings";
 import { requirePlatformOwner } from "@/features/platform/queries";
+import { profileProvisioningMetadata } from "@/features/auth/profile-provisioning";
 import { passwordSchema } from "@/lib/password";
 
 const createCompanyInviteSchema = z.object({
@@ -139,17 +140,20 @@ export async function acceptInviteAction(
     return { ok: false, error: "This invite has expired. Ask for a new one." };
   }
 
+  const role = invite.role === "driver" ? "driver" : "admin";
+  const metadata = profileProvisioningMetadata({
+    companyId: invite.company_id,
+    role,
+    fullName: invite.full_name ?? invite.email.split("@")[0],
+    // Same login for office dashboard + driver Today view
+    canDrive: role === "admin",
+  });
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
     email: invite.email,
     password: parsed.data.password,
     email_confirm: true,
-    user_metadata: {
-      company_id: invite.company_id,
-      role: invite.role,
-      full_name: invite.full_name ?? invite.email.split("@")[0],
-      // Same login for office dashboard + driver Today view
-      can_drive: invite.role === "admin",
-    },
+    app_metadata: metadata.app_metadata,
+    user_metadata: metadata.user_metadata,
   });
 
   if (authError || !authData.user) {
