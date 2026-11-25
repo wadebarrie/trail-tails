@@ -198,6 +198,8 @@ async function sendNotificationToContact(
   const smsBody = delivery.body + smsBodyText;
   const sendTimeout = takeSmsSlice(smsAbortTimeoutMs(input.notificationType));
   if (sendTimeout == null) {
+    // Twilio was not called. Keep the row so the office can see it, but
+    // night-before does not treat this as sent.
     await supabase
       .from("notification_log")
       .update({ error_message: "Skipped — request time budget exhausted" })

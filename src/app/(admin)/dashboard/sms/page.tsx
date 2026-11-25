@@ -2,7 +2,7 @@ import { Badge, EmptyState, PageHeader } from "@/features/admin/components/ui";
 import { requireRole } from "@/features/auth/queries";
 import { formatDateTimeInTimezone } from "@/lib/dates";
 import { getCompanyTimezone } from "@/features/company/queries";
-import { smsStatusTone, smsTypeLabel } from "@/features/sms/labels";
+import { smsStatusTone, smsTypeLabel, unsentNotificationLabel } from "@/features/sms/labels";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,6 +29,14 @@ export default async function SmsHistoryPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
+  const { data: unsent } = await supabase
+    .from("notification_log")
+    .select("id, notification_type, body, status, error_message, created_at, customers ( owner_name )")
+    .eq("company_id", profile.company_id)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
   const messageIds = (messages ?? []).map((message) => message.id as string);
   const typeByMessage = new Map<string, string>();
   if (messageIds.length) {
@@ -48,6 +56,50 @@ export default async function SmsHistoryPage() {
         title="Texts sent"
         description="Inbound and outbound text messages."
       />
+
+      {unsent?.length ? (
+        <div className="mb-6 space-y-2">
+          <h2 className="text-sm font-semibold text-stone-800">Not sent yet</h2>
+          <p className="text-sm text-stone-600">
+            These didn&apos;t finish. On-the-way and drop-off texts are not sent
+            again later — a late text would be wrong. Night-before reminders are
+            retried on the next run when Twilio did not accept them.
+          </p>
+          {unsent.map((note) => (
+            <div
+              key={note.id}
+              className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge>
+                  {smsTypeLabel({
+                    direction: "outbound",
+                    notificationType: note.notification_type,
+                    body: note.body,
+                  })}
+                </Badge>
+                <Badge tone="amber">
+                  {unsentNotificationLabel(note.error_message)}
+                </Badge>
+                <span className="ml-auto text-xs text-stone-500">
+                  {formatDateTimeInTimezone(note.created_at, timeZone)}
+                </span>
+              </div>
+              <p className="mt-2 text-stone-800">{note.body}</p>
+              {note.error_message ? (
+                <p className="mt-1 text-xs text-amber-900">{note.error_message}</p>
+              ) : null}
+              <p className="mt-1 text-xs text-stone-500">
+                {one(
+                  note.customers as
+                    | { owner_name: string }
+                    | { owner_name: string }[]
+                )?.owner_name ?? "Unknown"}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       {!messages?.length ? (
         <EmptyState message="No SMS messages yet. Messages appear here when drivers send updates or customers reply." />

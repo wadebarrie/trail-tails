@@ -38,6 +38,14 @@ export function smsTypeLabel(input: {
   return "Text";
 }
 
+/** Office label for a notification that never became a sent text. */
+export function unsentNotificationLabel(errorMessage: string | null): string {
+  if ((errorMessage ?? "").toLowerCase().includes("budget exhausted")) {
+    return "Not sent";
+  }
+  return "Unconfirmed";
+}
+
 export function smsStatusTone(
   status: string
 ): "green" | "red" | "amber" | "neutral" {

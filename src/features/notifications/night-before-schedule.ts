@@ -6,6 +6,19 @@ import { getLocalTimeInTimezone, isPastLocalTime } from "../../lib/dates";
  * Sends start at the configured clock time and stop at local midnight so a
  * morning retry cannot text owners overnight.
  */
+/** A budget skip never called Twilio. A pending row without that note may have. */
+export function nightBeforePriorDecision(
+  rows: { status: string; errorMessage: string | null }[]
+): "skip" | "send" | "confirm" {
+  if (rows.some((row) => row.status === "sent")) return "skip";
+  const pending = rows.filter((row) => row.status === "pending");
+  const unconfirmed = pending.some(
+    (row) => !(row.errorMessage ?? "").includes("budget exhausted")
+  );
+  if (unconfirmed) return "confirm";
+  return "send";
+}
+
 export function nightBeforeSendDecision(
   timeZone: string,
   reminderTime: string,
