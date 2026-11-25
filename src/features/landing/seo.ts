@@ -16,7 +16,11 @@ import {
   TIME_TO_PET_ALTERNATIVE_TITLE,
 } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
-import { PRICING_FAQ, PRICING_TIERS } from "@/features/landing/pricing";
+import {
+  PRICING_FAQ,
+  publicPricingAggregateOffer,
+  publicPricingOffers,
+} from "@/features/landing/pricing";
 
 type JsonLd = Record<string, unknown>;
 
@@ -44,16 +48,7 @@ function buildSoftwareApplication(siteUrl: string): JsonLd {
     operatingSystem: "Web",
     description: SITE_DESCRIPTION,
     url: siteUrl,
-    offers: {
-      "@type": "AggregateOffer",
-      availability: "https://schema.org/InStock",
-      url: `${siteUrl}/pricing`,
-      priceCurrency: "USD",
-      lowPrice: "99",
-      highPrice: "299",
-      description:
-        "Beta pricing by hikers/walkers and dogs — first month free after demo. Limited-time beta rates lock in if you subscribe during beta.",
-    },
+    offers: publicPricingAggregateOffer(`${siteUrl}/pricing`),
     featureList: [
       "Automated customer SMS ETAs and pickup updates",
       "Night-before confirmations without drivers texting each family",
@@ -298,15 +293,7 @@ export function buildPricingPageJsonLd(): string {
     inLanguage: "en-US",
   };
 
-  const offers = PRICING_TIERS.map((tier) => ({
-    "@type": "Offer",
-    name: tier.name,
-    price: String(tier.priceMonthly),
-    priceCurrency: "USD",
-    description: `${tier.hikers}; ${tier.dogs}`,
-    url: pageUrl,
-    availability: "https://schema.org/InStock",
-  }));
+  const offers = publicPricingOffers(pageUrl);
 
   const software: JsonLd = {
     "@type": "SoftwareApplication",

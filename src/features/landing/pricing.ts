@@ -5,8 +5,13 @@
  * 2 hike-days/week. Dog caps keep SMS COGS near ~20–25% of list price.
  */
 
-/** Public list prices are Canadian dollars. */
+/** Public list prices are Canadian dollars. JSON-LD Offers use this code. */
 export const PRICING_CURRENCY = "CAD";
+
+/** Visible monthly price. CA$ is how CAD is shown on the public pages. */
+export function publicMonthlyPriceLabel(priceMonthly: number): string {
+  return `CA$${priceMonthly}/month`;
+}
 
 export type PricingTierId = "one_hiker" | "two_hikers" | "three_plus";
 
@@ -22,34 +27,63 @@ export type PricingTier = {
   highlight?: boolean;
 };
 
+function pricingTier(tier: Omit<PricingTier, "priceLabel">): PricingTier {
+  return { ...tier, priceLabel: publicMonthlyPriceLabel(tier.priceMonthly) };
+}
+
 export const PRICING_TIERS: readonly PricingTier[] = [
-  {
+  pricingTier({
     id: "one_hiker",
     name: "One driver",
     priceMonthly: 99,
-    priceLabel: "CA$99/month",
     hikers: "1 driver on the road",
     dogs: "Up to 20 active dogs a week",
-  },
-  {
+  }),
+  pricingTier({
     id: "two_hikers",
     name: "Two drivers",
     badge: "Most common",
     priceMonthly: 179,
-    priceLabel: "CA$179/month",
     hikers: "2 drivers",
     dogs: "Up to 40 active dogs a week",
     highlight: true,
-  },
-  {
+  }),
+  pricingTier({
     id: "three_plus",
     name: "Three+ drivers",
     priceMonthly: 299,
-    priceLabel: "CA$299/month",
     hikers: "3+ drivers, multi-route mornings",
     dogs: "Up to 70 active dogs a week",
-  },
-] as const;
+  }),
+];
+
+/** Schema.org offers for the tiers the pricing page renders. */
+export function publicPricingOffers(url: string) {
+  return PRICING_TIERS.map((tier) => ({
+    "@type": "Offer" as const,
+    name: tier.name,
+    price: String(tier.priceMonthly),
+    priceCurrency: PRICING_CURRENCY,
+    description: `${tier.hikers}; ${tier.dogs}`,
+    url,
+    availability: "https://schema.org/InStock",
+  }));
+}
+
+/** One range covering every public tier. */
+export function publicPricingAggregateOffer(url: string) {
+  const amounts = PRICING_TIERS.map((tier) => tier.priceMonthly);
+  return {
+    "@type": "AggregateOffer" as const,
+    availability: "https://schema.org/InStock",
+    url,
+    priceCurrency: PRICING_CURRENCY,
+    lowPrice: String(Math.min(...amounts)),
+    highPrice: String(Math.max(...amounts)),
+    description:
+      "Beta pricing by hikers/walkers and dogs — first month free after demo. Limited-time beta rates lock in if you subscribe during beta.",
+  };
+}
 
 /** Shared on every tier — capacity is what changes. */
 export const PRICING_INCLUDED_FEATURES = [

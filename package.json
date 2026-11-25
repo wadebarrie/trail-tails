@@ -24,6 +24,7 @@
     "test:sms-policy": "npx --yes tsx scripts/test-sms-policy.ts",
     "test:onboarding-first-value": "npx --yes tsx scripts/test-onboarding-first-value.ts",
     "test:signup-polish": "npx --yes tsx scripts/test-signup-polish.ts",
+    "test:pricing-jsonld": "npx --yes tsx scripts/test-pricing-jsonld.ts",
     "test:invoice-etransfer": "npx --yes tsx scripts/test-invoice-etransfer.ts",
     "test:invoice-email": "npx --yes tsx scripts/test-invoice-email.ts",
     "test:safe-redirect": "npx --yes tsx scripts/test-safe-redirect.ts",
