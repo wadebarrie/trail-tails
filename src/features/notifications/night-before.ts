@@ -5,6 +5,12 @@ import { nightBeforeSendDecision } from "@/features/notifications/night-before-s
 import { syncStopsForDate } from "@/features/hikes/sync-stops";
 import { logNotification, buildNightBeforeMessage, buildNightBeforeMultiWindowMessage } from "@/features/notifications/log";
 import { one } from "@/lib/supabase/relations";
+import {
+  SMS_CALL_FLOOR_MS,
+  runWithSmsBudget,
+  smsBudgetActive,
+  smsBudgetRemaining,
+} from "@/lib/sms-budget";
 
 const DEFAULT_NIGHT_BEFORE_REMINDER_TIME = "19:30:00";
 
@@ -14,7 +20,12 @@ export async function sendNightBeforeRemindersForCompany(
   timeZone: string,
   reminderTime = DEFAULT_NIGHT_BEFORE_REMINDER_TIME,
   at = new Date()
-) {
+): Promise<{ skipped: true; reason: string } | { sent: number }> {
+  if (!smsBudgetActive()) {
+    return runWithSmsBudget(() =>
+      sendNightBeforeRemindersForCompany(companyId, timeZone, reminderTime, at)
+    );
+  }
   const today = getDateInTimezone(timeZone, 0);
   const tomorrow = getDateInTimezone(timeZone, 1);
   const decision = nightBeforeSendDecision(timeZone, reminderTime, at);
@@ -150,6 +161,9 @@ export async function sendNightBeforeRemindersForCompany(
   let sent = 0;
 
   for (const { customerId, dogNames, stopIds, windows, driverFirstNames } of byCustomer.values()) {
+    const remaining = smsBudgetRemaining();
+    if (remaining != null && remaining < SMS_CALL_FLOOR_MS) break;
+
     const { startIso, endIso } = getUtcBoundsForLocalDate(timeZone, today);
 
     const { data: alreadySent } = await supabase
@@ -201,7 +215,12 @@ export async function sendNightBeforeRemindersForCompany(
   return { sent };
 }
 
-export async function runNightBeforeCron() {
+export async function runNightBeforeCron(): Promise<
+  { companyId: string; sent?: number; skipped?: string }[]
+> {
+  if (!smsBudgetActive()) {
+    return runWithSmsBudget(() => runNightBeforeCron());
+  }
   const supabase = createServiceClient();
   const { data: companies } = await supabase
     .from("companies")

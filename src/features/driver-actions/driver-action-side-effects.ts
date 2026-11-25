@@ -9,6 +9,8 @@ import {
   logNotification,
 } from "@/features/notifications/log";
 import { awaitGallerySmsOnCloseOut } from "@/features/hike-photos/send-gallery-sms";
+import { runWithSmsBudget, setSmsBudgetReserve } from "@/lib/sms-budget";
+import { GALLERY_SMS_TIMEOUT_MS } from "@/lib/twilio/outcome";
 import { getHikePhotoShareUrlForCustomer } from "@/features/hike-photos/queries";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 import type { LatLng } from "@/lib/google-maps/eta";
@@ -189,23 +191,32 @@ export async function scheduleDropoffSideEffects(input: {
   dogName: string;
 }) {
   try {
-    // Append the owner's photo gallery link when drivers tagged their dog.
-    const photosUrl = await getHikePhotoShareUrlForCustomer(
-      input.hikeId,
-      input.customerId
-    ).catch(() => null);
+    await runWithSmsBudget(async () => {
+      // Append the owner's photo gallery link when drivers tagged their dog.
+      const photosUrl = await getHikePhotoShareUrlForCustomer(
+        input.hikeId,
+        input.customerId
+      ).catch(() => null);
 
-    await logNotification({
-      companyId: input.companyId,
-      customerId: input.customerId,
-      dogId: input.dogId,
-      stopId: input.stopId,
-      notificationType: "dropped_off",
-      dogName: input.dogName,
-      body: buildDroppedOffMessage(input.dogName, photosUrl),
+      // Hold back the gallery cap so a slow drop-off text cannot use the
+      // whole request and skip the gallery send.
+      setSmsBudgetReserve(GALLERY_SMS_TIMEOUT_MS);
+      try {
+        await logNotification({
+          companyId: input.companyId,
+          customerId: input.customerId,
+          dogId: input.dogId,
+          stopId: input.stopId,
+          notificationType: "dropped_off",
+          dogName: input.dogName,
+          body: buildDroppedOffMessage(input.dogName, photosUrl),
+        });
+      } finally {
+        setSmsBudgetReserve(0);
+      }
+      await markHikeCompletedIfDone(input.hikeId);
+      revalidateDriverPaths();
     });
-    await markHikeCompletedIfDone(input.hikeId);
-    revalidateDriverPaths();
   } catch (error) {
     logErrorFromException("driver", "Drop-off side effects failed", error, {
       companyId: input.companyId,

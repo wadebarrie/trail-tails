@@ -8,6 +8,33 @@ export const GALLERY_SMS_TIMEOUT_MS = 8_000;
  */
 export const DRIVER_SMS_TIMEOUT_MS = 15_000;
 
+/** One close-out or notification request, under Netlify's ~26s limit. */
+export const SMS_REQUEST_BUDGET_MS = 20_000;
+
+/** Don't start a Twilio call with less than this left. */
+export const SMS_CALL_FLOOR_MS = 1_000;
+
+/** Post-abort message lookup. Skipped when the request budget is below the floor. */
+export const SMS_LOOKUP_MAX_MS = 5_000;
+
+/**
+ * How long this Twilio call may run. `remainingMs: null` means no shared
+ * budget, so the per-call cap is used. Otherwise the call gets what's left
+ * after `reserveMs`, and null means skip it.
+ */
+export function smsSliceMs(input: {
+  remainingMs: number | null;
+  requestedMs: number;
+  reserveMs?: number;
+  floorMs?: number;
+}): number | null {
+  const floor = input.floorMs ?? SMS_CALL_FLOOR_MS;
+  if (input.remainingMs == null) return input.requestedMs;
+  const available = input.remainingMs - (input.reserveMs ?? 0);
+  if (available < floor) return null;
+  return Math.min(input.requestedMs, available);
+}
+
 export function smsAbortTimeoutMs(notificationType: string): number {
   return notificationType === "hike_photos"
     ? GALLERY_SMS_TIMEOUT_MS

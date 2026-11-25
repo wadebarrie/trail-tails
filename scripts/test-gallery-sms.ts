@@ -20,6 +20,7 @@ import {
   galleryWireMessage,
   outboundBodyMatches,
   smsAbortTimeoutMs,
+  smsSliceMs,
   twilioMessageIsAccepted,
   twilioMessageIsFailed,
 } from "../src/lib/twilio/outcome";
@@ -184,6 +185,23 @@ test("gallery texts abort sooner; driver texts use a 15–20s cap", () => {
   assert.equal(fetchFailureOutcome("TimeoutError"), "unknown");
   assert.equal(fetchFailureOutcome("AbortError"), "unknown");
   assert.equal(fetchFailureOutcome("Error"), "failed");
+});
+
+test("one request budget leaves room for the gallery text", () => {
+  assert.equal(
+    smsSliceMs({ remainingMs: 20_000, requestedMs: 15_000, reserveMs: 8_000 }),
+    12_000
+  );
+  assert.equal(
+    smsSliceMs({ remainingMs: 8_000, requestedMs: 5_000, reserveMs: 8_000 }),
+    null
+  );
+  assert.equal(
+    smsSliceMs({ remainingMs: 8_000, requestedMs: 8_000, reserveMs: 0 }),
+    8_000
+  );
+  assert.equal(smsSliceMs({ remainingMs: 500, requestedMs: 5_000 }), null);
+  assert.equal(smsSliceMs({ remainingMs: null, requestedMs: 15_000 }), 15_000);
 });
 
 test("abandoned lookup uses the redirected To and prefixed body", () => {

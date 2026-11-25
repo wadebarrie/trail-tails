@@ -4,7 +4,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { perfAsync } from "@/lib/perf";
 import { findRecentOutboundSms, getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
-import { resolveSmsDelivery, smsAbortTimeoutMs } from "@/lib/twilio/outcome";
+import { SMS_LOOKUP_MAX_MS, resolveSmsDelivery, smsAbortTimeoutMs } from "@/lib/twilio/outcome";
+import { runWithSmsBudget, smsBudgetActive, takeSmsSlice } from "@/lib/sms-budget";
 import type { NotificationType } from "@/types";
 
 type NotificationBody = string | ((ownerName: string) => string);
@@ -101,6 +102,9 @@ export type NotificationSendResult = {
 export async function logNotification(
   input: LogNotificationInput
 ): Promise<NotificationSendResult> {
+  if (!smsBudgetActive()) {
+    return runWithSmsBudget(() => logNotification(input));
+  }
   return perfAsync(`sms ${input.notificationType}`, async () => {
     const none: NotificationSendResult = { sent: 0, failed: 0, unknown: 0 };
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -192,16 +196,26 @@ async function sendNotificationToContact(
 
   const delivery = smsDeliveryForContact(contact.phone, contact.ownerName, dogName);
   const smsBody = delivery.body + smsBodyText;
-  const result = await sendSms(delivery.to, smsBody, {
-    timeoutMs: smsAbortTimeoutMs(input.notificationType),
-  });
+  const sendTimeout = takeSmsSlice(smsAbortTimeoutMs(input.notificationType));
+  if (sendTimeout == null) {
+    await supabase
+      .from("notification_log")
+      .update({ error_message: "Skipped — request time budget exhausted" })
+      .eq("id", notification.id);
+    return "unknown";
+  }
+  const result = await sendSms(delivery.to, smsBody, { timeoutMs: sendTimeout });
 
   let sid: string | null = result.ok ? result.sid : null;
   let outcome: "sent" | "failed" | "unknown" = result.ok ? "sent" : result.outcome;
   let errorMessage = result.ok ? "" : result.error;
 
   if (!result.ok && result.outcome === "unknown") {
-    const lookedUp = await findRecentOutboundSms(delivery.to, smsBody);
+    const lookupTimeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
+    const lookedUp =
+      lookupTimeout == null
+        ? { outcome: "unknown" as const }
+        : await findRecentOutboundSms(delivery.to, smsBody, lookupTimeout);
     if (lookedUp.outcome === "sent") {
       sid = lookedUp.sid;
       outcome = "sent";
