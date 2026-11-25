@@ -3,10 +3,9 @@ import { requireRole } from "@/features/auth/queries";
 import { formatDateTimeInTimezone } from "@/lib/dates";
 import { getCompanyTimezone } from "@/features/company/queries";
 import { smsStatusTone, smsTypeLabel, unsentNotificationLabel } from "@/features/sms/labels";
+import { splitRecentUnsent } from "@/features/sms/unsent-window";
 import { one } from "@/lib/supabase/relations";
 import { createClient } from "@/lib/supabase/server";
-
-const RECENT_UNSENT_MS = 48 * 60 * 60 * 1000;
 
 type UnsentNote = {
   id: string;
@@ -81,13 +80,7 @@ export default async function SmsHistoryPage() {
     .order("created_at", { ascending: false })
     .limit(30);
   const unsent = (unsentRows ?? []) as UnsentNote[];
-  const recentCutoff = Date.now() - RECENT_UNSENT_MS;
-  const recentUnsent = unsent.filter(
-    (note) => new Date(note.created_at).getTime() >= recentCutoff
-  );
-  const olderUnsent = unsent.filter(
-    (note) => new Date(note.created_at).getTime() < recentCutoff
-  );
+  const { recent: recentUnsent, older: olderUnsent } = splitRecentUnsent(unsent);
 
   const messageIds = (messages ?? []).map((message) => message.id as string);
   const typeByMessage = new Map<string, string>();
