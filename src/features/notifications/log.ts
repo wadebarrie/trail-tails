@@ -259,8 +259,9 @@ export function buildPickedUpMessage(dogName: string) {
   return `${dogName} has been picked up. See you this afternoon!`;
 }
 
-export function buildDroppedOffMessage(dogName: string) {
-  return `${dogName} has been dropped off. Have a great day!`;
+export function buildDroppedOffMessage(dogName: string, photosUrl?: string | null) {
+  const base = `${dogName} has been dropped off. Have a great day!`;
+  return photosUrl ? `${base} Photos from the hike: ${photosUrl}` : base;
 }
 
 function formatDogList(names: string[]): string {

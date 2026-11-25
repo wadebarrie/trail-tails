@@ -10,6 +10,7 @@ import {
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { requireRole } from "@/features/auth/queries";
 import { BillingDateRangeFilter } from "@/features/billing/components/billing-date-range-filter";
+import { CreateInvoiceDraftsButton } from "@/features/invoices/components/create-invoice-drafts-button";
 import { AccountingAddonsCard } from "@/features/billing/components/accounting-addons-card";
 import { billingStatusLabel } from "@/features/billing/status";
 import { BILLING_CSV_COLUMNS } from "@/features/billing/csv";
@@ -77,6 +78,12 @@ export default async function BillingPage({
             >
               Hike prices
             </Link>
+            <Link
+              href="/dashboard/invoices"
+              className="inline-flex rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Invoices
+            </Link>
             <a
               href={exportUrl}
               className={primaryButtonClassName}
@@ -114,6 +121,14 @@ export default async function BillingPage({
 
       <div className="mt-6">
         <BillingDateRangeFilter start={start} end={end} />
+      </div>
+
+      <div className="mb-6">
+        <CreateInvoiceDraftsButton start={start} end={end} />
+        <p className="mt-2 text-sm text-stone-500">
+          One draft per customer for billable hikes in {start} – {end}. Hikes
+          already on an invoice are skipped.
+        </p>
       </div>
 
       <div className="mb-6 mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

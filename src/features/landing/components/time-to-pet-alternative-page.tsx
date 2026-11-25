@@ -42,7 +42,7 @@ const COMPARISON_ROWS = [
     fit: "PackRoute",
   },
   {
-    need: "Completed-hike billing export (invoicing coming soon)",
+    need: "CAD invoices from completed hikes (plus CSV export)",
     fit: "PackRoute",
   },
   {
@@ -80,11 +80,11 @@ const FAQ_ITEMS = [
   },
   {
     q: "How is PackRoute different from Time to Pet?",
-    a: "Time to Pet is a broad US pet-care suite (sitting, walking, CRM, payments). PackRoute is built for hiking and pack-walk days: recurring routes, morning and afternoon slots, a mobile driver Today view, and automated SMS. Billing starts with completed-hike CSV export; built-in CAD invoicing is on the roadmap.",
+    a: "Time to Pet is a broad US pet-care suite (sitting, walking, CRM, payments). PackRoute is built for hiking and pack-walk days: recurring routes, morning and afternoon slots, a mobile driver Today view, and automated SMS. You can generate CAD invoices from completed hikes or export CSV for QuickBooks.",
   },
   {
     q: "Does PackRoute have invoicing?",
-    a: "Today every plan includes completed-hike CSV export for QuickBooks, Xero, or e-Transfer. Built-in invoicing and CAD payments are coming soon — we are not asking hiking teams to keep Time to Pet just for billing.",
+    a: "Yes for CAD hike invoices: draft from closed-out hikes, mark sent, and record e-Transfer or cash. Online card pay links are next. CSV export remains on every plan — we are not asking hiking teams to keep Time to Pet just for billing.",
   },
   {
     q: "Can I switch from Time to Pet?",
@@ -267,10 +267,10 @@ export function TimeToPetAlternativePageContent() {
               Billing while you switch
             </h2>
             <p className="mt-4 text-stone-600">
-              PackRoute already tracks dogs and completed hikes and exports them
-              for easy billing. Built-in CAD invoicing and payments are on the
-              roadmap — so you can move off Time to Pet for the hiking day
-              without waiting on a full ledger rebuild.
+              PackRoute tracks dogs and completed hikes, generates CAD invoice
+              drafts, and still exports CSV when you want QuickBooks or Xero.
+              Online card pay links are next — so you can move off Time to Pet
+              for the hiking day without waiting on a full ledger rebuild.
             </p>
           </div>
         </section>

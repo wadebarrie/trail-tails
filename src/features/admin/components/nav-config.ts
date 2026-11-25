@@ -42,6 +42,7 @@ export const navGroups: NavGroup[] = [
         shortLabel: "Requests",
         showRequestBadge: true,
       },
+      { href: "/dashboard/photos", label: "Hike photos" },
       { href: "/dashboard/exceptions", label: "Time off" },
       { href: "/dashboard/messages", label: "Customer text preview" },
     ],
@@ -52,6 +53,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/dashboard/import", label: "Import spreadsheet" },
       { href: "/dashboard/hike-report", label: "Hike report" },
+      { href: "/dashboard/invoices", label: "Invoices" },
       { href: "/dashboard/settings", label: "Settings" },
       { href: "/dashboard/help", label: "Help & guide" },
     ],
@@ -104,6 +106,7 @@ const mobileOperationsNav: NavGroup = {
   label: "Operations",
   items: [
     // Schedule requests stay on the bottom bar.
+    { href: "/dashboard/photos", label: "Hike photos" },
     { href: "/dashboard/exceptions", label: "Time off" },
     { href: "/dashboard/messages", label: "Customer text preview" },
   ],

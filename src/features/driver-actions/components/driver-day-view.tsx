@@ -5,9 +5,20 @@ import { LocationServicesIndicator } from "@/features/driver-actions/components/
 import { DriverPickupReorder } from "@/features/driver-actions/components/driver-pickup-reorder";
 import { DriverDropoffReorder } from "@/features/driver-actions/components/driver-dropoff-reorder";
 import { DriverStopList } from "@/features/driver-actions/components/driver-stop-list";
+import { HikePhotoUpload } from "@/features/hike-photos/components/hike-photo-upload";
 import { DriverInstallHint } from "@/features/pwa/driver-install-hint";
 import { dayProgressMessage } from "@/features/driver-actions/driver-greeting";
 import type { DriverDayView } from "@/features/driver-actions/queries";
+
+function uniqueDogs(route: DriverDayView["routes"][number]) {
+  const seen = new Map<string, { id: string; name: string }>();
+  for (const stop of [...route.pickups, ...route.dropoffs]) {
+    if (!seen.has(stop.dogId)) {
+      seen.set(stop.dogId, { id: stop.dogId, name: stop.dogName });
+    }
+  }
+  return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
 
 export function DriverDayView({
   active,
@@ -65,6 +76,13 @@ export function DriverDayView({
                 </p>
               </div>
               <div className="space-y-10">
+                {!preview ? (
+                  <HikePhotoUpload
+                    hikeId={route.hikeId}
+                    companyId={day.companyId}
+                    dogs={uniqueDogs(route)}
+                  />
+                ) : null}
                 <DriverPickupReorder
                   hikeId={route.hikeId}
                   pickups={route.pickups}

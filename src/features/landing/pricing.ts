@@ -57,7 +57,7 @@ export const PRICING_INCLUDED_FEATURES = [
   "Pickup route planning, group hike time slots, and driver Today view",
   "Unlimited office logins",
   "Schedule-change texts with office approval",
-  "Completed-hike CSV export today; built-in invoicing coming soon",
+  "CAD invoices from completed hikes, plus CSV export for QuickBooks or Xero",
   "Onboarding screenshare + email support",
 ] as const;
 
@@ -105,7 +105,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "Today every plan includes completed-hike CSV export so you can bill in QuickBooks, Xero, or e-Transfer. Built-in invoicing and CAD payments are on the roadmap. Live QuickBooks Online and Xero sync are optional paid add-ons when you want them.",
+    a: "Yes for CAD hike invoices: generate drafts from closed-out hikes, mark them sent, and record e-Transfer or cash. Online card pay links are next. Every plan still includes CSV export, and live QuickBooks Online / Xero sync are optional paid add-ons.",
   },
   {
     q: "Is PackRoute priced in Canadian dollars?",

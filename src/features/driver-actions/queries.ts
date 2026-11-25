@@ -16,6 +16,7 @@ import type { StopStatus, StopType } from "@/types";
 
 export type DriverStopView = {
   id: string;
+  dogId: string;
   stopType: StopType;
   status: StopStatus;
   windowStart: string | null;
@@ -48,6 +49,7 @@ export type DriverRouteView = {
 };
 
 export type DriverDayView = {
+  companyId: string;
   date: string;
   dateLabel: string;
   routeCadence: RouteCadence;
@@ -99,6 +101,7 @@ function mapStop(raw: Record<string, unknown>): DriverStopView {
 
   return {
     id: raw.id as string,
+    dogId: raw.dog_id as string,
     stopType: raw.stop_type as StopType,
     status: raw.status as StopStatus,
     windowStart: (raw.window_start as string | null) ?? null,
@@ -195,6 +198,7 @@ export async function getDriverDayView(
       .filter((r) => r.pickups.length > 0 || r.dropoffs.length > 0);
 
     return {
+      companyId,
       date,
       dateLabel: formatDateLabel(date, timeZone),
       routeCadence,

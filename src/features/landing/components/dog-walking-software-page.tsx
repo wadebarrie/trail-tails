@@ -112,11 +112,11 @@ export function DogWalkingSoftwarePageContent() {
             </h2>
             <p className="mt-4 text-stone-600">
               PackRoute owns proactive customer SMS, multi-driver routes, group
-              hike time slots, and the driver phone workflow. Completed hikes
-              export as CSV for QuickBooks, Xero, or e-Transfer today, and
-              built-in CAD invoicing is on the roadmap. Hiking and walking teams
-              get a lighter Canadian product without paying for boarding and
-              pet-sitting workflows they do not use.
+              hike time slots, and the driver phone workflow. Generate CAD
+              invoices from completed hikes, or export CSV for QuickBooks and
+              Xero. Hiking and walking teams get a lighter Canadian product
+              without paying for boarding and pet-sitting workflows they do not
+              use.
             </p>
             <p className="mt-4 text-sm text-stone-500">
               See also our{" "}

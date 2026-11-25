@@ -307,6 +307,78 @@ export interface SystemLog {
   created_at: string;
 }
 
+export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue";
+export type PaymentMethod = "e_transfer" | "cash" | "other";
+
+export interface Invoice {
+  id: string;
+  company_id: string;
+  customer_id: string;
+  status: InvoiceStatus;
+  period_start: string;
+  period_end: string;
+  currency: string;
+  subtotal_cents: number;
+  total_cents: number;
+  due_date: string | null;
+  sent_at: string | null;
+  paid_at: string | null;
+  invoice_number: string;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceLine {
+  id: string;
+  invoice_id: string;
+  hike_date: string;
+  dog_id: string | null;
+  description: string;
+  quantity: number;
+  unit_amount_cents: number;
+  line_total_cents: number;
+  created_at: string;
+}
+
+export interface Payment {
+  id: string;
+  invoice_id: string;
+  amount_cents: number;
+  method: PaymentMethod;
+  paid_at: string;
+  reference: string | null;
+  recorded_by: string | null;
+  created_at: string;
+}
+
+export interface HikePhoto {
+  id: string;
+  company_id: string;
+  hike_id: string;
+  uploaded_by: string | null;
+  storage_path: string;
+  caption: string | null;
+  created_at: string;
+}
+
+export interface HikePhotoDog {
+  photo_id: string;
+  dog_id: string;
+}
+
+export interface HikePhotoShare {
+  id: string;
+  company_id: string;
+  hike_id: string;
+  customer_id: string;
+  token: string;
+  expires_at: string;
+  revoked_at: string | null;
+  created_at: string;
+}
+
 type TableDef<T> = {
   Row: T;
   Insert: Partial<T>;
@@ -333,6 +405,12 @@ export interface Database {
       sms_messages: TableDef<SmsMessage>;
       notification_log: TableDef<NotificationLog>;
       system_logs: TableDef<SystemLog>;
+      hike_photos: TableDef<HikePhoto>;
+      hike_photo_dogs: TableDef<HikePhotoDog>;
+      hike_photo_shares: TableDef<HikePhotoShare>;
+      invoices: TableDef<Invoice>;
+      invoice_lines: TableDef<InvoiceLine>;
+      payments: TableDef<Payment>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

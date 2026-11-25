@@ -26,6 +26,14 @@ export type {
   NotificationType,
   Route,
   Vehicle,
+  HikePhoto,
+  HikePhotoDog,
+  HikePhotoShare,
+  Invoice,
+  InvoiceLine,
+  InvoiceStatus,
+  Payment,
+  PaymentMethod,
 } from "./database";
 
 export type { Database } from "./database";
