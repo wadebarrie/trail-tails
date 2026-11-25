@@ -34,6 +34,8 @@ export function paymentMethodLabel(method: PaymentMethod): string {
       return "Interac e-Transfer";
     case "cash":
       return "Cash";
+    case "card":
+      return "Card (online)";
     case "other":
       return "Other";
   }

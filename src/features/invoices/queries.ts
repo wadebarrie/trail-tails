@@ -14,7 +14,7 @@ export type InvoiceWithLines = {
 };
 
 const INVOICE_COLUMNS =
-  "id, company_id, customer_id, status, period_start, period_end, currency, subtotal_cents, total_cents, due_date, sent_at, paid_at, invoice_number, notes, created_by, created_at, updated_at";
+  "id, company_id, customer_id, status, period_start, period_end, currency, subtotal_cents, total_cents, due_date, sent_at, paid_at, invoice_number, notes, stripe_checkout_session_id, stripe_pay_url, created_by, created_at, updated_at";
 
 export async function listInvoices(
   companyId: string,

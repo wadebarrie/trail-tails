@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { createServiceClient } from "@/lib/supabase/service";
+import { applyCustomerInvoiceCheckoutSession } from "@/features/invoices/apply-stripe-invoice-payment";
 import { patchFromStripeSubscription } from "@/features/subscription/apply-stripe-subscription";
 import { stripeUnixToIso } from "@/features/subscription/stripe-map";
 import { createStripeClient, getStripeSecretKey } from "@/lib/stripe";
@@ -90,6 +91,11 @@ export async function syncSubscriptionFromStripeEvent(
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      if (session.mode === "payment") {
+        return applyCustomerInvoiceCheckoutSession(session);
+      }
+
       if (session.mode !== "subscription") {
         return { ok: true, action: "ignored" };
       }

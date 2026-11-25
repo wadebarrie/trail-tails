@@ -308,7 +308,7 @@ export interface SystemLog {
 }
 
 export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue";
-export type PaymentMethod = "e_transfer" | "cash" | "other";
+export type PaymentMethod = "e_transfer" | "cash" | "card" | "other";
 
 export interface Invoice {
   id: string;
@@ -325,6 +325,8 @@ export interface Invoice {
   paid_at: string | null;
   invoice_number: string;
   notes: string | null;
+  stripe_checkout_session_id: string | null;
+  stripe_pay_url: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
