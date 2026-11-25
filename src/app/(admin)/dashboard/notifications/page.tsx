@@ -16,6 +16,7 @@ export default async function NotificationsPage() {
       `
       id,
       notification_type,
+      channel,
       body,
       status,
       error_message,
@@ -47,6 +48,7 @@ export default async function NotificationsPage() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium text-stone-700">
                   {n.notification_type.replace(/_/g, " ")}
+                  {n.channel === "email" ? " · email" : ""}
                 </span>
                 <div className="flex items-center gap-2">
                   <Badge

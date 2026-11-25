@@ -6,6 +6,7 @@ import { formatCustomerAddress, parseFreeformAddress } from "@/lib/address";
 import { csvToRecords, parseCsv } from "@/lib/csv";
 import { phoneMatchKey } from "@/lib/phone";
 import type { ImportResult } from "@/features/import/validate";
+import { importedBillingEmail } from "@/features/import/columns";
 import {
   missingImportHeaders,
   normalizeTime,
@@ -23,6 +24,17 @@ type ExistingCustomer = {
   address_lat: number | null;
   address_lng: number | null;
 };
+
+function billingEmailPayload(
+  headers: string[],
+  record: Record<string, string | undefined>,
+  columnReady: boolean
+): { billing_email: string | null } | Record<string, never> {
+  if (!columnReady) return {};
+  const billing = importedBillingEmail(headers, record);
+  if (billing === undefined) return {};
+  return { billing_email: billing };
+}
 
 type ExistingDog = {
   id: string;
@@ -62,6 +74,8 @@ export async function runBulkImport(
   }
 
   const supabase = await createClient();
+  const billingColumn = await supabase.from("customers").select("billing_email").limit(1);
+  const billingColumnReady = !billingColumn.error;
 
   const [{ data: existingCustomers }, { data: existingDogs }, { data: routes }] =
     await Promise.all([
@@ -138,6 +152,7 @@ export async function runBulkImport(
             secondary_phone: record.customer_secondary_phone || undefined,
           }),
           email: record.customer_email?.trim() || null,
+          ...billingEmailPayload(headers, record, billingColumnReady),
           address_line1: parsedAddress.address_line1,
           address_line2: parsedAddress.address_line2,
           city: parsedAddress.city,

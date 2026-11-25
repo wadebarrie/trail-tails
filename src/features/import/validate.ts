@@ -64,6 +64,7 @@ function validateCustomerRecord(
     owner_name: record.customer_owner_name,
     phone: record.customer_phone,
     email: record.customer_email || "",
+    billing_email: record.customer_billing_email || "",
     address_line1: record.customer_address,
     secondary_owner_name: record.customer_secondary_owner_name || undefined,
     secondary_phone: record.customer_secondary_phone || undefined,

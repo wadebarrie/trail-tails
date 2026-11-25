@@ -22,6 +22,7 @@ export type CustomerFormValues = {
   secondary_owner_name: string;
   secondary_phone: string;
   email: string;
+  billing_email: string;
   address_line1: string;
   address_line2: string;
   city: string;
@@ -52,6 +53,7 @@ function extractCustomerFormValues(formData: FormData): CustomerFormValues {
     secondary_owner_name: fieldString(formData, "secondary_owner_name"),
     secondary_phone: fieldString(formData, "secondary_phone"),
     email: fieldString(formData, "email"),
+    billing_email: fieldString(formData, "billing_email"),
     address_line1: fieldString(formData, "address_line1"),
     address_line2: fieldString(formData, "address_line2"),
     city: fieldString(formData, "city"),
@@ -106,13 +108,20 @@ function parseCustomerForm(formData: FormData, mode: "create" | "update") {
   return customerSchema.safeParse(withFlags);
 }
 
-function customerInsertPayload(data: CustomerFormData) {
+async function billingEmailColumnReady(): Promise<boolean> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("customers").select("billing_email").limit(1);
+  return !error;
+}
+
+function customerInsertPayload(data: CustomerFormData, includeBilling: boolean) {
   const composed = formatCustomerAddress(data);
   return {
     owner_name: data.owner_name,
     phone: data.phone,
     ...secondaryContactPayload(data),
     email: data.email || null,
+    ...(includeBilling ? { billing_email: data.billing_email || null } : {}),
     address_line1: data.address_line1,
     address_line2: data.address_line2?.trim() || null,
     city: data.city,
@@ -148,9 +157,10 @@ export async function createCustomerAction(
   }
 
   const supabase = await createClient();
+  const includeBilling = await billingEmailColumnReady();
   const { error } = await supabase.from("customers").insert({
     company_id: profile.company_id,
-    ...customerInsertPayload(parsed.data),
+    ...customerInsertPayload(parsed.data, includeBilling),
     address_lat: coords.lat,
     address_lng: coords.lng,
   });
@@ -196,10 +206,11 @@ export async function updateCustomerAction(
     return formError(prev, formData, coords.error, "address_line1");
   }
 
+  const includeBilling = await billingEmailColumnReady();
   const { error } = await supabase
     .from("customers")
     .update({
-      ...customerInsertPayload(parsed.data),
+      ...customerInsertPayload(parsed.data, includeBilling),
       address_lat: coords.lat,
       address_lng: coords.lng,
       is_active: parsed.data.is_active ?? true,

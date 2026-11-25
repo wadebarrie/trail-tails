@@ -3,6 +3,7 @@ export const IMPORT_COLUMNS = [
   "customer_owner_name",
   "customer_phone",
   "customer_email",
+  "customer_billing_email",
   "customer_address",
   "customer_secondary_owner_name",
   "customer_secondary_phone",
@@ -23,6 +24,7 @@ export const IMPORT_COLUMN_LABELS: Record<ImportColumn, string> = {
   customer_owner_name: "Customer owner name",
   customer_phone: "Customer phone",
   customer_email: "Customer email",
+  customer_billing_email: "Billing email (invoices)",
   customer_address: "Customer address",
   customer_secondary_owner_name: "Second contact name",
   customer_secondary_phone: "Second contact phone",
@@ -38,3 +40,13 @@ export const IMPORT_COLUMN_LABELS: Record<ImportColumn, string> = {
 };
 
 export const MAX_IMPORT_ROWS = 500;
+
+/** Undefined means the CSV has no billing column, so an update must leave it alone. */
+export function importedBillingEmail(
+  headers: string[],
+  record: Record<string, string | undefined>
+): string | null | undefined {
+  if (!headers.includes("customer_billing_email")) return undefined;
+  const value = record.customer_billing_email?.trim().toLowerCase() ?? "";
+  return value || null;
+}

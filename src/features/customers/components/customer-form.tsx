@@ -18,6 +18,7 @@ import type { Customer } from "@/types";
 type CustomerFormProps = {
   customer?: Customer;
   returnTo?: string;
+  billingEmailAvailable?: boolean;
 };
 
 function initialValues(customer?: Customer): CustomerFormValues {
@@ -37,6 +38,7 @@ function initialValues(customer?: Customer): CustomerFormValues {
     secondary_owner_name: customer?.secondary_owner_name ?? "",
     secondary_phone: customer?.secondary_phone ?? "",
     email: customer?.email ?? "",
+    billing_email: customer?.billing_email ?? "",
     address_line1: addressDefaults.address_line1,
     address_line2: addressDefaults.address_line2,
     city: addressDefaults.city,
@@ -49,7 +51,11 @@ function initialValues(customer?: Customer): CustomerFormValues {
   };
 }
 
-export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
+export function CustomerForm({
+  customer,
+  returnTo,
+  billingEmailAvailable = true,
+}: CustomerFormProps) {
   const action = customer
     ? updateCustomerAction.bind(null, customer.id)
     : createCustomerAction;
@@ -159,6 +165,18 @@ export function CustomerForm({ customer, returnTo }: CustomerFormProps) {
         placeholder="name@example.com"
         hint="Optional. Must be a valid email if provided."
       />
+      {billingEmailAvailable ? (
+        <Field
+          label="Billing email"
+          name="billing_email"
+          type="email"
+          inputMode="email"
+          defaultValue={values.billing_email}
+          autoComplete="email"
+          placeholder="billing@example.com"
+          hint="Optional. Invoices go here. If blank, we use the email above."
+        />
+      ) : null}
 
       <div className="surface-card space-y-3 rounded-[var(--radius-surface)] p-4">
         <div>

@@ -85,6 +85,8 @@ export interface Company {
   /** test sends every text to sms_test_phone. live texts each customer. */
   sms_mode: "test" | "live";
   sms_test_phone: string | null;
+  /** Invoice email in test mode goes here. Blank skips the email. */
+  test_email: string | null;
   /** Self-serve companies stay in test mode until PackRoute sets this true. */
   sms_live_approved: boolean;
   etransfer_email: string | null;
@@ -159,6 +161,8 @@ export interface Customer {
   secondary_owner_name: string | null;
   secondary_phone: string | null;
   email: string | null;
+  /** Invoice email. Falls back to email when blank. */
+  billing_email: string | null;
   address: string;
   address_line1: string | null;
   address_line2: string | null;

@@ -7,6 +7,7 @@ import { requireRole } from "@/features/auth/queries";
 import { COMMON_TIMEZONES } from "@/features/platform/timezones";
 import { digitsOnly } from "@/lib/phone";
 import { parseEtransferEmail, resolveShowCardPayment } from "@/features/invoices/etransfer";
+import { parseOptionalInbox } from "@/features/invoices/invoice-email";
 import { getStripeSecretKey } from "@/lib/stripe";
 
 const baseSettingsSchema = z.object({
@@ -22,6 +23,7 @@ const baseSettingsSchema = z.object({
   auto_send_gallery_on_closeout: z.enum(["true", "false"]).optional(),
   sms_mode: z.enum(["test", "live"]).optional(),
   sms_test_phone: z.string().optional(),
+  test_email: z.string().optional(),
   sms_customer_consent: z.enum(["yes"]).optional(),
   etransfer_email: z.string().optional(),
   etransfer_recipient_name: z.string().max(80).optional(),
@@ -53,7 +55,7 @@ export async function updateCompanySettingsAction(
   }
 
   const supabase = await createClient();
-  const [{ data: existing }, smsRow, paymentRow] = await Promise.all([
+  const [{ data: existing }, smsRow, paymentRow, testEmailRow] = await Promise.all([
     supabase
       .from("companies")
       .select("timezone")
@@ -67,6 +69,11 @@ export async function updateCompanySettingsAction(
     supabase
       .from("companies")
       .select("etransfer_email")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("test_email")
       .eq("id", profile.company_id)
       .maybeSingle(),
   ]);
@@ -103,6 +110,10 @@ export async function updateCompanySettingsAction(
     };
   }
 
+  const saveTestEmail = !testEmailRow.error && parsed.data.test_email !== undefined;
+  const testInbox = parseOptionalInbox(parsed.data.test_email, "test email");
+  if (saveTestEmail && !testInbox.ok) return { error: testInbox.error };
+
   const etransfer = parseEtransferEmail(parsed.data.etransfer_email);
   if (!etransfer.ok) return { error: etransfer.error };
   const savePayment = !paymentRow.error;
@@ -124,6 +135,7 @@ export async function updateCompanySettingsAction(
       ...(saveSms
         ? { sms_mode: smsMode, sms_test_phone: testPhone }
         : {}),
+      ...(saveTestEmail && testInbox.ok ? { test_email: testInbox.email } : {}),
       ...(savePayment
         ? {
             etransfer_email: etransfer.email,

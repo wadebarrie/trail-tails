@@ -45,6 +45,7 @@ const customerCore = {
   secondary_owner_name: z.string().optional(),
   secondary_phone: optionalPhone,
   email: optionalEmail,
+  billing_email: optionalEmail,
   notes: z.string().optional(),
   is_active: z.coerce.boolean().optional(),
   night_before_reminders_enabled: z.coerce.boolean().optional(),

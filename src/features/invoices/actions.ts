@@ -12,7 +12,13 @@ import {
   buildInvoicePublicUrl,
   invoiceSendBlockReason,
 } from "@/features/invoices/etransfer";
-import { sendInvoiceEmail } from "@/features/invoices/invoice-email";
+import {
+  invoiceAlreadyDelivered,
+  invoiceEmailLogBody,
+  invoiceResendRequiredMessage,
+  sendInvoiceEmail,
+  type InvoiceEmailSendResult,
+} from "@/features/invoices/invoice-email";
 import { generateShareToken } from "@/features/hike-photos/share";
 import { logNotification } from "@/features/notifications/log";
 import { digitsOnly } from "@/lib/phone";
@@ -306,11 +312,61 @@ export async function ensureInvoiceLinkAction(
   return { url: buildInvoicePublicUrl(getSiteUrl(), token.token) };
 }
 
+function emailSkipNote(email: InvoiceEmailSendResult, wanted: boolean): string | null {
+  if (!wanted || email.status !== "skipped") return null;
+  if (email.reason === "test_inbox_missing") {
+    return "Test mode skipped the email because no test email is set in Settings.";
+  }
+  if (email.reason === "unconfigured") {
+    return "Email isn't configured on this server, so it was skipped.";
+  }
+  if (email.reason === "no_recipient") {
+    return "This customer has no billing email or email, so email was skipped.";
+  }
+  return null;
+}
+
+async function logInvoiceEmail(input: {
+  companyId: string;
+  customerId: string;
+  subject: string;
+  to: string;
+  text: string;
+  status: "sent" | "failed";
+  errorMessage?: string;
+}) {
+  try {
+    const service = createServiceClient();
+    await service.from("notification_log").insert({
+      company_id: input.companyId,
+      customer_id: input.customerId,
+      notification_type: "invoice",
+      channel: "email",
+      body: invoiceEmailLogBody({
+        subject: input.subject,
+        to: input.to,
+        text: input.text,
+      }),
+      status: input.status,
+      error_message: input.errorMessage ?? null,
+    });
+  } catch {
+    // The email already went out. History is best-effort.
+  }
+}
+
 export async function sendInvoiceAction(
-  invoiceId: string
+  invoiceId: string,
+  formData?: FormData
 ): Promise<InvoiceActionResult> {
   const profile = await requireRole("admin");
   const supabase = await createClient();
+  const wantText = formData?.get("channel_text") === "yes";
+  const wantEmail = formData?.get("channel_email") === "yes";
+  const resend = formData?.get("resend") === "yes";
+  if (!wantText && !wantEmail) {
+    return { ok: false, error: "Choose text, email, or both." };
+  }
 
   const { data: invoice } = await supabase
     .from("invoices")
@@ -324,19 +380,30 @@ export async function sendInvoiceAction(
     return { ok: false, error: "This invoice can't be sent." };
   }
 
-  const [{ data: company }, { data: customer }, paymentSettings] = await Promise.all([
-    supabase.from("companies").select("name").eq("id", profile.company_id).maybeSingle(),
-    supabase
-      .from("customers")
-      .select("email, phone, secondary_phone")
-      .eq("id", invoice.customer_id)
-      .maybeSingle(),
-    supabase
-      .from("companies")
-      .select("etransfer_email, show_card_payment, sms_mode")
-      .eq("id", profile.company_id)
-      .maybeSingle(),
-  ]);
+  const [{ data: company }, { data: customer }, paymentSettings, billingRow, testInbox] =
+    await Promise.all([
+      supabase.from("companies").select("name").eq("id", profile.company_id).maybeSingle(),
+      supabase
+        .from("customers")
+        .select("email, phone, secondary_phone")
+        .eq("id", invoice.customer_id)
+        .maybeSingle(),
+      supabase
+        .from("companies")
+        .select("etransfer_email, show_card_payment, sms_mode")
+        .eq("id", profile.company_id)
+        .maybeSingle(),
+      supabase
+        .from("customers")
+        .select("billing_email")
+        .eq("id", invoice.customer_id)
+        .maybeSingle(),
+      supabase
+        .from("companies")
+        .select("test_email")
+        .eq("id", profile.company_id)
+        .maybeSingle(),
+    ]);
 
   if (paymentSettings.error) {
     return {
@@ -348,12 +415,41 @@ export async function sendInvoiceAction(
   const etransferEmail = (paymentSettings.data?.etransfer_email as string | null) ?? null;
   const showCard = paymentSettings.data?.show_card_payment === true;
   const smsMode = (paymentSettings.data?.sms_mode as string | null) ?? null;
+  const billingEmail = billingRow.error
+    ? null
+    : ((billingRow.data?.billing_email as string | null) ?? null);
+  const testEmail = testInbox.error
+    ? null
+    : ((testInbox.data?.test_email as string | null) ?? null);
   const blocked = invoiceSendBlockReason({ etransferEmail, showCardPayment: showCard });
   if (blocked) return { ok: false, error: blocked };
 
   const token = await ensureInvoiceToken(invoiceId, profile.company_id);
   if ("error" in token) return { ok: false, error: token.error };
   const link = buildInvoicePublicUrl(getSiteUrl(), token.token);
+
+  const { data: priorLogs } = await supabase
+    .from("notification_log")
+    .select("status, body")
+    .eq("company_id", profile.company_id)
+    .eq("customer_id", invoice.customer_id as string)
+    .eq("notification_type", "invoice")
+    .eq("status", "sent")
+    .order("created_at", { ascending: false })
+    .limit(40);
+  const resendBlock = invoiceResendRequiredMessage({
+    alreadyDelivered: invoiceAlreadyDelivered({
+      status: invoice.status as string,
+      logs: (priorLogs ?? []) as { status: string; body: string }[],
+      token: token.token,
+    }),
+    resend,
+  });
+  if (resendBlock) return { ok: false, error: resendBlock };
+
+  const dueDate =
+    (invoice.due_date as string | null) ??
+    (await companyToday(profile.company_id, DEFAULT_TERMS_DAYS));
   const message = buildInvoicePaymentMessage({
     companyName: (company?.name as string) ?? "PackRoute",
     invoiceNumber: invoice.invoice_number as string,
@@ -366,37 +462,54 @@ export async function sendInvoiceAction(
     digitsOnly((customer?.phone as string | null) ?? "").length >= 10 ||
     digitsOnly((customer?.secondary_phone as string | null) ?? "").length >= 10;
 
-  const sms = hasPhone
-    ? await logNotification({
-        companyId: profile.company_id,
-        customerId: invoice.customer_id as string,
-        notificationType: "invoice",
-        body: message,
+  const sms =
+    wantText && hasPhone
+      ? await logNotification({
+          companyId: profile.company_id,
+          customerId: invoice.customer_id as string,
+          notificationType: "invoice",
+          body: message,
+        })
+      : { sent: 0, failed: 0, unknown: 0 };
+
+  const email: InvoiceEmailSendResult = wantEmail
+    ? await sendInvoiceEmail({
+        billingEmail,
+        email: (customer?.email as string | null) ?? "",
+        testEmail,
+        companyName: (company?.name as string) ?? "PackRoute",
+        invoiceNumber: invoice.invoice_number as string,
+        totalCents: invoice.total_cents as number,
+        link,
+        etransferEmail,
+        smsMode,
+        dueDate,
       })
-    : { sent: 0, failed: 0, unknown: 0 };
+    : { status: "skipped", reason: "no_recipient" };
 
-  const email = await sendInvoiceEmail({
-    to: (customer?.email as string | null) ?? "",
-    companyName: (company?.name as string) ?? "PackRoute",
-    invoiceNumber: invoice.invoice_number as string,
-    totalCents: invoice.total_cents as number,
-    link,
-    etransferEmail,
-    smsMode,
-  });
+  if (email.status === "sent" || email.status === "failed") {
+    await logInvoiceEmail({
+      companyId: profile.company_id,
+      customerId: invoice.customer_id as string,
+      subject: email.subject,
+      to: email.to,
+      text: email.text,
+      status: email.status,
+      errorMessage: email.status === "failed" ? email.error : undefined,
+    });
+  }
 
-  if (sms.sent === 0 && email !== "sent") {
+  if (sms.sent === 0 && email.status !== "sent") {
     revalidateInvoicePaths(invoiceId);
-    return {
-      ok: false,
-      error: `Nothing was delivered, so this invoice is still a draft. Copy this link and send it yourself: ${link}`,
-    };
+    const note = emailSkipNote(email, wantEmail);
+    const draftNote =
+      invoice.status === "draft"
+        ? `Nothing was delivered, so this invoice is still a draft. Copy this link and send it yourself: ${link}`
+        : `Nothing was delivered. Copy this link and send it yourself: ${link}`;
+    return { ok: false, error: note ? `${note} ${draftNote}` : draftNote };
   }
 
   if (invoice.status === "draft") {
-    const dueDate =
-      invoice.due_date ??
-      (await companyToday(profile.company_id, DEFAULT_TERMS_DAYS));
     const { error } = await supabase
       .from("invoices")
       .update({
@@ -412,16 +525,21 @@ export async function sendInvoiceAction(
   revalidateInvoicePaths(invoiceId);
   const parts = [
     sms.sent > 0 ? "Text sent" : null,
-    email === "sent" ? "Email sent" : null,
+    email.status === "sent" ? (email.redirected ? "Test email sent" : "Email sent") : null,
   ].filter(Boolean);
-  return { ok: true, message: `${parts.join(" and ")}. Invoice link: ${link}` };
+  const note = emailSkipNote(email, wantEmail);
+  return {
+    ok: true,
+    message: [parts.join(" and "), note, `Invoice link: ${link}`].filter(Boolean).join(". "),
+  };
 }
 
 export async function sendInvoiceFormAction(
   invoiceId: string,
-  _prev: InvoiceActionResult | null
+  _prev: InvoiceActionResult | null,
+  formData: FormData
 ): Promise<InvoiceActionResult> {
-  return sendInvoiceAction(invoiceId);
+  return sendInvoiceAction(invoiceId, formData);
 }
 
 /** Form-friendly wrapper for useActionState (invoice id bound by caller). */

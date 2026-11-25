@@ -43,6 +43,9 @@ jobs:
       - name: Invoice e-Transfer
         run: npm run test:invoice-etransfer
 
+      - name: Invoice email
+        run: npm run test:invoice-email
+
       - name: Safe redirect
         run: npm run test:safe-redirect
 
