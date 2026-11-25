@@ -13,6 +13,13 @@ import { CopyInvoiceLinkButton } from "@/features/invoices/components/copy-invoi
 import { SendInvoiceButton } from "@/features/invoices/components/send-invoice-button";
 import { RecordPaymentForm } from "@/features/invoices/components/record-payment-form";
 import { buildInvoicePublicUrl } from "@/features/invoices/etransfer";
+import {
+  invoiceAlreadyDelivered,
+  invoiceEmailAvailability,
+  invoiceEmailRecipient,
+  invoiceResendConfigured,
+} from "@/features/invoices/invoice-email";
+import { digitsOnly } from "@/lib/phone";
 import { getSiteUrl } from "@/lib/site-url";
 import { getInvoiceWithLines } from "@/features/invoices/queries";
 import {
@@ -37,7 +44,8 @@ export default async function InvoiceDetailPage({
   const { invoice, customer, lines, payments, paidCents, balanceCents } = detail;
 
   const supabase = await createClient();
-  const [{ data: company }, linkRow] = await Promise.all([
+  const [{ data: company }, linkRow, contact, billingRow, smsRow, testInbox, priorLogs] =
+    await Promise.all([
     supabase
       .from("companies")
       .select("timezone")
@@ -49,11 +57,66 @@ export default async function InvoiceDetailPage({
       .eq("id", id)
       .eq("company_id", profile.company_id)
       .maybeSingle(),
+    supabase
+      .from("customers")
+      .select("phone, secondary_phone")
+      .eq("id", invoice.customer_id)
+      .maybeSingle(),
+    supabase
+      .from("customers")
+      .select("billing_email")
+      .eq("id", invoice.customer_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("sms_mode")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("test_email")
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("notification_log")
+      .select("status, body")
+      .eq("company_id", profile.company_id)
+      .eq("customer_id", invoice.customer_id)
+      .eq("notification_type", "invoice")
+      .eq("status", "sent")
+      .order("created_at", { ascending: false })
+      .limit(40),
   ]);
   const timeZone = company?.timezone ?? "America/Los_Angeles";
   const today = getDateInTimezoneAt(timeZone, new Date());
 
   const canRecordPayment = invoice.status !== "paid" && balanceCents > 0;
+  const billingEmail = billingRow.error
+    ? null
+    : ((billingRow.data?.billing_email as string | null) ?? null);
+  const recipient = invoiceEmailRecipient({
+    billingEmail,
+    email: customer?.email,
+  });
+  const canText =
+    digitsOnly((contact.data?.phone as string | null) ?? "").length >= 10 ||
+    digitsOnly((contact.data?.secondary_phone as string | null) ?? "").length >= 10;
+  const emailAvailability = invoiceEmailAvailability({
+    smsMode: smsRow.error ? null : ((smsRow.data?.sms_mode as string | null) ?? null),
+    testEmail: testInbox.error ? null : ((testInbox.data?.test_email as string | null) ?? null),
+    billingEmail,
+    email: customer?.email,
+    resendConfigured: invoiceResendConfigured(),
+  });
+  const publicToken = linkRow.error ? null : ((linkRow.data?.public_token as string | null) ?? null);
+  const alreadySent =
+    invoice.status !== "paid" &&
+    invoiceAlreadyDelivered({
+      status: invoice.status,
+      logs: (priorLogs.data ?? []) as { status: string; body: string }[],
+      token: publicToken ?? "",
+    });
+  const canSendInvoice = invoice.status === "draft" || invoice.status === "sent" || invoice.status === "overdue";
 
   return (
     <div>
@@ -62,8 +125,14 @@ export default async function InvoiceDetailPage({
         title={`Invoice ${invoice.invoice_number}`}
         description={`${customer?.owner_name ?? "Unknown customer"} · ${invoice.period_start} – ${invoice.period_end}`}
         action={
-          invoice.status === "draft" ? (
-            <SendInvoiceButton invoiceId={invoice.id} />
+          canSendInvoice ? (
+            <SendInvoiceButton
+              invoiceId={invoice.id}
+              canText={canText}
+              canEmail={emailAvailability.canEmail}
+              emailHint={emailAvailability.hint}
+              alreadySent={alreadySent}
+            />
           ) : undefined
         }
       />
@@ -77,20 +146,23 @@ export default async function InvoiceDetailPage({
       ) : null}
 
       <p className="mb-6 text-sm text-stone-600">
-        {customer?.email ? (
+        {recipient ? (
           <>
-            Customer email:{" "}
+            Invoice email:{" "}
             <a
-              href={`mailto:${customer.email}`}
+              href={`mailto:${recipient}`}
               className="font-medium text-[var(--color-trail-700)] hover:underline"
             >
-              {customer.email}
+              {recipient}
             </a>
+            {billingEmail && customer?.email && billingEmail !== customer.email ? (
+              <span className="text-stone-500"> · customer email {customer.email}</span>
+            ) : null}
           </>
         ) : (
           <span className="text-amber-800">
-            No email on file for this customer — add one before you send the
-            invoice.
+            No billing email or customer email on file. Add one to email this
+            invoice, or send a text.
           </span>
         )}
       </p>

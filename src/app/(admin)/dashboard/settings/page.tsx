@@ -20,7 +20,8 @@ export default async function SettingsPage({
   const showBilling = tab === "billing";
   const supabase = await createClient();
 
-  const [{ data: company }, smsSettings, paymentSettings, subscription] = await Promise.all([
+  const [{ data: company }, smsSettings, paymentSettings, testInbox, subscription] =
+    await Promise.all([
     supabase
       .from("companies")
       .select(
@@ -38,6 +39,11 @@ export default async function SettingsPage({
       .select(
         "etransfer_email, etransfer_recipient_name, etransfer_instructions, show_card_payment"
       )
+      .eq("id", profile.company_id)
+      .maybeSingle(),
+    supabase
+      .from("companies")
+      .select("test_email")
       .eq("id", profile.company_id)
       .maybeSingle(),
     getSubscriptionForCompany(profile.company_id),
@@ -100,6 +106,8 @@ export default async function SettingsPage({
           smsMode={smsSettings.data?.sms_mode === "test" ? "test" : "live"}
           smsTestPhone={smsSettings.data?.sms_test_phone ?? ""}
           smsLiveApproved={smsSettings.data?.sms_live_approved !== false}
+          testEmailAvailable={!testInbox.error}
+          testEmail={testInbox.data?.test_email ?? ""}
           paymentSettingsAvailable={!paymentSettings.error}
           etransferEmail={paymentSettings.data?.etransfer_email ?? ""}
           etransferRecipientName={paymentSettings.data?.etransfer_recipient_name ?? ""}

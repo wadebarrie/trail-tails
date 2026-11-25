@@ -99,11 +99,11 @@ const cases: { name: string; pass: boolean }[] = [
     pass: invoiceTaxCents(20000, 24000) === 4000 && invoiceTaxCents(24000, 24000) === null,
   },
   {
-    name: "test mode skips the invoice email",
+    name: "only live mode emails the customer directly",
     pass:
       shouldSendInvoiceEmail({ smsMode: "test" }) === false &&
       shouldSendInvoiceEmail({ smsMode: "live" }) === true &&
-      shouldSendInvoiceEmail({ smsMode: null }) === true,
+      shouldSendInvoiceEmail({ smsMode: null }) === false,
   },
   {
     name: "send uses the existing SMS path so test mode still redirects",
@@ -141,7 +141,9 @@ async function assertTestModeSkipsEmail() {
   process.env.RESEND_API_KEY = "test-key";
   process.env.WELCOME_FROM_EMAIL = "invoices@example.com";
   const testModeEmail = await sendInvoiceEmail({
-    to: "customer@example.com",
+    billingEmail: null,
+    email: "customer@example.com",
+    testEmail: "",
     companyName: "Harbour Hikes",
     invoiceNumber: "INV-2026-0007",
     totalCents: 24000,
@@ -154,7 +156,7 @@ async function assertTestModeSkipsEmail() {
   if (previousFrom === undefined) delete process.env.WELCOME_FROM_EMAIL;
   else process.env.WELCOME_FROM_EMAIL = previousFrom;
 
-  if (testModeEmail !== "skipped") {
+  if (testModeEmail.status !== "skipped") {
     console.error("test mode invoice email was not skipped");
     process.exit(1);
   }

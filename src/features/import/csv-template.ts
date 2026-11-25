@@ -10,6 +10,7 @@ export type ImportExportRow = {
   customer_owner_name: string;
   customer_phone: string;
   customer_email: string;
+  customer_billing_email: string;
   customer_address: string;
   customer_secondary_owner_name: string;
   customer_secondary_phone: string;
@@ -49,6 +50,7 @@ const EXAMPLE_ROWS: ImportExportRow[] = [
     customer_owner_name: "Jane Smith",
     customer_phone: "5551234567",
     customer_email: "jane@example.com",
+    customer_billing_email: "billing@example.com",
     customer_address: "123 Main St, Vancouver BC",
     customer_secondary_owner_name: "John Smith",
     customer_secondary_phone: "5559876543",
@@ -67,6 +69,7 @@ const EXAMPLE_ROWS: ImportExportRow[] = [
     customer_owner_name: "Jane Smith",
     customer_phone: "5551234567",
     customer_email: "",
+    customer_billing_email: "",
     customer_address: "",
     customer_secondary_owner_name: "",
     customer_secondary_phone: "",
@@ -84,6 +87,7 @@ const EXAMPLE_ROWS: ImportExportRow[] = [
     customer_owner_name: "Alex Rivera",
     customer_phone: "5555550100",
     customer_email: "alex@example.com",
+    customer_billing_email: "",
     customer_address: "456 Oak Ave, Burnaby BC",
     customer_secondary_owner_name: "",
     customer_secondary_phone: "",
@@ -111,6 +115,7 @@ type CustomerExport = {
   owner_name: string;
   phone: string;
   email: string | null;
+  billing_email?: string | null;
   address: string;
   secondary_owner_name: string | null;
   secondary_phone: string | null;
@@ -158,6 +163,7 @@ export function buildExportCsvFromData(
       customer_owner_name: customer.owner_name,
       customer_phone: customer.phone,
       customer_email: customer.email ?? "",
+      customer_billing_email: customer.billing_email ?? "",
       customer_address: customer.address,
       customer_secondary_owner_name: customer.secondary_owner_name ?? "",
       customer_secondary_phone: customer.secondary_phone ?? "",
@@ -193,6 +199,7 @@ function customerToRow(customer: CustomerExport): ImportExportRow {
     customer_owner_name: customer.owner_name,
     customer_phone: customer.phone,
     customer_email: customer.email ?? "",
+    customer_billing_email: customer.billing_email ?? "",
     customer_address: customer.address,
     customer_secondary_owner_name: customer.secondary_owner_name ?? "",
     customer_secondary_phone: customer.secondary_phone ?? "",

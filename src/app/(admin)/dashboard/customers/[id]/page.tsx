@@ -18,7 +18,7 @@ export default async function EditCustomerPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data }, { data: dogs }] = await Promise.all([
+  const [{ data }, { data: dogs }, billingColumn] = await Promise.all([
     supabase
       .from("customers")
       .select("*")
@@ -33,6 +33,7 @@ export default async function EditCustomerPage({
       .eq("customer_id", id)
       .eq("company_id", profile.company_id)
       .order("name"),
+    supabase.from("customers").select("billing_email").eq("id", id).limit(1),
   ]);
 
   if (!data) notFound();
@@ -109,7 +110,7 @@ export default async function EditCustomerPage({
         )}
       </Card>
 
-      <CustomerForm customer={customer} />
+        <CustomerForm customer={customer} billingEmailAvailable={!billingColumn.error} />
     </div>
   );
 }

@@ -72,6 +72,17 @@ export default async function SmsHistoryPage() {
     .order("created_at", { ascending: false })
     .limit(100);
 
+  const { data: emailRows } = await supabase
+    .from("notification_log")
+    .select(
+      "id, notification_type, body, status, created_at, customers ( owner_name )"
+    )
+    .eq("company_id", profile.company_id)
+    .eq("channel", "email")
+    .order("created_at", { ascending: false })
+    .limit(30);
+  const emails = emailRows ?? [];
+
   const { data: unsentRows } = await supabase
     .from("notification_log")
     .select("id, notification_type, body, status, error_message, created_at, customers ( owner_name )")
@@ -99,10 +110,10 @@ export default async function SmsHistoryPage() {
     <div>
       <PageHeader
         title="Texts sent"
-        description="Inbound and outbound text messages."
+        description="Inbound and outbound texts, plus invoice emails."
       />
 
-      {!messages?.length && !unsent.length ? (
+      {!messages?.length && !unsent.length && !emails?.length ? (
         <EmptyState message="No SMS messages yet. Messages appear here when drivers send updates or customers reply." />
       ) : null}
 
@@ -138,6 +149,30 @@ export default async function SmsHistoryPage() {
               </div>
             );
           })}
+        </div>
+      ) : null}
+
+      {emails.length ? (
+        <div className="mt-8 space-y-2">
+          <h2 className="text-sm font-semibold text-stone-800">Invoice emails</h2>
+          {emails.map((note) => (
+            <div
+              key={note.id}
+              className="rounded-lg border border-stone-200 bg-white px-4 py-3 text-sm"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge>Email</Badge>
+                <Badge tone={smsStatusTone(note.status)}>{note.status}</Badge>
+                <span className="ml-auto text-xs text-stone-500">
+                  {formatDateTimeInTimezone(note.created_at, timeZone)}
+                </span>
+              </div>
+              <p className="mt-2 whitespace-pre-wrap text-stone-800">{note.body}</p>
+              <p className="mt-1 text-xs text-stone-500">
+                {one(note.customers)?.owner_name ?? "Unknown"}
+              </p>
+            </div>
+          ))}
         </div>
       ) : null}
 

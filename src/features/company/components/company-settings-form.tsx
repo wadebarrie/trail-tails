@@ -18,6 +18,8 @@ export function CompanySettingsForm({
   smsMode = "live",
   smsTestPhone = "",
   smsLiveApproved = true,
+  testEmailAvailable = false,
+  testEmail = "",
   paymentSettingsAvailable = false,
   etransferEmail = "",
   etransferRecipientName = "",
@@ -35,6 +37,8 @@ export function CompanySettingsForm({
   smsMode?: "test" | "live";
   smsTestPhone?: string;
   smsLiveApproved?: boolean;
+  testEmailAvailable?: boolean;
+  testEmail?: string;
   paymentSettingsAvailable?: boolean;
   etransferEmail?: string;
   etransferRecipientName?: string;
@@ -241,6 +245,28 @@ export function CompanySettingsForm({
           placeholder="+1 604 555 0100"
           className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
         />
+        {testEmailAvailable ? (
+          <>
+            <label
+              htmlFor="test_email"
+              className="mt-4 block text-sm font-medium text-stone-700"
+            >
+              Test email for invoices
+            </label>
+            <p className="mt-0.5 text-xs text-stone-500">
+              In test mode, invoice emails go here instead of the customer. Leave
+              blank to skip email.
+            </p>
+            <input
+              id="test_email"
+              name="test_email"
+              type="email"
+              defaultValue={testEmail}
+              placeholder="you@example.com"
+              className="mt-2 w-full rounded-lg border border-stone-300 px-3 py-2"
+            />
+          </>
+        ) : null}
         <label className="mt-3 flex items-start gap-2 text-sm text-stone-700">
           <input type="checkbox" name="sms_customer_consent" value="yes" className="mt-1" />
           <span>Customers have agreed to receive schedule texts from this company.</span>
