@@ -47,8 +47,8 @@ export function DogWalkingSoftwarePageContent() {
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Built for adventure dog hiking teams, pack walks, and group dog
-            walking routes — not generic pet sitting, consumer marketplaces, or
-            a full CRM/invoicing suite.
+            walking routes — a lighter Canadian alternative to broad pet-care
+            suites, not a consumer marketplace or boarding system.
           </p>
           <div className="mt-8">
             <CtaButtons />
@@ -110,18 +110,15 @@ export function DogWalkingSoftwarePageContent() {
         <section className="border-b border-stone-200/80 bg-[var(--color-trail-50)] py-16 sm:py-20">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)]">
-              Ops and SMS vs CRM and invoicing
+              Ops and SMS first — billing that follows the hikes
             </h2>
             <p className="mt-4 text-stone-600">
-              A dedicated logistics product won&apos;t necessarily have the depth
-              of invoicing, CRM, and business administration you&apos;d get from
-              mature pet-care platforms — and PackRoute is clear about that
-              tradeoff. We own proactive customer SMS, multi-driver routes, and
-              the driver phone workflow, then export completed hikes as CSV for
-              QuickBooks or your existing billing. If you need deep owner CRM,
-              photo visit reports, or in-app invoicing, keep Time to Pet (or
-              similar) for that layer and use PackRoute for the field day and
-              owner texts.
+              PackRoute owns proactive customer SMS, multi-driver routes, group
+              hike time slots, and the driver phone workflow. Completed hikes
+              export as CSV for QuickBooks, Xero, or e-Transfer today, and
+              built-in CAD invoicing is on the roadmap. Hiking and walking teams
+              get a lighter Canadian product without paying for boarding and
+              pet-sitting workflows they do not use.
             </p>
             <p className="mt-4 text-sm text-stone-500">
               See also our{" "}

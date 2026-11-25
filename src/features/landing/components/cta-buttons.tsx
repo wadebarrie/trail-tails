@@ -6,12 +6,6 @@ import {
   landingSecondaryDarkClassName,
   landingSecondaryLightClassName,
 } from "@/features/admin/components/button-styles";
-import { ContactEmailButton } from "@/features/landing/components/contact-email-button";
-import { ContactEmailFallback } from "@/features/landing/components/contact-email-fallback";
-import {
-  DEMO_EMAIL_SUBJECT,
-  WAITLIST_EMAIL_SUBJECT,
-} from "@/features/landing/contact-email-actions";
 import { trackEvent } from "@/features/landing/analytics";
 
 function primaryButtonClasses() {
@@ -54,51 +48,48 @@ export function CtaButtons({
       ? "flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center"
       : "flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center";
 
-  const fallbackClassName = align === "center" ? "mt-3 text-center" : "mt-3";
-
   return (
-    <div>
-      <div className={rowClassName}>
-        {showStartTrial ? (
-          <Link
-            href="/signup"
-            className={resolvedPrimaryClassName}
-            onClick={() => trackEvent("start_trial", { location: "cta" })}
-          >
-            Start free trial
-          </Link>
-        ) : (
-          <ContactEmailButton
-            subject={DEMO_EMAIL_SUBJECT}
-            label={primary}
-            className={resolvedPrimaryClassName}
-            eventName="book_demo"
-            eventLocation="cta"
-          />
-        )}
-        {showStartTrial ? (
-          <ContactEmailButton
-            subject={DEMO_EMAIL_SUBJECT}
-            label="Book a demo"
-            className={resolvedSecondaryClassName}
-            eventName="book_demo"
-            eventLocation="cta_secondary"
-          />
-        ) : showEarlyAccess ? (
-          <ContactEmailButton
-            subject={WAITLIST_EMAIL_SUBJECT}
-            label="Get early access"
-            className={resolvedSecondaryClassName}
-            eventName="early_access"
-            eventLocation="cta"
-          />
-        ) : showHowItWorks ? (
-          <Link href="/#how-it-works" className={resolvedSecondaryClassName}>
-            See how it works
-          </Link>
-        ) : null}
-      </div>
-      <ContactEmailFallback variant={variant} className={fallbackClassName} />
+    <div className={rowClassName}>
+      {showStartTrial ? (
+        <Link
+          href="/signup"
+          className={resolvedPrimaryClassName}
+          onClick={() => trackEvent("start_trial", { location: "cta" })}
+        >
+          Start free trial
+        </Link>
+      ) : (
+        <Link
+          href="/demo"
+          className={resolvedPrimaryClassName}
+          onClick={() => trackEvent("book_demo", { location: "cta" })}
+        >
+          {primary}
+        </Link>
+      )}
+      {showStartTrial ? (
+        <Link
+          href="/demo"
+          className={resolvedSecondaryClassName}
+          onClick={() =>
+            trackEvent("book_demo", { location: "cta_secondary" })
+          }
+        >
+          Book a demo
+        </Link>
+      ) : showEarlyAccess ? (
+        <Link
+          href="/contact"
+          className={resolvedSecondaryClassName}
+          onClick={() => trackEvent("early_access", { location: "cta" })}
+        >
+          Get early access
+        </Link>
+      ) : showHowItWorks ? (
+        <Link href="/#how-it-works" className={resolvedSecondaryClassName}>
+          See how it works
+        </Link>
+      ) : null}
     </div>
   );
 }

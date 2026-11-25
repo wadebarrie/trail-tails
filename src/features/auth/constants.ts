@@ -38,6 +38,7 @@ export function getSafeRedirect(role: UserRole, next?: string): string {
 export const PUBLIC_PATHS = new Set([
   "/",
   "/contact",
+  "/demo",
   "/pricing",
   "/dog-walking-software",
   "/adventure-dog-hiking-software",
@@ -65,10 +66,31 @@ export const PUBLIC_METADATA_PATHS = new Set([
   "/llms.txt",
 ]);
 
+/**
+ * App routes that require a signed-in user. Everything else is public so
+ * unknown URLs can return a real 404 instead of a soft login redirect.
+ */
+export const PROTECTED_PREFIXES = [
+  AUTH_ROUTES.adminHome,
+  ...DRIVER_PATH_PREFIXES,
+  ...PLATFORM_PATH_PREFIXES,
+  "/subscription-inactive",
+  "/api/admin",
+  "/api/import",
+  "/api/billing",
+  "/api/auth",
+] as const;
+
 export function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (PUBLIC_METADATA_PATHS.has(pathname)) return true;
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+export function isProtectedPath(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
 }
 
 export function isAdminPath(pathname: string): boolean {

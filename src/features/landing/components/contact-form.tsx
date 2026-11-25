@@ -10,9 +10,19 @@ type ContactFormProps = {
   /** Light background (contact page) or dark section (landing CTA). */
   variant?: "light" | "dark";
   className?: string;
+  /** Formspree / email subject line. */
+  subject?: string;
+  messagePlaceholder?: string;
+  submitLabel?: string;
 };
 
-export function ContactForm({ variant = "light", className = "" }: ContactFormProps) {
+export function ContactForm({
+  variant = "light",
+  className = "",
+  subject = "PackRoute contact form",
+  messagePlaceholder = "Tell us about your operation — demo, early access, or a question.",
+  submitLabel = "Send message",
+}: ContactFormProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -71,7 +81,7 @@ export function ContactForm({ variant = "light", className = "" }: ContactFormPr
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-4 text-left ${className}`}>
-      <input type="hidden" name="_subject" value="PackRoute contact form" />
+      <input type="hidden" name="_subject" value={subject} />
 
       {error ? <p className={errorClass}>{error}</p> : null}
       {success ? (
@@ -118,7 +128,7 @@ export function ContactForm({ variant = "light", className = "" }: ContactFormPr
           name="message"
           rows={4}
           required
-          placeholder="Tell us about your operation — demo, early access, or a question."
+          placeholder={messagePlaceholder}
           className={inputClass}
         />
       </div>
@@ -136,7 +146,7 @@ export function ContactForm({ variant = "light", className = "" }: ContactFormPr
       </p>
 
       <button type="submit" disabled={pending} className={buttonClass}>
-        {pending ? "Sending…" : "Send message"}
+        {pending ? "Sending…" : submitLabel}
       </button>
     </form>
   );

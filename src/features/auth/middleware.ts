@@ -10,6 +10,7 @@ import {
   isAdminPath,
   isDriverPath,
   isPlatformPath,
+  isProtectedPath,
   isPublicPath,
 } from "@/features/auth/constants";
 import { isSubscriptionExemptPath } from "@/features/subscription/access-paths";
@@ -69,6 +70,13 @@ export async function handleAuth(request: NextRequest) {
         return redirectTo(request, getHomeRouteForRole(profile.role));
       }
     }
+    return supabaseResponse;
+  }
+
+  // Unknown marketing/app paths fall through to Next.js not-found (HTTP 404).
+  // Only known app prefixes require a session.
+  if (!isProtectedPath(pathname)) {
+    timer.end();
     return supabaseResponse;
   }
 

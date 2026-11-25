@@ -5,7 +5,8 @@
  * 2 hike-days/week. Dog caps keep SMS COGS near ~20–25% of list price.
  */
 
-export const PRICING_CURRENCY = "USD";
+/** Public list prices are Canadian dollars. */
+export const PRICING_CURRENCY = "CAD";
 
 export type PricingTierId = "one_hiker" | "two_hikers" | "three_plus";
 
@@ -26,7 +27,7 @@ export const PRICING_TIERS: readonly PricingTier[] = [
     id: "one_hiker",
     name: "One driver",
     priceMonthly: 99,
-    priceLabel: "$99/month",
+    priceLabel: "CA$99/month",
     hikers: "1 driver on the road",
     dogs: "Up to 20 active dogs a week",
   },
@@ -35,7 +36,7 @@ export const PRICING_TIERS: readonly PricingTier[] = [
     name: "Two drivers",
     badge: "Most common",
     priceMonthly: 179,
-    priceLabel: "$179/month",
+    priceLabel: "CA$179/month",
     hikers: "2 drivers",
     dogs: "Up to 40 active dogs a week",
     highlight: true,
@@ -44,7 +45,7 @@ export const PRICING_TIERS: readonly PricingTier[] = [
     id: "three_plus",
     name: "Three+ drivers",
     priceMonthly: 299,
-    priceLabel: "$299/month",
+    priceLabel: "CA$299/month",
     hikers: "3+ drivers, multi-route mornings",
     dogs: "Up to 70 active dogs a week",
   },
@@ -53,10 +54,10 @@ export const PRICING_TIERS: readonly PricingTier[] = [
 /** Shared on every tier — capacity is what changes. */
 export const PRICING_INCLUDED_FEATURES = [
   "Automated customer SMS — reminders, ETAs, pickup and drop-off updates",
-  "Pickup route planning and driver Today view",
+  "Pickup route planning, group hike time slots, and driver Today view",
   "Unlimited office logins",
   "Schedule-change texts with office approval",
-  "Completed-hike CSV export for QuickBooks, Xero, or your billing process",
+  "Completed-hike CSV export today; built-in invoicing coming soon",
   "Onboarding screenshare + email support",
 ] as const;
 
@@ -104,7 +105,11 @@ export const PRICING_FAQ = [
   },
   {
     q: "Do you handle customer invoicing and payments?",
-    a: "No. PackRoute is built around proactive customer SMS, with routes and drivers to make those texts accurate. Every plan includes completed-hike CSV export so you can bill in QuickBooks, Xero, or your own process. Live QuickBooks Online and Xero sync are optional paid add-ons — ask us when you are ready and we will enable them for your company.",
+    a: "Today every plan includes completed-hike CSV export so you can bill in QuickBooks, Xero, or e-Transfer. Built-in invoicing and CAD payments are on the roadmap. Live QuickBooks Online and Xero sync are optional paid add-ons when you want them.",
+  },
+  {
+    q: "Is PackRoute priced in Canadian dollars?",
+    a: "Yes. Public pricing is in CAD. First month free after a short demo, then pick the driver tier that fits your team.",
   },
   {
     q: "Do you integrate with QuickBooks or Xero?",
