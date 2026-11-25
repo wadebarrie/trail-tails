@@ -13,7 +13,9 @@ import {
   galleryWhenLabel,
   type GalleryDeliveryRow,
 } from "@/features/hike-photos/gallery-sms-rules";
-import { findRecentOutboundSms } from "@/lib/twilio";
+import { findRecentOutboundSms, getSmsRedirectTo } from "@/lib/twilio";
+import { abandonedLookupAllowsRetry, galleryWireMessage } from "@/lib/twilio/outcome";
+import { listCustomerContacts } from "@/lib/customer-contacts";
 import { logErrorFromException, logWarn } from "@/lib/logger";
 
 export type GallerySmsResult = {
@@ -404,6 +406,8 @@ async function claimGallerySend(
     await markGalleryClaim(companyId, customerId, hikeDate, "sent");
     return "taken";
   }
+  // An error or a miss in the last page of messages is not proof it failed.
+  if (!abandonedLookupAllowsRetry(delivery)) return "taken";
 
   const { data: reclaimed } = await supabase
     .from("hike_photo_gallery_sends")
@@ -438,24 +442,39 @@ async function confirmAbandonedGallerySend(
 
   if ((notes ?? []).some((note) => note.status === "sent")) return "sent";
 
-  const body = (notes ?? []).find((note) => note.body)?.body as string | undefined;
-  if (!body) return "unknown";
+  const loggedBody = (notes ?? []).find((note) => note.body)?.body as
+    | string
+    | undefined;
+  if (!loggedBody) return "unknown";
 
   const { data: customer } = await supabase
     .from("customers")
-    .select("phone, secondary_phone")
+    .select("owner_name, phone, secondary_owner_name, secondary_phone")
     .eq("id", customerId)
     .maybeSingle();
-  const phones = [customer?.phone, customer?.secondary_phone]
-    .map((phone) => (typeof phone === "string" ? phone.trim() : ""))
-    .filter(Boolean);
-  if (!phones.length) return "unknown";
+  if (!customer) return "unknown";
 
+  const contacts = listCustomerContacts({
+    owner_name: (customer.owner_name as string) ?? "",
+    phone: (customer.phone as string) ?? "",
+    secondary_owner_name: (customer.secondary_owner_name as string | null) ?? null,
+    secondary_phone: (customer.secondary_phone as string | null) ?? null,
+  });
+  if (!contacts.length) return "unknown";
+
+  const redirectTo = getSmsRedirectTo();
   let sawFailure = false;
-  for (const phone of phones) {
-    const lookedUp = await findRecentOutboundSms(phone, body);
+  for (const contact of contacts) {
+    const wire = galleryWireMessage({
+      phone: contact.phone,
+      ownerName: contact.ownerName,
+      loggedBody,
+      redirectTo,
+    });
+    const lookedUp = await findRecentOutboundSms(wire.to, wire.body);
     if (lookedUp.outcome === "sent") return "sent";
-    if (lookedUp.outcome === "failed") sawFailure = true;
+    if (lookedUp.outcome === "unknown") return "unknown";
+    sawFailure = true;
   }
   return sawFailure ? "failed" : "unknown";
 }

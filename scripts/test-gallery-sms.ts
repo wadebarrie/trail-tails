@@ -15,7 +15,9 @@ import {
   saneImageDimensions,
 } from "../src/features/hike-photos/compress-image";
 import {
+  abandonedLookupAllowsRetry,
   fetchFailureOutcome,
+  galleryWireMessage,
   outboundBodyMatches,
   smsAbortTimeoutMs,
   twilioMessageIsAccepted,
@@ -174,13 +176,38 @@ test("only a failed gallery claim can be retried immediately", () => {
   );
 });
 
-test("gallery texts abort; driver texts do not", () => {
+test("gallery texts abort sooner; driver texts use a 15–20s cap", () => {
   assert.equal(smsAbortTimeoutMs("hike_photos"), 8_000);
-  assert.equal(smsAbortTimeoutMs("dropped_off"), null);
-  assert.equal(smsAbortTimeoutMs("en_route"), null);
+  const driver = smsAbortTimeoutMs("dropped_off");
+  assert.ok(driver >= 15_000 && driver <= 20_000);
+  assert.equal(smsAbortTimeoutMs("en_route"), driver);
   assert.equal(fetchFailureOutcome("TimeoutError"), "unknown");
   assert.equal(fetchFailureOutcome("AbortError"), "unknown");
   assert.equal(fetchFailureOutcome("Error"), "failed");
+});
+
+test("abandoned lookup uses the redirected To and prefixed body", () => {
+  const logged = "Daisy had a great hike today! See the pics: https://packroute.app/p/abc";
+  const wire = galleryWireMessage({
+    phone: "+16045550100",
+    ownerName: "Rachel Kim",
+    loggedBody: logged,
+    redirectTo: "+16045559999",
+  });
+  assert.equal(wire.to, "+16045559999");
+  assert.equal(wire.body, `[Rachel] ${logged}`);
+  assert.equal(
+    galleryWireMessage({
+      phone: "+16045550100",
+      ownerName: "Rachel Kim",
+      loggedBody: logged,
+      redirectTo: null,
+    }).to,
+    "+16045550100"
+  );
+  assert.equal(abandonedLookupAllowsRetry("failed"), true);
+  assert.equal(abandonedLookupAllowsRetry("unknown"), false);
+  assert.equal(abandonedLookupAllowsRetry("sent"), false);
 });
 
 test("a test-redirect prefix still matches the logged text", () => {

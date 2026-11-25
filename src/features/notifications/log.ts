@@ -4,7 +4,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logError, logErrorFromException, logWarn } from "@/lib/logger";
 import { perfAsync } from "@/lib/perf";
 import { findRecentOutboundSms, getSmsRedirectTo, getTwilioConfig, sendSms } from "@/lib/twilio";
-import { smsAbortTimeoutMs } from "@/lib/twilio/outcome";
+import { resolveSmsDelivery, smsAbortTimeoutMs } from "@/lib/twilio/outcome";
 import type { NotificationType } from "@/types";
 
 type NotificationBody = string | ((ownerName: string) => string);
@@ -46,19 +46,22 @@ async function resolveDogName(dogId: string | undefined): Promise<string | null>
   return data?.name ?? null;
 }
 
-function resolveSmsDelivery(
+function smsDeliveryForContact(
   customerPhone: string,
   ownerName: string,
   dogName: string | null
 ): { to: string; body: string; redirected: boolean } {
-  const redirectTo = getSmsRedirectTo();
-  if (!redirectTo) {
-    return { to: customerPhone, body: "", redirected: false };
-  }
-
-  const label = [ownerName.split(" ")[0], dogName].filter(Boolean).join(" / ");
-  const prefix = label ? `[${label}] ` : "[TEST] ";
-  return { to: redirectTo, body: prefix, redirected: true };
+  const delivery = resolveSmsDelivery(
+    customerPhone,
+    ownerName,
+    dogName,
+    getSmsRedirectTo()
+  );
+  return {
+    to: delivery.to,
+    body: delivery.bodyPrefix,
+    redirected: delivery.redirected,
+  };
 }
 
 function smsContext(input: LogNotificationInput, extra?: Record<string, unknown>) {
@@ -187,7 +190,7 @@ async function sendNotificationToContact(
     return "failed";
   }
 
-  const delivery = resolveSmsDelivery(contact.phone, contact.ownerName, dogName);
+  const delivery = smsDeliveryForContact(contact.phone, contact.ownerName, dogName);
   const smsBody = delivery.body + smsBodyText;
   const result = await sendSms(delivery.to, smsBody, {
     timeoutMs: smsAbortTimeoutMs(input.notificationType),
