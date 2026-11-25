@@ -143,13 +143,16 @@ export default async function HikePhotosPage({
                   <li key={photo.id}>
                     <Card className="!p-3">
                       {photo.signedUrl ? (
-                        <a href={photo.signedUrl} target="_blank" rel="noreferrer">
+                        <a href={photo.signedUrl} target="_blank" rel="noreferrer" className="block">
                           <img
                             src={photo.signedUrl}
                             alt={photo.caption ?? "Hike photo"}
                             loading="lazy"
-                            className="aspect-[4/3] w-full rounded-[var(--radius-surface)] object-cover"
+                            className="aspect-[4/3] w-full rounded-[var(--radius-surface)] bg-stone-100 object-contain"
                           />
+                          <span className="mt-1 block text-xs font-medium text-[var(--color-trail-700)]">
+                            View full photo
+                          </span>
                         </a>
                       ) : (
                         <div className="flex aspect-[4/3] items-center justify-center rounded-[var(--radius-surface)] bg-stone-100 text-sm text-stone-500">

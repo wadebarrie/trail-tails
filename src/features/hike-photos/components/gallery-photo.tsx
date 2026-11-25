@@ -18,7 +18,7 @@ export function GalleryPhoto({
   return (
     <li>
       <a href={src} target="_blank" rel="noreferrer" className="block">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-stone-200">
+        <div className="relative flex min-h-40 items-center justify-center overflow-hidden rounded-xl bg-stone-100">
           {!loaded ? (
             <div
               className="absolute inset-0 animate-pulse bg-stone-200"
@@ -31,7 +31,7 @@ export function GalleryPhoto({
             alt={alt}
             loading="lazy"
             onLoad={() => setLoaded(true)}
-            className={`h-full w-full object-cover transition-opacity duration-300 ${
+            className={`max-h-[85vh] w-full object-contain transition-opacity duration-300 ${
               loaded ? "opacity-100" : "opacity-0"
             }`}
           />
