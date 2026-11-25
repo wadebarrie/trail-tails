@@ -2,6 +2,8 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logErrorFromException, logInfo } from "@/lib/logger";
 import { getDateInTimezone, getUtcBoundsForLocalDate } from "@/lib/dates";
 import {
+  nightBeforeBudgetExhausted,
+  nightBeforeConfirmPlan,
   nightBeforePhonesToSend,
   nightBeforePriorDecision,
   nightBeforeSendDecision,
@@ -51,6 +53,10 @@ async function deliverNightBeforeReminders(
   reminderTime: string,
   at: Date
 ): Promise<{ skipped: true; reason: string } | { sent: number }> {
+  if (nightBeforeBudgetExhausted(smsBudgetRemaining())) {
+    return { skipped: true as const, reason: "budget" };
+  }
+
   const today = getDateInTimezone(timeZone, 0);
   const tomorrow = getDateInTimezone(timeZone, 1);
   const decision = nightBeforeSendDecision(timeZone, reminderTime, at);
@@ -211,42 +217,6 @@ async function deliverNightBeforeReminders(
       await dismissBudgetSkips(supabase, (priorRows ?? []) as NightBeforeLogRow[]);
       continue;
     }
-    if (prior === "confirm") {
-      const pendingRow = (priorRows ?? []).find(
-        (row) =>
-          row.status === "pending" &&
-          !(row.error_message ?? "").includes("budget exhausted")
-      );
-      const loggedBody = pendingRow?.body as string | undefined;
-      const sentAfter = pendingRow?.created_at
-        ? new Date(pendingRow.created_at as string)
-        : undefined;
-      const confirmed = loggedBody
-        ? await confirmPendingNightBefore(
-            supabase,
-            customerId,
-            loggedBody,
-            sentAfter
-          )
-        : "unknown";
-      if (confirmed === "sent") {
-        const pendingIds = (priorRows ?? [])
-          .filter(
-            (row) =>
-              row.status === "pending" &&
-              !(row.error_message ?? "").includes("budget exhausted")
-          )
-          .map((row) => row.id as string);
-        if (pendingIds.length) {
-          await supabase
-            .from("notification_log")
-            .update({ status: "sent" })
-            .in("id", pendingIds);
-        }
-        continue;
-      }
-      if (confirmed !== "failed") continue;
-    }
 
     const sameWindow = windows.every(
       (w) => w.start === windows[0].start && w.end === windows[0].end
@@ -274,6 +244,28 @@ async function deliverNightBeforeReminders(
       typeof body === "function" ? body("Owner") : body;
     const contacts = await loadNightBeforeContacts(supabase, customerId);
     if (!contacts.length) continue;
+    const bodyFor = (ownerName: string) =>
+      typeof body === "function" ? body(ownerName) : previewBody;
+    const logRows = (priorRows ?? []) as NightBeforeLogRow[];
+    const confirmed =
+      prior === "confirm"
+        ? await confirmUnconfirmedContacts(logRows, contacts, bodyFor)
+        : {
+            sentRowIds: [] as string[],
+            retryPhones: [] as string[],
+            holdPhones: [] as string[],
+            sentPhones: [] as string[],
+          };
+    if (confirmed.sentRowIds.length) {
+      await supabase
+        .from("notification_log")
+        .update({ status: "sent" })
+        .in("id", confirmed.sentRowIds);
+      for (const row of logRows) {
+        if (confirmed.sentRowIds.includes(row.id)) row.status = "sent";
+      }
+    }
+
     const targets = nightBeforePhonesToSend({
       contacts,
       rows: (priorRows ?? []).map((row) => ({
@@ -281,11 +273,12 @@ async function deliverNightBeforeReminders(
         errorMessage: (row.error_message as string | null) ?? null,
         body: (row.body as string) ?? "",
       })),
-      bodyFor: (ownerName) =>
-        typeof body === "function" ? body(ownerName) : previewBody,
+      bodyFor,
     });
     let onlyPhones = targets.phones;
-    if (targets.ambiguous) {
+    if (prior === "confirm" && targets.ambiguous) {
+      onlyPhones = confirmed.retryPhones;
+    } else if (targets.ambiguous) {
       const looked = await phonesAbsentSince(
         contacts,
         typeof body === "function" ? body : () => previewBody,
@@ -301,8 +294,19 @@ async function deliverNightBeforeReminders(
         }
         continue;
       }
-    } else if (!onlyPhones.length) {
-      await dismissBudgetSkips(supabase, (priorRows ?? []) as NightBeforeLogRow[]);
+    } else if (!onlyPhones.length && !confirmed.retryPhones.length) {
+      await dismissBudgetSkips(supabase, logRows);
+      continue;
+    }
+    const alreadyDecided = new Set([
+      ...confirmed.holdPhones,
+      ...confirmed.sentPhones,
+    ]);
+    onlyPhones = [...new Set([...onlyPhones, ...confirmed.retryPhones])].filter(
+      (phone) => !alreadyDecided.has(phone)
+    );
+    if (!onlyPhones.length) {
+      await dismissBudgetSkips(supabase, logRows);
       continue;
     }
 
@@ -325,49 +329,88 @@ async function deliverNightBeforeReminders(
   return { sent };
 }
 
-async function confirmPendingNightBefore(
-  supabase: ReturnType<typeof createServiceClient>,
-  customerId: string,
-  loggedBody: string,
-  sentAfter?: Date
-): Promise<"sent" | "failed" | "unknown"> {
-  const { data: customer } = await supabase
-    .from("customers")
-    .select("owner_name, phone, secondary_owner_name, secondary_phone")
-    .eq("id", customerId)
-    .maybeSingle();
-  if (!customer) return "unknown";
-
-  const contacts = listCustomerContacts({
-    owner_name: (customer.owner_name as string) ?? "",
-    phone: (customer.phone as string) ?? "",
-    secondary_owner_name: (customer.secondary_owner_name as string | null) ?? null,
-    secondary_phone: (customer.secondary_phone as string | null) ?? null,
+async function confirmUnconfirmedContacts(
+  rows: NightBeforeLogRow[],
+  contacts: { phone: string; ownerName: string }[],
+  bodyFor: (ownerName: string) => string
+): Promise<{
+  sentRowIds: string[];
+  retryPhones: string[];
+  holdPhones: string[];
+  sentPhones: string[];
+}> {
+  const plan = nightBeforeConfirmPlan({
+    contacts,
+    rows: rows.map((row) => ({
+      id: row.id,
+      status: row.status,
+      errorMessage: row.error_message,
+      body: row.body ?? "",
+      createdAt: row.created_at,
+    })),
+    bodyFor,
   });
-  if (!contacts.length) return "unknown";
+  const sentRowIds: string[] = [];
+  const retryPhones: string[] = [];
+  const holdPhones: string[] = [];
+  const sentPhones: string[] = [];
 
-  const redirectTo = getSmsRedirectTo();
-  let sawFailure = false;
-  for (const contact of contacts) {
-    const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
-    if (timeout == null) return "unknown";
-    const wire = galleryWireMessage({
-      phone: contact.phone,
-      ownerName: contact.ownerName,
-      loggedBody,
-      redirectTo,
-    });
-    const lookedUp = await findRecentOutboundSms(
-      wire.to,
-      wire.body,
-      timeout,
-      sentAfter
+  for (const match of plan.unique) {
+    const outcome = await lookupNightBeforeContact(
+      { phone: match.phone, ownerName: match.ownerName },
+      match.body,
+      match.createdAt
     );
-    if (lookedUp.outcome === "sent") return "sent";
-    if (lookedUp.outcome !== "failed") return "unknown";
-    sawFailure = true;
+    if (outcome === "sent") {
+      sentRowIds.push(match.rowId);
+      sentPhones.push(match.phone);
+    } else if (outcome === "failed") retryPhones.push(match.phone);
+    else holdPhones.push(match.phone);
   }
-  return sawFailure ? "failed" : "unknown";
+
+  for (const group of plan.shared) {
+    const outcomes: ("sent" | "failed" | "unknown")[] = [];
+    for (const contact of group.contacts) {
+      const outcome = await lookupNightBeforeContact(
+        contact,
+        group.body,
+        group.createdAt
+      );
+      outcomes.push(outcome);
+      if (outcome === "sent") sentPhones.push(contact.phone);
+      else if (outcome === "failed") retryPhones.push(contact.phone);
+      else holdPhones.push(contact.phone);
+    }
+    if (outcomes.length > 0 && outcomes.every((outcome) => outcome === "sent")) {
+      sentRowIds.push(...group.rowIds);
+    }
+  }
+
+  return { sentRowIds, retryPhones, holdPhones, sentPhones };
+}
+
+async function lookupNightBeforeContact(
+  contact: { phone: string; ownerName: string },
+  loggedBody: string,
+  createdAt?: string
+): Promise<"sent" | "failed" | "unknown"> {
+  const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
+  if (timeout == null) return "unknown";
+  const wire = galleryWireMessage({
+    phone: contact.phone,
+    ownerName: contact.ownerName,
+    loggedBody,
+    redirectTo: getSmsRedirectTo(),
+  });
+  const lookedUp = await findRecentOutboundSms(
+    wire.to,
+    wire.body,
+    timeout,
+    createdAt ? new Date(createdAt) : undefined
+  );
+  if (lookedUp.outcome === "sent") return "sent";
+  if (lookedUp.outcome === "failed") return "failed";
+  return "unknown";
 }
 
 export async function runNightBeforeCron(): Promise<
@@ -387,6 +430,10 @@ async function runNightBeforeCronNow(): Promise<
   const results: { companyId: string; sent?: number; skipped?: string }[] = [];
 
   for (const company of companies ?? []) {
+    if (nightBeforeBudgetExhausted(smsBudgetRemaining())) {
+      results.push({ companyId: company.id, skipped: "budget" });
+      break;
+    }
     const timeZone = company.timezone ?? "America/Los_Angeles";
     const reminderTime =
       company.night_before_reminder_time ?? DEFAULT_NIGHT_BEFORE_REMINDER_TIME;

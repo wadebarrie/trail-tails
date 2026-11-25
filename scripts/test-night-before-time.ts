@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import {
+  nightBeforeBudgetExhausted,
+  nightBeforeConfirmPlan,
   nightBeforePhonesToSend,
   nightBeforePriorDecision,
   nightBeforeSendDecision,
@@ -145,6 +147,70 @@ test("identical bodies are not guessed", () => {
     bodyFor: () => "Tomorrow: Daisy 8-10.",
   });
   assert.deepEqual(targets, { phones: [], ambiguous: true });
+});
+
+test("a company is skipped once under a second remains", () => {
+  assert.equal(nightBeforeBudgetExhausted(null), false);
+  assert.equal(nightBeforeBudgetExhausted(1000), false);
+  assert.equal(nightBeforeBudgetExhausted(999), true);
+  assert.equal(nightBeforeBudgetExhausted(0), true);
+});
+
+test("an unconfirmed row is confirmed for that contact only", () => {
+  const contacts = [
+    { phone: "+15551111", ownerName: "Rachel Lee" },
+    { phone: "+15552222", ownerName: "Sam Lee" },
+  ];
+  const bodyFor = (name: string) => `Hi ${name.split(" ")[0]}!`;
+  const plan = nightBeforeConfirmPlan({
+    contacts,
+    rows: [
+      {
+        id: "rachel",
+        status: "pending",
+        errorMessage: "Twilio send not confirmed",
+        body: "Hi Rachel!",
+        createdAt: "2026-11-25T03:00:00.000Z",
+      },
+      {
+        id: "sam",
+        status: "pending",
+        errorMessage: "Twilio send not confirmed",
+        body: "Hi Sam!",
+        createdAt: "2026-11-25T03:01:00.000Z",
+      },
+    ],
+    bodyFor,
+  });
+  assert.deepEqual(
+    plan.unique.map((match) => match.rowId),
+    ["rachel", "sam"]
+  );
+  assert.equal(plan.shared.length, 0);
+  assert.equal(plan.unique[0].phone, "+15551111");
+  assert.equal(plan.unique[1].phone, "+15552222");
+});
+
+test("a shared body is not paired to one contact", () => {
+  const plan = nightBeforeConfirmPlan({
+    contacts: [
+      { phone: "+15551111", ownerName: "Rachel Lee" },
+      { phone: "+15552222", ownerName: "Sam Lee" },
+    ],
+    rows: [
+      {
+        id: "a",
+        status: "pending",
+        errorMessage: "Twilio send not confirmed",
+        body: "Tomorrow: Daisy 8-10.",
+      },
+    ],
+    bodyFor: () => "Tomorrow: Daisy 8-10.",
+  });
+  assert.equal(plan.unique.length, 0);
+  assert.equal(plan.shared.length, 1);
+  assert.deepEqual(plan.shared[0].rowIds, ["a"]);
+  assert.equal(plan.shared[0].contacts.length, 2);
 });
 
 console.log("\nAll night-before time tests passed.");
