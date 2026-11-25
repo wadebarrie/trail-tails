@@ -7,20 +7,20 @@ import { DOG_WALKING_SOFTWARE_TITLE } from "@/lib/seo/metadata";
 
 const CAPABILITIES = [
   {
-    title: "Automated SMS ETAs — not WhatsApp chaos",
-    body: "Reminders, en-route ETAs, and pickup or drop-off confirmations send from driver status taps. Schedule requests go to the office first — so families stay informed without manual texts.",
+    title: "Hours back for the office",
+    body: "Stop answering “where's my dog?” and mediating WhatsApp. Reminders, ETAs, and pickup updates go out automatically from driver status taps.",
   },
   {
-    title: "Routes that keep those texts accurate",
-    body: "Build pickup routes, set stop order, and adjust today or tomorrow without rebuilding a Google Sheet every morning.",
+    title: "Customers who feel taken care of",
+    body: "Families get clear texts without chasing your team. Schedule requests still wait for office approval — no surprise route changes.",
   },
   {
-    title: "Multi-driver mornings that stay calm",
-    body: "Morning and afternoon routes, recurring dogs, as-needed bookings, and driver assignment — built for days when several vans hit the road.",
+    title: "Calm multi-driver mornings",
+    body: "Morning and afternoon routes, recurring dogs, as-needed bookings, and driver assignment — without rebuilding a Google Sheet every morning.",
   },
   {
-    title: "Driver workflow on the road",
-    body: "Drivers open Today, see what to do next, and tap through stops. Those taps trigger customer SMS — works in the mobile browser, no app store.",
+    title: "Drivers who just run the day",
+    body: "Drivers open Today, see what to do next, and tap through stops. Those taps trigger customer updates — mobile browser, no app store.",
   },
 ];
 
@@ -38,17 +38,15 @@ export function DogWalkingSoftwarePageContent() {
             {DOG_WALKING_SOFTWARE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            PackRoute keeps adventure dog hiking customers updated with
-            automated SMS — night-before reminders, ETAs, and pickup texts —
-            so families stop asking &ldquo;where is my dog?&rdquo; and drivers
-            stop living in WhatsApp. Routes and a mobile driver workflow make
-            those messages match the route day. It is for dog walking and
-            adventure hiking teams.
+            Stop living in group chats. PackRoute texts owners for you —
+            night-before reminders, ETAs, and pickup updates — so your office
+            gets time back and families always know what&apos;s going on. Built
+            for dog walking and adventure hiking teams.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
-            Built for adventure dog hiking teams, pack walks, and group dog
-            walking routes — a lighter Canadian alternative to broad pet-care
-            suites, not a consumer marketplace or boarding system.
+            A lighter Canadian alternative to broad pet-care suites — focused on
+            the people running the day, not a consumer marketplace or boarding
+            system.
           </p>
           <div className="mt-8">
             <CtaButtons />
@@ -58,11 +56,11 @@ export function DogWalkingSoftwarePageContent() {
         <section className="border-y border-stone-200/80 bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
-              Customer SMS first — routes and drivers that support it
+              Save time in the office. Keep customers happy.
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
-              For operators growing from one driver to a few vans —
-              roughly twenty to three hundred active dogs — who need dog walking
+              For operators growing from one driver to a few vans — roughly
+              twenty to three hundred active dogs — who need dog walking
               management software that matches how field days actually run.
             </p>
             <ul className="mt-10 grid gap-5 sm:grid-cols-2">
@@ -180,10 +178,11 @@ export function DogWalkingSoftwarePageContent() {
 
         <section className="bg-[var(--color-trail-700)] py-16 text-white sm:py-20">
           <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
-            <h2 className="text-3xl font-semibold">See PackRoute in action</h2>
+            <h2 className="text-3xl font-semibold">
+              Get hours back every week
+            </h2>
             <p className="mt-4 text-lg text-white/80">
-              Book a demo or ask a question — we&apos;ll reply within a business
-              day.
+              Book a demo — we&apos;ll reply within a business day.
             </p>
             <div className="mt-8">
               <CtaButtons variant="dark" align="center" />

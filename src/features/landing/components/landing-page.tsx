@@ -34,24 +34,24 @@ function FaqAnswer({ text }: { text: string }) {
 
 const FEATURES = [
   {
-    title: "Automated texts for your customers",
+    title: "Fewer “where's my dog?” calls",
     description:
-      "Night-before confirmations, en-route ETAs, and pickup or drop-off updates fire from driver taps — so families get answers without WhatsApp group chats or drivers texting each stop.",
+      "Night-before confirmations, en-route ETAs, and pickup updates go out automatically — so the office gets time back and families always know what's going on.",
   },
   {
-    title: "Routes that make those texts accurate",
+    title: "Office control without the busywork",
     description:
-        "Build daily pickup routes, assign drivers, manage recurring dogs, and adjust today or tomorrow — the ops layer so every SMS matches the route day.",
+      "Build pickup routes, assign drivers, manage recurring dogs, and approve schedule changes. You run the day; PackRoute handles the customer updates.",
   },
   {
-    title: "Driver workflow on mobile",
+    title: "Drivers just run the route",
     description:
-      "Drivers open Today on their phone, follow stops in order, and tap status updates. Those taps are what send customer texts — no app store download.",
+      "Drivers open Today on their phone, follow stops in order, and tap status. Those taps send the customer texts — no WhatsApp, no app store download.",
   },
   {
     title: "Billing that follows the hikes",
     description:
-      "Track completed hikes and export CSV for QuickBooks, Xero, or e-Transfer today. Built-in CAD invoicing is on the roadmap. Live QuickBooks Online and Xero sync are paid add-ons when you need them.",
+      "Track completed hikes and export CSV for QuickBooks, Xero, or e-Transfer today. Built-in CAD invoicing is on the roadmap.",
   },
 ] as const;
 
@@ -77,17 +77,16 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
           />
           <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24">
             <div>
-              <SectionLabel>For walking and hiking companies</SectionLabel>
+              <SectionLabel>
+                For dog walking and adventure hiking teams
+              </SectionLabel>
               <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-[var(--color-trail-800)] sm:text-5xl">
                 {HOME_H1}
               </h1>
               <p className="mt-5 max-w-xl text-lg text-stone-600">
-                Growing past one driver? PackRoute texts your customers for
-                you — night-before reminders, ETAs, and pickup updates — so the
-                office stops answering “where are you?” and drivers stop living
-                in WhatsApp. It works for dog walking and adventure hiking
-                teams. Routes and a simple mobile driver workflow make those
-                messages accurate.
+                PackRoute texts owners for you — night-before reminders, ETAs,
+                and pickup updates — so your office gets time back and families
+                always know what&apos;s going on.
               </p>
               <div className="mt-8">
                 <CtaButtons showStartTrial={showStartTrial} />
@@ -112,14 +111,13 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
         <section className="border-y border-[var(--glass-border-subtle)] surface-glass py-14 sm:py-16">
           <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
-              Built for adventure dog hiking teams
+              Built for the people running the day
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-stone-600">
-              Recurring dogs, multiple drivers, and last-minute skip
-              requests usually mean spreadsheet mornings and group-chat ETAs.
-              PackRoute keeps customers updated by automated SMS, with routes and
-              drivers behind the scenes — then exports completed hikes for the
-              billing tool you already use.
+              Recurring dogs, multiple drivers, and last-minute skip requests
+              usually mean spreadsheet mornings and group-chat ETAs. PackRoute
+              gives managers hours back and keeps customers feeling taken care
+              of — with routes and drivers behind the updates.
             </p>
           </div>
         </section>
@@ -130,22 +128,25 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
             <div className="max-w-2xl">
               <SectionLabel>How it works</SectionLabel>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-                Customers get the texts. Your team runs the day.
+                Save time in the office. Keep customers happy.
               </h2>
             </div>
             <div className="mt-10 grid gap-6 md:grid-cols-3">
               {[
                 {
-                  role: "Customer",
-                  body: "Automated SMS updates by text — reminders, ETAs, pickups. Schedule requests wait for office approval — no surprise route changes.",
+                  role: "What customers feel",
+                  initial: "C",
+                  body: "Clear updates by text — reminders, ETAs, pickups — without chasing the office. Schedule requests wait for your approval.",
                 },
                 {
-                  role: "Driver",
-                  body: "Opens Today on their phone, follows the route, and taps status at each stop. Those taps send the customer texts — no manual messaging.",
+                  role: "What drivers do",
+                  initial: "D",
+                  body: "Open Today, follow the route, tap status at each stop. Those taps send the customer texts — no manual messaging.",
                 },
                 {
-                  role: "Office",
-                  body: "A guided setup (vehicle, driver, customer, dog, route) usually takes under an hour, or a 30–45 minute screenshare where we import your spreadsheet. Then build routes, assign drivers, approve schedule requests, and export hike CSVs.",
+                  role: "What the office controls",
+                  initial: "O",
+                  body: "Routes, drivers, and schedule approvals. Setup usually takes under an hour, or a short screenshare where we import your spreadsheet.",
                 },
               ].map((item) => (
                 <div
@@ -153,7 +154,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
                   className="surface-elevated rounded-[var(--radius-card)] p-6 motion-lift"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-trail-100)] text-sm font-semibold text-[var(--color-trail-700)]">
-                    {item.role.charAt(0)}
+                    {item.initial}
                   </div>
                   <h3 className="mt-3 text-lg font-semibold text-[var(--color-trail-800)]">
                     {item.role}
@@ -171,9 +172,9 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
         <section id="features" className="scroll-mt-20 surface-glass py-14 sm:py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="max-w-2xl">
-              <SectionLabel>Features</SectionLabel>
+              <SectionLabel>What changes</SectionLabel>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-                What you get
+                Fewer &ldquo;where&apos;s my dog?&rdquo; calls. Happier owners.
               </h2>
             </div>
             <div className="mt-10 grid gap-5 sm:grid-cols-2">
@@ -200,12 +201,13 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
             <div>
               <SectionLabel>Customer experience</SectionLabel>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--color-trail-800)]">
-                Proactive updates — sent automatically
+                Families stay in the loop — without the busywork
               </h2>
               <p className="mt-4 text-stone-600">
                 No app or login for customers — and no manual texts from your
                 drivers. When drivers tap through their route, PackRoute sends
-                the messages families expect.
+                the updates families expect, and the office stops fielding the
+                same questions.
               </p>
               <ul className="mt-5 space-y-2.5 text-sm text-stone-600">
                 <li className="flex gap-2">
@@ -357,7 +359,7 @@ export function LandingPage({ showStartTrial = false }: { showStartTrial?: boole
           <div className="mx-auto max-w-xl px-4 sm:px-6">
             <div className="text-center">
               <h2 className="text-3xl font-semibold sm:text-4xl">
-                Fewer manual texts. Happier customers.
+                Get hours back every week. Keep customers in the loop.
               </h2>
               <p className="mt-4 text-lg text-white/80">
                 Book a demo — we&apos;ll reply within a business day.

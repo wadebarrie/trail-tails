@@ -4,13 +4,13 @@ import { BUYER_QUESTION_FAQ } from "@/features/landing/buyer-questions";
 export const SITE_NAME = "PackRoute";
 
 export const SITE_TAGLINE =
-  "Proactive SMS for adventure dog hiking teams";
+  "Customer updates without the busywork";
 
 export const SITE_DESCRIPTION =
-  "Keep customers updated without the WhatsApp scramble. PackRoute sends night-before reminders, ETAs, and pickup texts automatically — backed by multi-driver routes and a simple driver phone workflow for dog walking and adventure hiking teams.";
+  "Stop living in group chats. PackRoute texts owners for you — night-before reminders, ETAs, and pickup updates — so your office gets time back and families always know what's going on. Built for dog walking and adventure hiking teams.";
 
 export const SITE_DESCRIPTION_SHORT =
-  "Automated customer SMS ETAs for adventure dog hiking teams — with routes and a mobile driver workflow that make those texts accurate.";
+  "Hours back for the office. Automated customer updates for walking and hiking teams.";
 
 export const SITE_KEYWORDS = [
   "dog walking software",
@@ -57,19 +57,19 @@ export const SITE_CONTACT_EMAIL = "hello@packroute.app";
 export const HOME_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 export const HOME_H1 =
-  "Proactive SMS for walking and hiking teams — so the office stops living in group chats";
+  "Stop living in group chats. Give customers updates without the busywork.";
 
 export const DOG_WALKING_SOFTWARE_TITLE =
-  "Dog Walking Software with Automated SMS ETAs";
+  "Dog Walking Software That Gives the Office Hours Back";
 
 export const DOG_WALKING_SOFTWARE_DESCRIPTION =
-  "PackRoute keeps adventure dog hiking customers updated with automated SMS ETAs and pickup texts. Routes and a mobile driver workflow power those messages — so families stop asking “where are you?” and drivers stop texting every stop.";
+  "Stop answering “where's my dog?” all morning. PackRoute texts owners for you — reminders, ETAs, and pickup updates — so walking and hiking teams get time back and families stay in the loop.";
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_TITLE =
-  "Adventure Dog Hiking Software — SMS Updates + Pickup Routes";
+  "Adventure Dog Hiking Software — Hours Back, Happier Owners";
 
 export const ADVENTURE_DOG_HIKING_SOFTWARE_DESCRIPTION =
-  "Adventure dog hiking software that texts customers for you: night-before reminders, en-route ETAs, and pickup confirmations — with multi-driver routes and office-approved skip requests behind the scenes.";
+  "Adventure dog hiking software that saves office time and keeps customers updated: night-before reminders, en-route ETAs, and pickup confirmations — with multi-driver routes and office-approved skip requests behind the scenes.";
 
 export const TIME_TO_PET_ALTERNATIVE_TITLE =
   "Lightweight Canadian Time to Pet Alternative for Dog Hiking Teams";
@@ -94,7 +94,7 @@ type FaqItem = { readonly q: string; readonly a: string };
 export const LANDING_FAQ: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "PackRoute is proactive SMS and field ops for adventure dog hiking teams. Customers get automated reminders, ETAs, and pickup texts; drivers tap status on their phone; the office plans routes and approves schedule changes — without spreadsheet chaos or endless WhatsApp group chats.",
+    a: "PackRoute is operations software for walking and hiking teams that saves office time and keeps customers updated. Customers get automated reminders, ETAs, and pickup texts; drivers tap status on their phone; the office plans routes and approves schedule changes — without spreadsheet chaos or endless WhatsApp group chats.",
   },
   {
     q: "Is PackRoute dog walking software?",
@@ -167,19 +167,23 @@ export const LANDING_FAQ: readonly FaqItem[] = [
 export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   {
     q: "What is PackRoute?",
-    a: "Proactive customer SMS for adventure dog hiking teams — reminders, ETAs, and pickup texts — backed by multi-driver routes, a mobile driver workflow, and CSV billing prep.",
+    a: "Operations software for walking and hiking teams that gives the office hours back and keeps customers updated — automated reminders, ETAs, and pickup texts, backed by routes and a mobile driver workflow.",
+  },
+  {
+    q: "Will this actually save us time?",
+    a: "Yes. The office stops answering “where's my dog?” and mediating WhatsApp. Drivers tap status on the road; PackRoute texts owners automatically. Schedule changes wait for office approval.",
   },
   {
     q: "Can PackRoute replace Google Sheets and WhatsApp?",
-    a: "Yes. Customers get SMS ETAs and pickup updates instead of group-chat chaos; drivers run Today on their phone; the office owns routes and schedule approvals.",
+    a: "Yes. Customers get SMS updates instead of group-chat chaos; drivers run Today on their phone; the office owns routes and schedule approvals.",
   },
   {
     q: "Can drivers use PackRoute on the road?",
     a: "Yes. A mobile Today view in the browser — stops in order and simple status taps. No app store required.",
   },
   {
-    q: "Does PackRoute send automated SMS ETAs?",
-    a: "Yes. Night-before reminders, en-route ETAs, and pickup confirmations send when drivers update stops — no manual texts from drivers.",
+    q: "What do customers receive?",
+    a: "Night-before reminders, en-route ETAs, and pickup confirmations — sent when drivers update stops. No app or login for owners.",
   },
   {
     q: "What happens when a customer texts a schedule change?",
@@ -187,11 +191,7 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "Does PackRoute include CRM and invoicing like Time to Pet?",
-    a: "PackRoute is lighter on purpose: routes, group hike slots, drivers, and SMS. You get CSV hike export for billing today, and CAD invoicing is on the roadmap — without paying for boarding and pet-sitting features you do not use.",
-  },
-  {
-    q: "How do dog hiking companies send automated SMS without drivers texting each family?",
-    a: "Drivers tap status on PackRoute’s mobile Today view; PackRoute sends night-before reminders, ETAs, and pickup texts automatically. Customers reply by text for skip requests that wait for office approval.",
+    a: "PackRoute is lighter on purpose: routes, group hike slots, drivers, and customer updates. You get CSV hike export for billing today, and CAD invoicing is on the roadmap — without paying for boarding and pet-sitting features you do not use.",
   },
   {
     q: "How long does setup take?",
@@ -203,7 +203,7 @@ export const LANDING_FAQ_VISIBLE: readonly FaqItem[] = [
   },
   {
     q: "Is PackRoute a Time to Pet alternative?",
-    a: "For Canadian adventure dog hiking teams, yes — a lighter, CAD-priced replacement for pickup routes, group hike slots, and customer SMS.",
+    a: "For Canadian adventure dog hiking teams, yes — a lighter, CAD-priced replacement focused on hours saved and customer experience, not a full pet-sitting suite.",
   },
 ];
 /** Prevent indexing of authenticated / internal app surfaces. */
