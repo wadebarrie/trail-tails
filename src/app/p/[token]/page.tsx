@@ -1,5 +1,5 @@
-/* eslint-disable @next/next/no-img-element -- signed Storage URLs; next/image not configured for them */
 import type { Metadata } from "next";
+import { GalleryPhoto } from "@/features/hike-photos/components/gallery-photo";
 import { getGalleryByToken } from "@/features/hike-photos/queries";
 import { formatDateLabel } from "@/lib/dates";
 import { NOINDEX_ROBOTS } from "@/lib/seo/metadata";
@@ -57,24 +57,16 @@ export default async function PublicPhotoGalleryPage({
       {gallery.photos.length ? (
         <ul className="space-y-6">
           {gallery.photos.map((photo) => (
-            <li key={photo.id}>
-              <a href={photo.url} target="_blank" rel="noreferrer">
-                <img
-                  src={photo.url}
-                  alt={photo.caption ?? `Hike photo of ${photo.dogNames.join(" and ")}`}
-                  loading="lazy"
-                  className="w-full rounded-xl bg-stone-100"
-                />
-              </a>
-              {photo.caption ? (
-                <p className="mt-2 text-stone-800">{photo.caption}</p>
-              ) : null}
-              {photo.dogNames.length ? (
-                <p className="mt-1 text-sm text-stone-500">
-                  {photo.dogNames.join(", ")}
-                </p>
-              ) : null}
-            </li>
+            <GalleryPhoto
+              key={photo.id}
+              src={photo.url}
+              alt={
+                photo.caption ??
+                `Hike photo of ${photo.dogNames.join(" and ")}`
+              }
+              caption={photo.caption}
+              dogNames={photo.dogNames}
+            />
           ))}
         </ul>
       ) : (

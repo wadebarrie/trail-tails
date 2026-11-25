@@ -66,11 +66,27 @@ export async function createInvoiceDraftsForRangeAction(
   const priced = billable.filter((i) => i.rateCents != null);
 
   if (!priced.length) {
+    const notClosedOut = items.filter(
+      (i) => i.billingStatus === "not_closed_out"
+    ).length;
+    if (unpriced) {
+      return {
+        ok: false,
+        error:
+          "Billable hikes have no price. Set a default hike price in Settings first.",
+      };
+    }
+    if (notClosedOut > 0) {
+      return {
+        ok: false,
+        error: `No billable hikes in this range. ${notClosedOut} past hike day${
+          notClosedOut === 1 ? "" : "s"
+        } still need close-out first — use Close out on the hike report, then try again.`,
+      };
+    }
     return {
       ok: false,
-      error: unpriced
-        ? "Billable hikes have no price. Set a default hike price in Settings first."
-        : "No billable hikes in this date range.",
+      error: "No billable hikes in this date range.",
     };
   }
 

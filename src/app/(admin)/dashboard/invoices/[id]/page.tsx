@@ -57,6 +57,25 @@ export default async function InvoiceDetailPage({
         }
       />
 
+      <p className="mb-6 text-sm text-stone-600">
+        {customer?.email ? (
+          <>
+            Customer email:{" "}
+            <a
+              href={`mailto:${customer.email}`}
+              className="font-medium text-[var(--color-trail-700)] hover:underline"
+            >
+              {customer.email}
+            </a>
+          </>
+        ) : (
+          <span className="text-amber-800">
+            No email on file for this customer — add one before you send the
+            invoice.
+          </span>
+        )}
+      </p>
+
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <p className="text-sm text-stone-500">Status</p>

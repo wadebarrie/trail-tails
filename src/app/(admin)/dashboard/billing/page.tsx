@@ -9,9 +9,10 @@ import {
 } from "@/features/admin/components/ui";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 import { requireRole } from "@/features/auth/queries";
-import { BillingDateRangeFilter } from "@/features/billing/components/billing-date-range-filter";
-import { CreateInvoiceDraftsButton } from "@/features/invoices/components/create-invoice-drafts-button";
 import { AccountingAddonsCard } from "@/features/billing/components/accounting-addons-card";
+import { BillingDateRangeFilter } from "@/features/billing/components/billing-date-range-filter";
+import { BulkCloseOutButton } from "@/features/billing/components/bulk-close-out-button";
+import { CreateInvoiceDraftsButton } from "@/features/invoices/components/create-invoice-drafts-button";
 import { billingStatusLabel } from "@/features/billing/status";
 import { BILLING_CSV_COLUMNS } from "@/features/billing/csv";
 import {
@@ -99,19 +100,26 @@ export default async function BillingPage({
       {summary.notClosedOutDays > 0 ? (
         <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p className="font-medium">
-            {summary.notClosedOutDays} past hike
+            {summary.notClosedOutDays} past hike day
             {summary.notClosedOutDays === 1 ? "" : "s"} not closed out
           </p>
           <p className="mt-1 text-amber-900">
-            These stay off the billable total until someone uses Close out hike
-            on the day they ran. They are not marked as no-shows.{" "}
+            These stay off the billable total until routes are closed out. They
+            are not marked as no-shows. Use the button below for this date
+            range, or close a single day on{" "}
             <Link
               href="/dashboard/hikes/today"
               className="font-medium underline-offset-2 hover:underline"
             >
-              Open Today to close out
+              Today
             </Link>
+            .
           </p>
+          <BulkCloseOutButton
+            start={start}
+            end={end}
+            notClosedOutDays={summary.notClosedOutDays}
+          />
         </div>
       ) : null}
 

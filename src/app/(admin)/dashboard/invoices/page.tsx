@@ -35,7 +35,7 @@ export default async function InvoicesPage() {
     <div>
       <PageHeader
         title="Invoices"
-        description="Draft invoices from your closed-out hikes, mark them sent, and record e-Transfer or cash payments. Amounts are in CAD."
+        description="Draft invoices from your closed-out hikes, mark them sent, send a card pay link, or record e-Transfer / cash. Amounts show as CA$."
         action={
           <PrimaryLink href="/dashboard/hike-report">
             Create from hike report
