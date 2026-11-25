@@ -3,15 +3,19 @@ import { AdminGlobalSearch } from "@/features/admin/components/admin-global-sear
 import { RoleSwitchLink } from "@/features/auth/components/role-switch-link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { PackRouteLogo } from "@/features/brand/components/packroute-logo";
+import { trialStatusChip } from "@/features/subscription/trial-clock";
 import type { Profile } from "@/types";
 
 export function AdminTopbar({
   profile,
   companyName,
+  trialDaysLeft = null,
 }: {
   profile: Profile;
   companyName: string | null;
+  trialDaysLeft?: number | null;
 }) {
+  const trialChip = trialStatusChip(trialDaysLeft);
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-[color-mix(in_srgb,var(--color-bg)_92%,transparent)] pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="flex flex-col gap-3 px-4 py-3 sm:px-6">
@@ -28,6 +32,14 @@ export function AdminTopbar({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+            {trialChip ? (
+              <Link
+                href="/dashboard/settings"
+                className="rounded-full border border-[var(--color-trail-200)] bg-[var(--color-trail-50)] px-2.5 py-1 text-xs font-medium text-[var(--color-trail-800)] hover:underline"
+              >
+                {trialChip}
+              </Link>
+            ) : null}
             {profile.is_platform_owner ? (
               <Link
                 href="/owner"

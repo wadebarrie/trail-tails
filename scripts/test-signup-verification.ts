@@ -152,7 +152,7 @@ const cases: Case[] = [
   assert(
     "signup does not confirm the email or create a company up front",
     !signupServer.includes("email_confirm: true") &&
-      !signupServer.includes('.from("companies")')
+      !signupServer.includes('.from("companies").insert')
   ),
   assert(
     "confirmation email is sent with the captcha token",

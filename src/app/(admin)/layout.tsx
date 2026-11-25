@@ -11,6 +11,7 @@ import { OnboardingSetupBanner } from "@/features/onboarding/components/onboardi
 import { getSubscriptionForCompany } from "@/features/subscription/queries";
 import {
   daysRemainingInTrial,
+  isTrial,
   shouldShowTrialExpiringBanner,
 } from "@/features/subscription/helpers";
 import { TrialExpiringBanner } from "@/features/subscription/components/trial-expiring-banner";
@@ -67,7 +68,15 @@ export default async function AdminLayout({
       <AdminSidebar companyName={companyName} pendingRequestCount={pending} />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar profile={profile} companyName={companyName} />
+        <AdminTopbar
+          profile={profile}
+          companyName={companyName}
+          trialDaysLeft={
+            subscription && isTrial(subscription)
+              ? daysRemainingInTrial(subscription)
+              : null
+          }
+        />
 
         <main
           id="main-content"

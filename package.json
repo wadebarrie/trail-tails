@@ -20,6 +20,7 @@
     "test:ux-audit": "npx --yes tsx scripts/test-ux-audit.ts",
     "test:gallery-sms": "npx --yes tsx scripts/test-gallery-sms.ts",
     "test:subscription": "npx --yes tsx scripts/test-subscription-helpers.ts",
+    "test:trial-lifecycle": "npx --yes tsx scripts/test-trial-lifecycle.ts",
     "test:safe-redirect": "npx --yes tsx scripts/test-safe-redirect.ts",
     "test:profile-privileges": "npx --yes tsx scripts/test-profile-privileges.ts",
     "test:signup-verification": "npx --yes tsx scripts/test-signup-verification.ts",

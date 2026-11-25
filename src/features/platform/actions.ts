@@ -12,6 +12,8 @@ import { areInvitesEnabled } from "@/features/platform/settings";
 import { requirePlatformOwner } from "@/features/platform/queries";
 import { profileProvisioningMetadata } from "@/features/auth/profile-provisioning";
 import { passwordSchema } from "@/lib/password";
+import { trialClockUpdate, formatTrialEndDate } from "@/features/subscription/trial-clock";
+import { sendWelcomeEmail } from "@/features/subscription/welcome-email";
 
 const createCompanyInviteSchema = z.object({
   company_name: z.string().min(1, "Company name is required."),
@@ -178,6 +180,26 @@ export async function acceptInviteAction(
   if (updateError) {
     return { ok: false, error: "Account created but invite could not be marked used." };
   }
+
+  const clock = trialClockUpdate();
+  await supabase
+    .from("subscriptions")
+    .update(clock)
+    .eq("company_id", invite.company_id);
+
+  const { data: company } = await supabase
+    .from("companies")
+    .select("timezone")
+    .eq("id", invite.company_id)
+    .maybeSingle();
+
+  await sendWelcomeEmail({
+    to: invite.email,
+    trialEndsOn: formatTrialEndDate(
+      clock.trial_ends_at,
+      company?.timezone ?? "America/Vancouver"
+    ),
+  });
 
   return { ok: true };
 }
