@@ -8,8 +8,20 @@ export const GALLERY_SMS_TIMEOUT_MS = 8_000;
  */
 export const DRIVER_SMS_TIMEOUT_MS = 15_000;
 
-/** One close-out or notification request, under Netlify's ~26s limit. */
+/** One close-out or one company's night-before pass. */
 export const SMS_REQUEST_BUDGET_MS = 20_000;
+
+/** Whole night-before cron, still under Netlify's ~26s limit. */
+export const NIGHT_BEFORE_CRON_BUDGET_MS = 24_000;
+
+/** Child budget cannot outlive the parent request. */
+export function nestedBudgetMs(
+  requestedMs: number,
+  parentRemainingMs: number | null
+): number {
+  if (parentRemainingMs == null) return requestedMs;
+  return Math.min(requestedMs, Math.max(0, parentRemainingMs));
+}
 
 /** Don't start a Twilio call with less than this left. */
 export const SMS_CALL_FLOOR_MS = 1_000;
@@ -109,6 +121,20 @@ export function twilioMessageIsAccepted(status: string): boolean {
 
 export function twilioMessageIsFailed(status: string): boolean {
   return status === "failed" || status === "undelivered";
+}
+
+/** Ignore messages from before this attempt. Missing timestamps do not match. */
+export function twilioMessageIsAfter(
+  dateSent: string | undefined,
+  dateCreated: string | undefined,
+  sentAfter: Date | undefined
+): boolean {
+  if (!sentAfter) return true;
+  const raw = dateSent || dateCreated;
+  if (!raw) return false;
+  const at = Date.parse(raw);
+  if (Number.isNaN(at)) return false;
+  return at >= sentAfter.getTime();
 }
 
 /** Test redirects prefix the body; the logged text is still the suffix. */

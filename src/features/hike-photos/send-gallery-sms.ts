@@ -488,9 +488,14 @@ async function confirmAbandonedGallerySend(
     });
     const timeout = takeSmsSlice(SMS_LOOKUP_MAX_MS);
     if (timeout == null) return "unknown";
-    const lookedUp = await findRecentOutboundSms(wire.to, wire.body, timeout);
+    const lookedUp = await findRecentOutboundSms(
+      wire.to,
+      wire.body,
+      timeout,
+      new Date(since)
+    );
     if (lookedUp.outcome === "sent") return "sent";
-    if (lookedUp.outcome === "unknown") return "unknown";
+    if (lookedUp.outcome !== "failed") return "unknown";
     sawFailure = true;
   }
   return sawFailure ? "failed" : "unknown";

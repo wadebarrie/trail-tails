@@ -20,8 +20,10 @@ import {
   galleryWireMessage,
   outboundBodyMatches,
   smsAbortTimeoutMs,
+  nestedBudgetMs,
   smsSliceMs,
   twilioMessageIsAccepted,
+  twilioMessageIsAfter,
   twilioMessageIsFailed,
 } from "../src/lib/twilio/outcome";
 import { smsStatusTone, smsTypeLabel } from "../src/features/sms/labels";
@@ -202,6 +204,22 @@ test("one request budget leaves room for the gallery text", () => {
   );
   assert.equal(smsSliceMs({ remainingMs: 500, requestedMs: 5_000 }), null);
   assert.equal(smsSliceMs({ remainingMs: null, requestedMs: 15_000 }), 15_000);
+  assert.equal(nestedBudgetMs(20_000, null), 20_000);
+  assert.equal(nestedBudgetMs(20_000, 24_000), 20_000);
+  assert.equal(nestedBudgetMs(20_000, 9_000), 9_000);
+  assert.equal(nestedBudgetMs(20_000, 0), 0);
+  const after = new Date("2026-11-25T03:00:00.000Z");
+  assert.equal(
+    twilioMessageIsAfter("Wed, 25 Nov 2026 03:05:00 +0000", undefined, after),
+    true
+  );
+  assert.equal(
+    twilioMessageIsAfter("Wed, 24 Nov 2026 03:05:00 +0000", undefined, after),
+    false
+  );
+  assert.equal(twilioMessageIsAfter(undefined, undefined, after), false);
+  assert.equal(twilioMessageIsAfter("not-a-date", undefined, after), false);
+  assert.equal(twilioMessageIsAfter(undefined, undefined, undefined), true);
 });
 
 test("abandoned lookup uses the redirected To and prefixed body", () => {

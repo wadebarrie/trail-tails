@@ -4,6 +4,7 @@ import {
   fetchFailureOutcome,
   outboundBodyMatches,
   twilioMessageIsAccepted,
+  twilioMessageIsAfter,
   twilioMessageIsFailed,
 } from "@/lib/twilio/outcome";
 
@@ -124,6 +125,8 @@ type TwilioMessageRow = {
   body?: string;
   status?: string;
   direction?: string;
+  date_sent?: string;
+  date_created?: string;
 };
 
 /**
@@ -134,10 +137,12 @@ type TwilioMessageRow = {
 export async function findRecentOutboundSms(
   to: string,
   body: string,
-  timeoutMs = 5_000
+  timeoutMs = 5_000,
+  sentAfter?: Date
 ): Promise<
   | { outcome: "sent"; sid: string }
   | { outcome: "failed"; error: string }
+  | { outcome: "absent" }
   | { outcome: "unknown" }
 > {
   const config = getTwilioConfig();
@@ -163,7 +168,8 @@ export async function findRecentOutboundSms(
     const matches = (data.messages ?? []).filter(
       (message) =>
         (message.direction ?? "").includes("outbound") &&
-        outboundBodyMatches(message.body ?? "", body)
+        outboundBodyMatches(message.body ?? "", body) &&
+        twilioMessageIsAfter(message.date_sent, message.date_created, sentAfter)
     );
     const accepted = matches.find((message) =>
       twilioMessageIsAccepted(message.status ?? "")
@@ -175,7 +181,7 @@ export async function findRecentOutboundSms(
     if (failed) {
       return { outcome: "failed", error: `Twilio status ${failed.status}` };
     }
-    return { outcome: "unknown" };
+    return { outcome: "absent" };
   } catch {
     return { outcome: "unknown" };
   }

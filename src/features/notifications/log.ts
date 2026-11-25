@@ -18,6 +18,8 @@ type LogNotificationInput = {
   stopId?: string;
   notificationType: NotificationType;
   body: NotificationBody;
+  /** When set, only these contact phones are texted. */
+  onlyPhones?: string[];
 };
 
 async function resolveCustomerContacts(customerId: string | undefined) {
@@ -135,6 +137,12 @@ export async function logNotification(
       let failed = 0;
       let unknown = 0;
       for (const contact of contacts) {
+        if (
+          input.onlyPhones &&
+          !input.onlyPhones.includes(contact.phone)
+        ) {
+          continue;
+        }
         const outcome = await sendNotificationToContact(
           input,
           contact,
@@ -179,7 +187,7 @@ async function sendNotificationToContact(
       status: "pending",
       channel: "sms",
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (insertError || !notification) {
@@ -217,7 +225,12 @@ async function sendNotificationToContact(
     const lookedUp =
       lookupTimeout == null
         ? { outcome: "unknown" as const }
-        : await findRecentOutboundSms(delivery.to, smsBody, lookupTimeout);
+        : await findRecentOutboundSms(
+            delivery.to,
+            smsBody,
+            lookupTimeout,
+            new Date(notification.created_at as string)
+          );
     if (lookedUp.outcome === "sent") {
       sid = lookedUp.sid;
       outcome = "sent";
