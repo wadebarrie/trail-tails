@@ -42,10 +42,16 @@ SET search_path = ''
 AS $$
   SELECT CASE
     WHEN pg_catalog.length(digits) >= 10 THEN pg_catalog.right(digits, 10)
-    ELSE pg_catalog.nullif(digits, '')
+    WHEN digits = '' THEN NULL
+    ELSE digits
   END
   FROM (
-    SELECT pg_catalog.regexp_replace(pg_catalog.coalesce(raw, ''), '[^0-9]', '', 'g') AS digits
+    SELECT pg_catalog.regexp_replace(
+      CASE WHEN raw IS NULL THEN '' ELSE raw END,
+      '[^0-9]',
+      '',
+      'g'
+    ) AS digits
   ) s;
 $$;
 
