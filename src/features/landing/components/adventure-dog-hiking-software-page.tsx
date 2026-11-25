@@ -37,10 +37,10 @@ export function AdventureDogHikingSoftwarePageContent() {
             {ADVENTURE_DOG_HIKING_SOFTWARE_TITLE}
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-stone-600">
-            PackRoute texts adventure dog hiking customers for you —
-            night-before reminders, ETAs, and pickup updates — so families stay
-            informed and your team stops living in WhatsApp. Routes and drivers
-            make those messages match the route day.
+            Get hours back every week. PackRoute texts adventure dog hiking
+            customers for you — night-before reminders, ETAs, and pickup updates
+            — so the office stops answering the same questions and families stay
+            in the loop.
           </p>
           <p className="mt-4 text-lg leading-relaxed text-stone-600">
             Not a consumer marketplace or in-home pet sitting app. Built for
@@ -55,7 +55,7 @@ export function AdventureDogHikingSoftwarePageContent() {
         <section className="border-y border-stone-200/80 bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold text-[var(--color-trail-800)] sm:text-3xl">
-              Run group dog walking operations without spreadsheet chaos
+              Built for the people running the hike day
             </h2>
             <p className="mt-4 max-w-2xl text-stone-600">
               For operators with one to ten hikers or walkers who need adventure

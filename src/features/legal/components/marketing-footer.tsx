@@ -31,7 +31,7 @@ export function MarketingFooter() {
         <div className="min-w-0">
           <PackRouteLogo href="/" markSize="sm" />
           <p className="mt-1 max-w-md text-sm text-stone-500">
-            Customer texts for dog walking and adventure hiking teams.
+            Hours back for the office. Updates for every customer.
           </p>
           <FooterContactEmail />
         </div>
