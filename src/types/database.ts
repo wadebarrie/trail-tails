@@ -74,6 +74,10 @@ export interface Company {
   auto_send_gallery_on_closeout: boolean;
   twilio_phone_number: string | null;
   onboarding_completed_at: string | null;
+  onboarding_dismissed_at: string | null;
+  onboarding_welcome_at: string | null;
+  onboarding_sample_text_at: string | null;
+  outing_style: "walk" | "hike" | null;
   /** once = one PackRoute period/day; twice = morning + afternoon. */
   route_cadence: "once" | "twice";
   /** test sends every text to sms_test_phone. live texts each customer. */

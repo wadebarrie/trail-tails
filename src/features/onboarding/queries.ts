@@ -1,5 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { readOnboardingGate } from "@/features/onboarding/gate";
+import { onboardingStillRequired } from "@/features/onboarding/first-value";
 import type {
   OnboardingPeriodChecklist,
   OnboardingProgress,
@@ -42,16 +44,26 @@ export const getOnboardingProgress = cache(
 
     const [
       { data: company },
+      welcome,
       vehicles,
       drivers,
       customers,
       dogs,
       routes,
       dogsOnRoute,
+      shares,
+      invoices,
     ] = await Promise.all([
       supabase
         .from("companies")
         .select("onboarding_completed_at, default_hike_rate_cents")
+        .eq("id", companyId)
+        .maybeSingle(),
+      supabase
+        .from("companies")
+        .select(
+          "onboarding_dismissed_at, onboarding_welcome_at, onboarding_sample_text_at, outing_style"
+        )
         .eq("id", companyId)
         .maybeSingle(),
       supabase
@@ -86,6 +98,15 @@ export const getOnboardingProgress = cache(
         .eq("company_id", companyId)
         .eq("is_active", true)
         .not("route_id", "is", null),
+      supabase
+        .from("hike_photo_shares")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId)
+        .is("revoked_at", null),
+      supabase
+        .from("invoices")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId),
     ]);
 
     const routeRows = (routes.data ?? []) as {
@@ -124,7 +145,19 @@ export const getOnboardingProgress = cache(
         afternoon,
       },
       hasCompanyInfo: company?.default_hike_rate_cents != null,
+      welcomeSaved: !welcome.error && Boolean(welcome.data?.onboarding_welcome_at),
+      hasSampleText:
+        !welcome.error && Boolean(welcome.data?.onboarding_sample_text_at),
+      hasGallery: (shares.count ?? 0) > 0,
+      hasDraftInvoice: (invoices.count ?? 0) > 0,
       completedAt: company?.onboarding_completed_at ?? null,
+      dismissedAt: welcome.error
+        ? null
+        : (welcome.data?.onboarding_dismissed_at ?? null),
+      outingStyle:
+        welcome.data?.outing_style === "walk" || welcome.data?.outing_style === "hike"
+          ? welcome.data.outing_style
+          : null,
     };
   }
 );
@@ -133,11 +166,7 @@ export const getOnboardingProgress = cache(
 export const companyNeedsOnboarding = cache(
   async (companyId: string): Promise<boolean> => {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from("companies")
-      .select("onboarding_completed_at")
-      .eq("id", companyId)
-      .maybeSingle();
-    return data?.onboarding_completed_at == null;
+    const gate = await readOnboardingGate(supabase, companyId);
+    return onboardingStillRequired(gate);
   }
 );

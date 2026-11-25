@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { postAuthDestination } from "@/features/auth/signup-guards";
+import { readOnboardingGate } from "@/features/onboarding/gate";
 import { primaryButtonClassName } from "@/features/admin/components/button-styles";
 
 type MfaVerifyFormProps = {
@@ -87,15 +88,11 @@ export function MfaVerifyForm({ nextPath, stayOnPage }: MfaVerifyFormProps) {
     }
 
     let onboardingCompletedAt: string | null = "complete";
+    let onboardingDismissedAt: string | null = null;
     if (profile.role === "admin") {
-      const { data: company, error: companyError } = await supabase
-        .from("companies")
-        .select("onboarding_completed_at")
-        .eq("id", profile.company_id)
-        .maybeSingle();
-      if (!companyError) {
-        onboardingCompletedAt = company?.onboarding_completed_at ?? null;
-      }
+      const gate = await readOnboardingGate(supabase, profile.company_id);
+      onboardingCompletedAt = gate.completedAt;
+      onboardingDismissedAt = gate.dismissedAt;
     }
 
     router.replace(
@@ -103,6 +100,7 @@ export function MfaVerifyForm({ nextPath, stayOnPage }: MfaVerifyFormProps) {
         role: profile.role as "admin" | "driver",
         canDrive: profile.can_drive === true,
         onboardingCompletedAt,
+        onboardingDismissedAt,
         next: stayOnPage ? undefined : nextPath,
       })
     );

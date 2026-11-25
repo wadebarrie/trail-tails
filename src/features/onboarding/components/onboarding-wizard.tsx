@@ -3,24 +3,33 @@
 import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 import {
-  completeOnboardingAction,
   dismissOnboardingAction,
-  onboardingCreateVehicleAction,
-  onboardingEnableSelfAsDriverAction,
+  completeOnboardingAction,
+  onboardingCreateCustomerAction,
+  onboardingCreateDogAction,
+  onboardingCreateRouteAction,
+  onboardingCreateSampleInvoiceAction,
   onboardingSaveCompanyInfoAction,
-  onboardingSaveRouteCadenceAction,
+  onboardingSaveWelcomeAction,
+  onboardingSendSampleTextAction,
+  onboardingUploadSamplePhotoAction,
 } from "@/features/onboarding/actions";
 import { OnboardingSupportCard } from "@/features/onboarding/components/onboarding-support-card";
 import { OnboardingCsvImportCallout } from "@/features/onboarding/components/onboarding-csv-import-callout";
 import { OnboardingProgressNav } from "@/features/onboarding/components/onboarding-progress-nav";
-import { OnboardingWalkthroughTip } from "@/features/onboarding/components/onboarding-walkthrough-tip";
 import {
   ONBOARDING_PATH,
-  ONBOARDING_ROUTE_CADENCE_KEY,
   type OnboardingProgress,
   type OnboardingRouteCadence,
   type OnboardingStepId,
 } from "@/features/onboarding/constants";
+import {
+  firstValueChecklist,
+  sampleReminderPreview,
+  wizardSmsExplanation,
+  type OutingStyle,
+  type WizardSmsMode,
+} from "@/features/onboarding/first-value";
 import { TimePickerField } from "@/features/admin/components/time-picker-field";
 import {
   landingPrimaryButtonClassName,
@@ -29,73 +38,122 @@ import {
 import { inputClassName } from "@/features/admin/components/form-styles";
 import { Card } from "@/features/admin/components/ui";
 
-function DoneCheck({ done }: { done: boolean }) {
-  return done ? (
-    <span className="text-xs font-medium text-emerald-700">Done</span>
-  ) : (
-    <span className="text-xs text-stone-400">To do</span>
+function ChoiceButton({
+  selected,
+  title,
+  detail,
+  onClick,
+}: {
+  selected: boolean;
+  title: string;
+  detail: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+        selected
+          ? "border-[var(--color-trail-600)] bg-[var(--color-trail-50)] ring-2 ring-[var(--color-trail-600)]"
+          : "border-stone-200 bg-white hover:border-stone-300"
+      }`}
+    >
+      <span className="font-semibold text-stone-900">{title}</span>
+      <span className="mt-1 block text-xs text-stone-600">{detail}</span>
+    </button>
   );
-}
-
-function useRouteCadence(initial: OnboardingRouteCadence | null) {
-  const [override, setOverride] = useState<OnboardingRouteCadence | null>(null);
-  const [, startSave] = useTransition();
-  const cadence = override ?? initial;
-
-  function setCadence(next: OnboardingRouteCadence) {
-    setOverride(next);
-    try {
-      window.localStorage.setItem(ONBOARDING_ROUTE_CADENCE_KEY, next);
-    } catch {
-      // ignore
-    }
-    startSave(async () => {
-      await onboardingSaveRouteCadenceAction(next);
-    });
-  }
-
-  return [cadence, setCadence] as const;
 }
 
 export function OnboardingWizard({
   step,
   progress,
   companyName,
-  adminCanDrive,
+  ownerName,
+  ownerPhone,
+  dogId,
+  dogName,
+  smsMode,
   defaultHikeRateCents,
   nightBeforeReminderTime,
-  initialRouteCadence = null,
-  trialEndsOn = null,
+  initialRouteCadence,
+  initialOutingStyle,
+  trialEndsOn,
+  galleryUrl,
+  invoiceId,
 }: {
   step: OnboardingStepId;
   progress: OnboardingProgress;
   companyName: string;
-  adminCanDrive: boolean;
+  ownerName: string;
+  ownerPhone: string;
+  dogId: string | null;
+  dogName: string | null;
+  smsMode: WizardSmsMode;
   defaultHikeRateCents: number | null;
   nightBeforeReminderTime: string;
-  initialRouteCadence?: OnboardingRouteCadence | null;
-  trialEndsOn?: string | null;
+  initialRouteCadence: OnboardingRouteCadence | null;
+  initialOutingStyle: OutingStyle | null;
+  trialEndsOn: string | null;
+  galleryUrl: string | null;
+  invoiceId: string | null;
 }) {
-  const [vehicleState, vehicleAction, vehiclePending] = useActionState(
-    onboardingCreateVehicleAction,
+  const [welcomeState, welcomeAction, welcomePending] = useActionState(
+    onboardingSaveWelcomeAction,
+    {}
+  );
+  const [customerState, customerAction, customerPending] = useActionState(
+    onboardingCreateCustomerAction,
+    {}
+  );
+  const [dogState, dogAction, dogPending] = useActionState(
+    onboardingCreateDogAction,
+    {}
+  );
+  const [routeState, routeAction, routePending] = useActionState(
+    onboardingCreateRouteAction,
     {}
   );
   const [companyState, companyAction, companyPending] = useActionState(
     onboardingSaveCompanyInfoAction,
     {}
   );
-  const [driverError, setDriverError] = useState<string | null>(null);
-  const [driverPending, startDriver] = useTransition();
+  const [textState, textAction, textPending] = useActionState(
+    onboardingSendSampleTextAction,
+    {}
+  );
+  const [photoState, photoAction, photoPending] = useActionState(
+    onboardingUploadSamplePhotoAction,
+    {}
+  );
   const [finishPending, startFinish] = useTransition();
   const [dismissPending, startDismiss] = useTransition();
-  const [routeCadence, setRouteCadence] = useRouteCadence(initialRouteCadence);
+  const [dismissError, setDismissError] = useState<string | null>(null);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [invoicePending, startInvoice] = useTransition();
+  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(invoiceId);
+  const [outing, setOuting] = useState<OutingStyle>(initialOutingStyle ?? "hike");
+  const [cadence, setCadence] = useState<OnboardingRouteCadence>(
+    initialRouteCadence ?? "once"
+  );
 
-  const routeReturn = `${ONBOARDING_PATH}?step=route`;
-  const packRouteReady =
-    routeCadence === "twice"
-      ? progress.routeChecklist.morning.ready &&
-        progress.routeChecklist.afternoon.ready
-      : progress.hasRoute;
+  const preview =
+    textState.preview ??
+    sampleReminderPreview({
+      ownerName,
+      dogName,
+    });
+  const openGallery = photoState.galleryUrl ?? galleryUrl;
+  const checklist = firstValueChecklist(progress);
+  const outingWord = outing === "walk" ? "walk" : "hike";
+
+  function snooze() {
+    setDismissError(null);
+    startDismiss(async () => {
+      const result = await dismissOnboardingAction();
+      if (result?.error) setDismissError(result.error);
+    });
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
@@ -109,12 +167,11 @@ export function OnboardingWizard({
       </div>
 
       <OnboardingProgressNav current={step} progress={progress} />
-      <OnboardingWalkthroughTip companyName={companyName} />
 
       {step === "welcome" ? (
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">
-            Ready when you are
+            Get to a first {outingWord} today
           </h2>
           {trialEndsOn ? (
             <p className="text-sm font-medium text-[var(--color-trail-800)]">
@@ -122,193 +179,91 @@ export function OnboardingWizard({
             </p>
           ) : null}
           <p className="text-sm text-stone-600">
-            PackRoute works best once you have one truck (or van), at least one
-            driver, a customer with an address, their dog, and a route (a
-            service zone) with that dog assigned. You can add people one at a
-            time or bulk-import customers and dogs from a CSV. Takes most teams
-            about 10–15 minutes.
+            Add one customer, their dog, and one route. Then preview a text,
+            a photo gallery, and a draft invoice. About 15 minutes.
           </p>
-          <ul className="space-y-2 text-sm text-stone-700">
-            <li className="flex justify-between gap-3">
-              <span>Vehicle</span>
-              <DoneCheck done={progress.hasVehicle} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Driver</span>
-              <DoneCheck done={progress.hasDriver} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Customer</span>
-              <DoneCheck done={progress.hasCustomer} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Dog</span>
-              <DoneCheck done={progress.hasDog} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Route</span>
-              <DoneCheck done={progress.hasRoute} />
-            </li>
-            <li className="flex justify-between gap-3">
-              <span>Company info</span>
-              <DoneCheck done={progress.hasCompanyInfo} />
-            </li>
-          </ul>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Link
-              href={`${ONBOARDING_PATH}?step=vehicle`}
-              className={landingPrimaryButtonClassName}
-            >
-              Start with vehicle
-            </Link>
-            <button
-              type="button"
-              disabled={dismissPending}
-              className={secondaryButtonClassName}
-              onClick={() =>
-                startDismiss(async () => {
-                  await dismissOnboardingAction();
-                })
-              }
-            >
-              {dismissPending ? "Skipping…" : "Skip for now"}
-            </button>
-          </div>
-        </Card>
-      ) : null}
-
-      {step === "vehicle" ? (
-        <Card className="space-y-4">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Add your first vehicle
-          </h2>
-          <p className="text-sm text-stone-600">
-            Drivers pick a van or truck for the day. A nickname is enough —
-            plate and capacity are optional.
-          </p>
-          {progress.hasVehicle ? (
-            <p className="text-sm text-emerald-700">
-              You already have a vehicle.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=driver`}
-                className="font-medium underline-offset-2 hover:underline"
-              >
-                Continue
-              </Link>
-            </p>
-          ) : (
-            <form action={vehicleAction} className="space-y-4">
-              {vehicleState.error ? (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {vehicleState.error}
-                </p>
-              ) : null}
-              <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-stone-700"
-                >
-                  Vehicle name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="e.g. Blue van"
-                  className={`mt-1 ${inputClassName}`}
+          <form action={welcomeAction} className="space-y-4">
+            {welcomeState.error ? (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                {welcomeState.error}
+              </p>
+            ) : null}
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium text-stone-800">
+                Walking or hiking?
+              </legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <ChoiceButton
+                  selected={outing === "walk"}
+                  title="Walking"
+                  detail="Neighbourhood walks and park loops."
+                  onClick={() => setOuting("walk")}
+                />
+                <ChoiceButton
+                  selected={outing === "hike"}
+                  title="Hiking"
+                  detail="Trail days with a pickup window."
+                  onClick={() => setOuting("hike")}
                 />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="plate"
-                    className="block text-sm font-medium text-stone-700"
-                  >
-                    Plate (optional)
-                  </label>
-                  <input
-                    id="plate"
-                    name="plate"
-                    className={`mt-1 ${inputClassName}`}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="capacity"
-                    className="block text-sm font-medium text-stone-700"
-                  >
-                    Dog capacity (optional)
-                  </label>
-                  <input
-                    id="capacity"
-                    name="capacity"
-                    type="number"
-                    min={1}
-                    className={`mt-1 ${inputClassName}`}
-                  />
-                </div>
+              <input type="hidden" name="outing_style" value={outing} />
+            </fieldset>
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium text-stone-800">
+                How many outings a day?
+              </legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <ChoiceButton
+                  selected={cadence === "once"}
+                  title="One a day"
+                  detail="One route is enough to start."
+                  onClick={() => setCadence("once")}
+                />
+                <ChoiceButton
+                  selected={cadence === "twice"}
+                  title="Morning and afternoon"
+                  detail="You can add the second route later."
+                  onClick={() => setCadence("twice")}
+                />
               </div>
+              <input type="hidden" name="route_cadence" value={cadence} />
+            </fieldset>
+            <div>
+              <label htmlFor="vehicle_name" className="block text-sm font-medium text-stone-700">
+                Do you drive a van?
+              </label>
+              <p className="mt-0.5 text-xs text-stone-500">
+                Optional. Leave this blank if you are on foot.
+              </p>
+              <input
+                id="vehicle_name"
+                name="vehicle_name"
+                placeholder="Van nickname, if you use one"
+                className={`mt-2 ${inputClassName}`}
+              />
+            </div>
+            <div className="flex flex-wrap gap-3">
               <button
                 type="submit"
-                disabled={vehiclePending}
-                className={`${landingPrimaryButtonClassName} w-full justify-center text-center disabled:cursor-not-allowed disabled:opacity-50`}
+                disabled={welcomePending}
+                className={landingPrimaryButtonClassName}
               >
-                {vehiclePending ? "Saving…" : "Save and continue"}
+                {welcomePending ? "Saving…" : "Continue"}
               </button>
-            </form>
-          )}
-        </Card>
-      ) : null}
-
-      {step === "driver" ? (
-        <Card className="space-y-4">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Add a driver
-          </h2>
-          <p className="text-sm text-stone-600">
-            Drivers use the mobile Today view. As company admin you can enable
-            yourself, or add a dedicated driver login under Drivers.
-          </p>
-          {driverError ? (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-              {driverError}
-            </p>
-          ) : null}
-          {progress.hasDriver || adminCanDrive ? (
-            <p className="text-sm text-emerald-700">
-              Driver access is ready.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=customer`}
-                className="font-medium underline-offset-2 hover:underline"
+              <button
+                type="button"
+                disabled={dismissPending}
+                className={secondaryButtonClassName}
+                onClick={snooze}
               >
-                Continue
-              </Link>
-            </p>
-          ) : (
-            <button
-              type="button"
-              disabled={driverPending}
-              className={landingPrimaryButtonClassName}
-              onClick={() =>
-                startDriver(async () => {
-                  const result = await onboardingEnableSelfAsDriverAction();
-                  if (result?.error) setDriverError(result.error);
-                })
-              }
-            >
-              {driverPending ? "Enabling…" : "Enable me as a driver"}
-            </button>
-          )}
-          <p className="text-xs text-stone-500">
-            Prefer a separate login?{" "}
-            <Link
-              href={`/dashboard/drivers/new?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=customer`)}`}
-              className="font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
-            >
-              Add a driver
-            </Link>
-            , then come back here.
-          </p>
+                {dismissPending ? "Snoozing…" : "Skip for now"}
+              </button>
+            </div>
+            {dismissError ? (
+              <p className="text-sm text-red-700">{dismissError}</p>
+            ) : null}
+          </form>
+          <OnboardingSupportCard compact />
         </Card>
       ) : null}
 
@@ -318,237 +273,182 @@ export function OnboardingWizard({
             Add your first customer
           </h2>
           <p className="text-sm text-stone-600">
-            Customers need a full street address so we can geocode pickups and
-            send ETA texts. Add one by hand, or import a spreadsheet of
-            customers and dogs.
+            Use yourself as the test customer so the sample text comes to your
+            phone. You can add real customers after.
           </p>
           {progress.hasCustomer ? (
             <p className="text-sm text-emerald-700">
               Customer on file.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=dog`}
-                className="font-medium underline-offset-2 hover:underline"
-              >
+              <Link href={`${ONBOARDING_PATH}?step=dog`} className="font-medium underline">
                 Continue to dog
               </Link>
             </p>
           ) : (
-            <Link
-              href={`/dashboard/customers/new?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=dog`)}`}
-              className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
-            >
-              Add a customer
-            </Link>
+            <form action={customerAction} className="space-y-3">
+              {customerState.error ? (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {customerState.error}
+                </p>
+              ) : null}
+              <label className="block text-sm font-medium text-stone-700">
+                Your name
+                <input
+                  name="owner_name"
+                  required
+                  defaultValue={ownerName}
+                  className={`mt-1 ${inputClassName}`}
+                />
+              </label>
+              <label className="block text-sm font-medium text-stone-700">
+                Your mobile
+                <input
+                  name="phone"
+                  type="tel"
+                  required
+                  defaultValue={ownerPhone}
+                  placeholder="+1 604 555 0100"
+                  className={`mt-1 ${inputClassName}`}
+                />
+              </label>
+              <label className="block text-sm font-medium text-stone-700">
+                Pickup address
+                <input
+                  name="address_line1"
+                  required
+                  placeholder="Street address"
+                  className={`mt-1 ${inputClassName}`}
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <input name="city" required placeholder="City" className={inputClassName} />
+                <input
+                  name="state_province"
+                  required
+                  placeholder="Province"
+                  defaultValue="BC"
+                  className={inputClassName}
+                />
+                <input
+                  name="postal_code"
+                  required
+                  placeholder="Postal code"
+                  className={inputClassName}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={customerPending}
+                className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
+              >
+                {customerPending ? "Saving…" : "Use me as a test customer"}
+              </button>
+            </form>
           )}
-          <OnboardingCsvImportCallout returnStep="route" />
+          <OnboardingCsvImportCallout returnStep="dog" />
         </Card>
       ) : null}
 
       {step === "dog" ? (
         <Card className="space-y-4">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Add a dog
-          </h2>
+          <h2 className="text-lg font-semibold text-stone-900">Add a dog</h2>
           <p className="text-sm text-stone-600">
-            Attach a dog to that customer and set their{" "}
-            <strong className="font-medium text-stone-800">
-              default pickup window
-            </strong>{" "}
-            — that&apos;s what shows on day plans and SMS. You&apos;ll put them
-            on a route next. Or import customers and dogs together from CSV.
+            This dog is attached to your test customer. Pickup defaults to
+            8:00–8:30. You can change that later.
           </p>
           {!progress.hasCustomer ? (
-            <p className="text-sm text-amber-800">
-              Add a customer first.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=customer`}
-                className="font-medium underline-offset-2 hover:underline"
-              >
-                Go back
-              </Link>
-            </p>
+            <Link href={`${ONBOARDING_PATH}?step=customer`} className="text-sm font-medium underline">
+              Add a customer first
+            </Link>
           ) : progress.hasDog ? (
             <p className="text-sm text-emerald-700">
               Dog on file.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=route`}
-                className="font-medium underline-offset-2 hover:underline"
-              >
+              <Link href={`${ONBOARDING_PATH}?step=route`} className="font-medium underline">
                 Continue to route
               </Link>
             </p>
           ) : (
-            <Link
-              href={`/dashboard/dogs/new?returnTo=${encodeURIComponent(`${ONBOARDING_PATH}?step=route`)}`}
-              className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
-            >
-              Add a dog
-            </Link>
+            <form action={dogAction} className="space-y-3">
+              {dogState.error ? (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {dogState.error}
+                </p>
+              ) : null}
+              <label className="block text-sm font-medium text-stone-700">
+                Dog name
+                <input name="name" required placeholder="e.g. Moss" className={`mt-1 ${inputClassName}`} />
+              </label>
+              <button
+                type="submit"
+                disabled={dogPending}
+                className={landingPrimaryButtonClassName}
+              >
+                {dogPending ? "Saving…" : "Save dog"}
+              </button>
+            </form>
           )}
-          <OnboardingCsvImportCallout returnStep="route" />
         </Card>
       ) : null}
 
       {step === "route" ? (
         <Card className="space-y-4">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Set a route
-          </h2>
+          <h2 className="text-lg font-semibold text-stone-900">One route</h2>
           <p className="text-sm text-stone-600">
-            A route is a service zone you cover — a neighbourhood or area —
-            for morning or afternoon. It only shows on Today once it has
-            weekdays and at least one dog assigned.
+            A route is the area you cover on weekdays. One route is enough to
+            see Today, even if you also run afternoons.
           </p>
-
-          <fieldset className="space-y-3">
-            <legend className="text-sm font-medium text-stone-800">
-              How do your days usually run?
-            </legend>
-            <p className="text-xs text-stone-500">
-              Morning and afternoon are separate routes even in the same
-              zone (different dogs, drivers, and order).
+          {progress.hasRoute ? (
+            <p className="text-sm text-emerald-700">
+              Route is ready.{" "}
+              <Link href={`${ONBOARDING_PATH}?step=prices`} className="font-medium underline">
+                Continue to prices
+              </Link>
             </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setRouteCadence("once")}
-                className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                  routeCadence === "once"
-                    ? "border-[var(--color-trail-600)] bg-[var(--color-trail-50)] ring-2 ring-[var(--color-trail-600)]"
-                    : "border-stone-200 bg-white hover:border-stone-300"
-                }`}
-              >
-                <span className="font-semibold text-stone-900">
-                  One route per day
-                </span>
-                <span className="mt-1 block text-xs text-stone-600">
-                  Usually mornings only (or afternoons only).
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRouteCadence("twice")}
-                className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
-                  routeCadence === "twice"
-                    ? "border-[var(--color-trail-600)] bg-[var(--color-trail-50)] ring-2 ring-[var(--color-trail-600)]"
-                    : "border-stone-200 bg-white hover:border-stone-300"
-                }`}
-              >
-                <span className="font-semibold text-stone-900">
-                  Morning and afternoon
-                </span>
-                <span className="mt-1 block text-xs text-stone-600">
-                  Two routes each day — set both up.
-                </span>
-              </button>
-            </div>
-          </fieldset>
-
-          {routeCadence ? (
-            <>
-              <ul className="space-y-2 rounded-lg border border-stone-100 bg-stone-50 px-4 py-3 text-sm text-stone-700">
-                {routeCadence === "once" ? (
-                  <>
-                    <li className="flex justify-between gap-3">
-                      <span>Route created</span>
-                      <DoneCheck done={progress.routeChecklist.created} />
-                    </li>
-                    <li className="flex justify-between gap-3">
-                      <span>Schedule days set</span>
-                      <DoneCheck done={progress.routeChecklist.hasScheduleDays} />
-                    </li>
-                    <li className="flex justify-between gap-3">
-                      <span>Dog assigned to the route</span>
-                      <DoneCheck done={progress.routeChecklist.hasDogAssigned} />
-                    </li>
-                  </>
-                ) : (
-                  <>
-                    <li className="flex justify-between gap-3">
-                      <span>Morning route ready</span>
-                      <DoneCheck done={progress.routeChecklist.morning.ready} />
-                    </li>
-                    <li className="flex justify-between gap-3">
-                      <span>Afternoon route ready</span>
-                      <DoneCheck
-                        done={progress.routeChecklist.afternoon.ready}
-                      />
-                    </li>
-                  </>
-                )}
-              </ul>
-              {packRouteReady ? (
-                <p className="text-sm text-emerald-700">
-                  Route setup is ready for Today.{" "}
-                  <Link
-                    href={`${ONBOARDING_PATH}?step=company`}
-                    className="font-medium underline-offset-2 hover:underline"
-                  >
-                    Continue to company info
-                  </Link>
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  <Link
-                    href={`/dashboard/route?returnTo=${encodeURIComponent(routeReturn)}`}
-                    className={`${landingPrimaryButtonClassName} w-full justify-center text-center`}
-                  >
-                    {progress.routeChecklist.created
-                      ? "Finish on Routes"
-                      : "Set a route"}
-                  </Link>
-                  <p className="text-xs text-stone-500">
-                    {routeCadence === "twice"
-                      ? "On Routes: create a morning zone and an afternoon zone, check the dogs for each, then come back when both checklist items are green."
-                      : "On Routes: name the zone, set weekdays, and check the dogs in the same form. Come back here when the checklist is green."}
-                  </p>
-                </div>
-              )}
-            </>
           ) : (
-            <p className="text-sm text-stone-500">
-              Choose how your days run, then we&apos;ll show what to set up.
-            </p>
+            <form action={routeAction} className="space-y-3">
+              {routeState.error ? (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {routeState.error}
+                </p>
+              ) : null}
+              <label className="block text-sm font-medium text-stone-700">
+                Route name
+                <input
+                  name="name"
+                  required
+                  defaultValue="Weekday route"
+                  className={`mt-1 ${inputClassName}`}
+                />
+              </label>
+              <input type="hidden" name="schedule_days" value="1,2,3,4,5" />
+              <input type="hidden" name="period" value="morning" />
+              {dogId ? <input type="hidden" name="dog_ids" value={dogId} /> : null}
+              <p className="text-xs text-stone-500">Weekdays, morning. The dog above is assigned.</p>
+              <button
+                type="submit"
+                disabled={routePending || !dogId}
+                className={landingPrimaryButtonClassName}
+              >
+                {routePending ? "Saving…" : "Create the route"}
+              </button>
+            </form>
           )}
         </Card>
       ) : null}
 
-      {step === "company" ? (
+      {step === "prices" ? (
         <Card className="space-y-4">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Company defaults
-          </h2>
+          <h2 className="text-lg font-semibold text-stone-900">Price</h2>
           <p className="text-sm text-stone-600">
-            Set your default hike price and when customers get the night-before
-            reminder. You can change these anytime under Settings.
+            This CA$ amount is the default for billing. A dog can override it later.
           </p>
-          {progress.hasCompanyInfo ? (
-            <p className="text-sm text-emerald-700">
-              Company defaults saved.{" "}
-              <Link
-                href={`${ONBOARDING_PATH}?step=done`}
-                className="font-medium underline-offset-2 hover:underline"
-              >
-                Finish setup
-              </Link>
-            </p>
-          ) : null}
           <form action={companyAction} className="space-y-4">
             {companyState.error ? (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
                 {companyState.error}
               </p>
             ) : null}
-            <div>
-              <label
-                htmlFor="default_hike_rate"
-                className="block text-sm font-medium text-stone-700"
-              >
-                Default hike price ($)
-              </label>
-              <p className="mt-0.5 text-xs text-stone-500">
-                Used for billing unless a dog has its own rate.
-              </p>
+            <label className="block text-sm font-medium text-stone-700" htmlFor="default_hike_rate">
+              Default price per outing (CA$)
               <input
                 id="default_hike_rate"
                 name="default_hike_rate"
@@ -558,13 +458,11 @@ export function OnboardingWizard({
                 required
                 placeholder="60.00"
                 defaultValue={
-                  defaultHikeRateCents != null
-                    ? (defaultHikeRateCents / 100).toFixed(2)
-                    : ""
+                  defaultHikeRateCents != null ? (defaultHikeRateCents / 100).toFixed(2) : ""
                 }
                 className={`mt-2 ${inputClassName}`}
               />
-            </div>
+            </label>
             <div>
               <label
                 htmlFor="night_before_reminder_time"
@@ -572,9 +470,6 @@ export function OnboardingWizard({
               >
                 Night-before reminder time
               </label>
-              <p className="mt-0.5 text-xs text-stone-500">
-                Local time to text customers about tomorrow&apos;s pickup.
-              </p>
               <TimePickerField
                 id="night_before_reminder_time"
                 name="night_before_reminder_time"
@@ -586,11 +481,93 @@ export function OnboardingWizard({
             <button
               type="submit"
               disabled={companyPending}
-              className={`${landingPrimaryButtonClassName} w-full justify-center text-center disabled:cursor-not-allowed disabled:opacity-50`}
+              className={landingPrimaryButtonClassName}
             >
-              {companyPending ? "Saving…" : "Save and finish"}
+              {companyPending ? "Saving…" : "Save and try it"}
             </button>
           </form>
+        </Card>
+      ) : null}
+
+      {step === "try" ? (
+        <Card className="space-y-5">
+          <h2 className="text-lg font-semibold text-stone-900">Try the three things customers see</h2>
+          <p className="text-sm text-stone-600">{wizardSmsExplanation(smsMode)}</p>
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-stone-900">Tonight&apos;s reminder</h3>
+            <p className="rounded-lg bg-stone-50 px-3 py-2 text-sm text-stone-700">{preview}</p>
+            <p className="text-xs text-stone-500">
+              This sample goes to your mobile, not to a customer.
+            </p>
+            <form action={textAction} className="flex flex-wrap items-end gap-2">
+              <label className="block text-sm font-medium text-stone-700">
+                Your mobile
+                <input
+                  name="phone"
+                  type="tel"
+                  required
+                  defaultValue={ownerPhone}
+                  className={`mt-1 ${inputClassName}`}
+                />
+              </label>
+              <button type="submit" disabled={textPending} className={landingPrimaryButtonClassName}>
+                {textPending ? "Sending…" : "Text this to me"}
+              </button>
+            </form>
+            {textState.error ? <p className="text-sm text-red-700">{textState.error}</p> : null}
+            {textState.preview && !textState.error ? (
+              <p className="text-sm text-emerald-700">Sent to your mobile.</p>
+            ) : null}
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-stone-900">Photo gallery</h3>
+            <form action={photoAction} className="space-y-2">
+              <input name="photo" type="file" accept="image/jpeg" required className="text-sm" />
+              <button type="submit" disabled={photoPending} className={secondaryButtonClassName}>
+                {photoPending ? "Uploading…" : "Upload a sample photo"}
+              </button>
+            </form>
+            {photoState.error ? <p className="text-sm text-red-700">{photoState.error}</p> : null}
+            {openGallery ? (
+              <a href={openGallery} className="text-sm font-medium text-[var(--color-trail-700)] underline">
+                Open the gallery
+              </a>
+            ) : null}
+          </section>
+
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-stone-900">Draft invoice</h3>
+            <button
+              type="button"
+              disabled={invoicePending}
+              className={secondaryButtonClassName}
+              onClick={() =>
+                startInvoice(async () => {
+                  setInvoiceError(null);
+                  const result = await onboardingCreateSampleInvoiceAction();
+                  if (result.error) setInvoiceError(result.error);
+                  if (result.invoiceId) setCreatedInvoiceId(result.invoiceId);
+                })
+              }
+            >
+              {invoicePending ? "Creating…" : "Create a draft invoice"}
+            </button>
+            {invoiceError ? <p className="text-sm text-red-700">{invoiceError}</p> : null}
+            {createdInvoiceId ? (
+              <Link
+                href={`/dashboard/invoices/${createdInvoiceId}`}
+                className="block text-sm font-medium text-[var(--color-trail-700)] underline"
+              >
+                Open the draft
+              </Link>
+            ) : null}
+          </section>
+
+          <Link href={`${ONBOARDING_PATH}?step=done`} className={landingPrimaryButtonClassName}>
+            Finish setup
+          </Link>
         </Card>
       ) : null}
 
@@ -598,21 +575,26 @@ export function OnboardingWizard({
         <Card className="space-y-4">
           <h2 className="text-lg font-semibold text-stone-900">You&apos;re set</h2>
           <p className="text-sm text-stone-600">
-            Next: open Today / Tomorrow to confirm stops, then try a driver
-            login on your phone. Texts start in test mode and go only to the
-            mobile number you save under Settings. Switch to live after
-            customers have agreed to receive them.
+            This checklist stays on the dashboard until each item is done.{" "}
+            {wizardSmsExplanation(smsMode)}
           </p>
-          <OnboardingSupportCard compact />
+          <ul className="space-y-2 text-sm">
+            {checklist.map((item) => (
+              <li key={item.id} className="flex justify-between gap-3">
+                <Link href={item.href} className="underline-offset-2 hover:underline">
+                  {item.label}
+                </Link>
+                <span className={item.done ? "text-emerald-700" : "text-stone-400"}>
+                  {item.done ? "Done" : "To do"}
+                </span>
+              </li>
+            ))}
+          </ul>
           <button
             type="button"
             disabled={finishPending}
             className={landingPrimaryButtonClassName}
-            onClick={() =>
-              startFinish(async () => {
-                await completeOnboardingAction();
-              })
-            }
+            onClick={() => startFinish(async () => { await completeOnboardingAction(); })}
           >
             {finishPending ? "Opening dashboard…" : "Go to dashboard"}
           </button>
@@ -620,33 +602,17 @@ export function OnboardingWizard({
       ) : null}
 
       {step !== "welcome" && step !== "done" ? (
-        <div className="space-y-4 border-t border-stone-200 pt-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <button
-              type="button"
-              disabled={dismissPending}
-              className="text-stone-500 underline-offset-2 hover:underline"
-              onClick={() =>
-                startDismiss(async () => {
-                  await dismissOnboardingAction();
-                })
-              }
-            >
-              Skip setup for now
-            </button>
-            <Link
-              href="/dashboard/help"
-              className="text-[var(--color-trail-700)] hover:underline"
-            >
-              Full help guide
-            </Link>
-          </div>
-          <OnboardingSupportCard compact />
+        <div className="border-t border-stone-200 pt-4 text-sm">
+          <button
+            type="button"
+            disabled={dismissPending}
+            className="text-stone-500 underline-offset-2 hover:underline"
+            onClick={snooze}
+          >
+            Skip setup for now
+          </button>
+          {dismissError ? <p className="mt-2 text-sm text-red-700">{dismissError}</p> : null}
         </div>
-      ) : null}
-
-      {step === "welcome" ? (
-        <OnboardingSupportCard compact />
       ) : null}
     </div>
   );

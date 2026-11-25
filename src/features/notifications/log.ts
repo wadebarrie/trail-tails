@@ -142,6 +142,7 @@ export async function logNotification(
         return none;
       }
       if (plan.blocked === "trial_cap") {
+        // logWarn writes this warn row to system_logs.
         logWarn("sms", "Trial daily SMS cap reached", {
           ...smsContext(input),
           context: {

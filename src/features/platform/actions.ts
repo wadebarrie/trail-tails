@@ -187,6 +187,13 @@ export async function acceptInviteAction(
     .update(clock)
     .eq("company_id", invite.company_id);
 
+  if (role === "admin") {
+    await supabase
+      .from("companies")
+      .update({ sms_mode: "test", sms_live_approved: false })
+      .eq("id", invite.company_id);
+  }
+
   const { data: company } = await supabase
     .from("companies")
     .select("timezone")

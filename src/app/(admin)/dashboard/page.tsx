@@ -11,8 +11,9 @@ import {
   getHikeDaySummaries,
   type HikeDaySummary,
 } from "@/features/hikes/queries";
-import { companyNeedsOnboarding } from "@/features/onboarding/queries";
+import { companyNeedsOnboarding, getOnboardingProgress } from "@/features/onboarding/queries";
 import { ONBOARDING_PATH } from "@/features/onboarding/constants";
+import { firstValueChecklist } from "@/features/onboarding/first-value";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateLabel, getDateInTimezone } from "@/lib/dates";
 import { PerfTimer } from "@/lib/perf";
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
   timer.mark("auth");
 
   const needsOnboarding = await companyNeedsOnboarding(profile.company_id);
+  const onboarding = await getOnboardingProgress(profile.company_id);
 
   const supabase = await createClient();
   const tz = await getCompanyTimezone(profile.company_id);
@@ -130,6 +132,9 @@ export default async function DashboardPage() {
     },
   ];
   const setupDone = setupSteps.filter((step) => step.done).length;
+  const showFirstValue = !onboarding.completedAt || onboarding.welcomeSaved;
+  const firstValue = firstValueChecklist(onboarding);
+  const firstValueDone = firstValue.filter((step) => step.done).length;
 
   const operationsCards = [
     {
@@ -200,7 +205,40 @@ export default async function DashboardPage() {
         action={<PrimaryLink href="/dashboard/hikes/today">Open today</PrimaryLink>}
       />
 
-      {setupDone < setupSteps.length ? (
+      {showFirstValue && firstValueDone < firstValue.length ? (
+        <section className="mb-6 rounded-xl border border-[var(--color-trail-200)] bg-[var(--color-trail-50)] px-4 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-stone-900">
+              First value · {firstValueDone} of {firstValue.length}
+            </h2>
+            <Link
+              href={ONBOARDING_PATH}
+              className="text-sm font-medium text-[var(--color-trail-700)] underline-offset-2 hover:underline"
+            >
+              Open the guided setup
+            </Link>
+          </div>
+          <p className="mt-1 text-sm text-stone-600">
+            Customer, dog, one route, a CA$ price, a text to yourself, a gallery,
+            and a draft invoice. This list stays until each one is done.
+          </p>
+          <ol className="mt-3 space-y-1 text-sm">
+            {firstValue.map((step, index) => (
+              <li key={step.id}>
+                <Link href={step.href} className="hover:underline">
+                  {index + 1}. {step.label}
+                </Link>
+                <span className="text-stone-500">
+                  {" "}
+                  · {step.done ? "Done" : "Still needed"}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null}
+
+      {!showFirstValue && setupDone < setupSteps.length ? (
         <section className="mb-6 rounded-xl border border-[var(--color-trail-200)] bg-[var(--color-trail-50)] px-4 py-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-sm font-semibold text-stone-900">

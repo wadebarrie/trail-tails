@@ -1,4 +1,5 @@
 import { ONBOARDING_PATH } from "@/features/onboarding/constants";
+import { onboardingStillRequired } from "@/features/onboarding/first-value";
 import { getLoginRedirect, passwordResetRedirect } from "@/features/auth/access";
 import { safeAuthNextPath } from "@/lib/auth/safe-redirect";
 
@@ -85,12 +86,19 @@ export function postAuthDestination(input: {
   role: "admin" | "driver";
   canDrive: boolean;
   onboardingCompletedAt: string | null;
+  onboardingDismissedAt?: string | null;
   next?: string | null;
 }): string {
   const reset = passwordResetRedirect(input.next);
   if (reset) return reset;
 
-  if (input.role === "admin" && input.onboardingCompletedAt == null) {
+  if (
+    input.role === "admin" &&
+    onboardingStillRequired({
+      completedAt: input.onboardingCompletedAt,
+      dismissedAt: input.onboardingDismissedAt,
+    })
+  ) {
     if (input.next?.startsWith(ONBOARDING_PATH)) return input.next;
     return ONBOARDING_PATH;
   }
@@ -106,6 +114,7 @@ export function authCallbackDestination(input: {
   role: "admin" | "driver";
   canDrive: boolean;
   onboardingCompletedAt: string | null;
+  onboardingDismissedAt?: string | null;
   nextParam: string | null;
   fallback: string;
 }): string {
@@ -113,6 +122,7 @@ export function authCallbackDestination(input: {
     role: input.role,
     canDrive: input.canDrive,
     onboardingCompletedAt: input.onboardingCompletedAt,
+    onboardingDismissedAt: input.onboardingDismissedAt,
     next: input.nextParam
       ? safeAuthNextPath(input.nextParam, input.fallback)
       : null,

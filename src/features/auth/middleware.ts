@@ -5,6 +5,7 @@ import { PerfTimer } from "@/lib/perf";
 import type { UserRole } from "@/types";
 import { canAccessAdmin, canAccessDriver } from "@/features/auth/access";
 import { postAuthDestination } from "@/features/auth/signup-guards";
+import { readOnboardingGate } from "@/features/onboarding/gate";
 import {
   AUTH_ROUTES,
   getHomeRouteForRole,
@@ -69,15 +70,11 @@ export async function handleAuth(request: NextRequest) {
       const profile = await fetchProfile(supabase, user.id);
       if (profile?.is_active) {
         let onboardingCompletedAt: string | null = "complete";
+        let onboardingDismissedAt: string | null = null;
         if (profile.role === "admin") {
-          const { data: company, error: companyError } = await supabase
-            .from("companies")
-            .select("onboarding_completed_at")
-            .eq("id", profile.company_id)
-            .maybeSingle();
-          if (!companyError) {
-            onboardingCompletedAt = company?.onboarding_completed_at ?? null;
-          }
+          const gate = await readOnboardingGate(supabase, profile.company_id);
+          onboardingCompletedAt = gate.completedAt;
+          onboardingDismissedAt = gate.dismissedAt;
         }
         return redirectTo(
           request,
@@ -85,6 +82,7 @@ export async function handleAuth(request: NextRequest) {
             role: profile.role,
             canDrive: profile.can_drive,
             onboardingCompletedAt,
+            onboardingDismissedAt,
             next: request.nextUrl.searchParams.get("next"),
           })
         );

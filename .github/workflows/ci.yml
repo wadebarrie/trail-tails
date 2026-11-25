@@ -34,6 +34,9 @@ jobs:
       - name: SMS policy
         run: npm run test:sms-policy
 
+      - name: Onboarding first value
+        run: npm run test:onboarding-first-value
+
       - name: Safe redirect
         run: npm run test:safe-redirect
 
