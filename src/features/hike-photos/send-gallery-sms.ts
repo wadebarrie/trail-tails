@@ -5,6 +5,8 @@ import { buildGalleryUrl } from "@/features/hike-photos/share";
 import {
   buildHikeGalleryMessage,
   galleryLinkAlreadySent,
+  gallerySendBudgetExceeded,
+  galleryTokenLikePattern,
   galleryWhenLabel,
   type GalleryDeliveryRow,
 } from "@/features/hike-photos/gallery-sms-rules";
@@ -14,6 +16,8 @@ export type GallerySmsResult = {
   sent: number;
   skipped: number;
   errors: number;
+  /** Hikes or owners skipped because the shared bulk budget ran out. */
+  deferred: number;
 };
 
 /** Close-out waits for the text, but not forever if Twilio hangs. */
@@ -40,11 +44,11 @@ type TagRow = {
  */
 export async function sendHikeGallerySmsForHike(
   hikeId: string,
-  options: { force?: boolean } = {}
+  options: { force?: boolean; deadlineMs?: number } = {}
 ): Promise<GallerySmsResult> {
   const force = options.force === true;
   const supabase = createServiceClient();
-  const result: GallerySmsResult = { sent: 0, skipped: 0, errors: 0 };
+  const result: GallerySmsResult = { sent: 0, skipped: 0, errors: 0, deferred: 0 };
 
   const { data: hike, error: hikeError } = await supabase
     .from("hikes")
@@ -83,6 +87,11 @@ export async function sendHikeGallerySmsForHike(
   const whenLabel = galleryWhenLabel(hikeDate, today, timeZone);
 
   for (const share of sharesOnHike) {
+    if (gallerySendBudgetExceeded(Date.now(), options.deadlineMs)) {
+      result.deferred += 1;
+      continue;
+    }
+
     if (new Date(share.expiresAt).getTime() < Date.now()) {
       result.skipped += 1;
       continue;
@@ -102,6 +111,12 @@ export async function sendHikeGallerySmsForHike(
       continue;
     }
 
+    const claim = await claimGallerySend(companyId, share.customerId, hikeDate);
+    if (claim === "taken") {
+      result.skipped += 1;
+      continue;
+    }
+
     const names = dogNames(day.tags, share.customerId);
     const url = buildGalleryUrl(share.token);
     const body = buildHikeGalleryMessage(names.length ? names : namesOnHike, url, whenLabel);
@@ -114,6 +129,9 @@ export async function sendHikeGallerySmsForHike(
         body,
       });
       if (delivery.sent > 0) {
+        if (claim === "claimed") {
+          await markGalleryClaim(companyId, share.customerId, hikeDate, "sent");
+        }
         result.sent += 1;
         prior.set(share.customerId, [
           ...(prior.get(share.customerId) ?? []),
@@ -124,12 +142,17 @@ export async function sendHikeGallerySmsForHike(
             createdAt: new Date().toISOString(),
           },
         ]);
-      } else if (delivery.failed > 0) {
-        result.errors += 1;
       } else {
-        result.skipped += 1;
+        if (claim === "claimed") {
+          await markGalleryClaim(companyId, share.customerId, hikeDate, "failed");
+        }
+        if (delivery.failed > 0) result.errors += 1;
+        else result.skipped += 1;
       }
     } catch (error) {
+      if (claim === "claimed") {
+        await markGalleryClaim(companyId, share.customerId, hikeDate, "failed");
+      }
       result.errors += 1;
       logErrorFromException("sms", "Gallery SMS failed", error, {
         companyId,
@@ -175,12 +198,31 @@ export async function sendGallerySmsForCompanyDate(
     .eq("company_id", companyId)
     .eq("date", date);
 
-  const aggregate: GallerySmsResult = { sent: 0, skipped: 0, errors: 0 };
-  for (const hike of hikes ?? []) {
-    const partial = await sendHikeGallerySmsForHike(hike.id, { force: true });
+  return sendGallerySmsForHikeIds(
+    (hikes ?? []).map((hike) => hike.id as string),
+    { force: true }
+  );
+}
+
+/**
+ * Second pass after hikes are already closed. `deadlineMs` is one budget for
+ * the whole list so a large range cannot spend 12s per route.
+ */
+export async function sendGallerySmsForHikeIds(
+  hikeIds: string[],
+  options: { force?: boolean; deadlineMs?: number } = {}
+): Promise<GallerySmsResult> {
+  const aggregate: GallerySmsResult = { sent: 0, skipped: 0, errors: 0, deferred: 0 };
+  for (const hikeId of hikeIds) {
+    if (gallerySendBudgetExceeded(Date.now(), options.deadlineMs)) {
+      aggregate.deferred += 1;
+      continue;
+    }
+    const partial = await sendHikeGallerySmsForHike(hikeId, options);
     aggregate.sent += partial.sent;
     aggregate.skipped += partial.skipped;
     aggregate.errors += partial.errors;
+    aggregate.deferred += partial.deferred;
   }
   return aggregate;
 }
@@ -291,6 +333,94 @@ async function loadDayGalleryContext(
   return { shares, tags };
 }
 
+const CLAIM_STALE_MS = 2 * 60 * 1000;
+
+type GalleryClaim = "claimed" | "taken" | "unprotected";
+
+/** Insert a pending row first so a second close-out cannot also send. */
+async function claimGallerySend(
+  companyId: string,
+  customerId: string,
+  hikeDate: string
+): Promise<GalleryClaim> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("hike_photo_gallery_sends")
+    .insert({
+      company_id: companyId,
+      customer_id: customerId,
+      hike_date: hikeDate,
+      status: "pending",
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (!error && data) return "claimed";
+
+  const missingTable =
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    (error?.message ?? "").includes("hike_photo_gallery_sends");
+  if (missingTable) {
+    logWarn(
+      "sms",
+      "Gallery send claim table missing — apply migration 20261125010000_gallery_send_claims.sql"
+    );
+    return "unprotected";
+  }
+
+  if (error && error.code !== "23505") {
+    logWarn("sms", `Gallery send claim failed: ${error.message}`);
+    return "unprotected";
+  }
+
+  const now = new Date().toISOString();
+  const staleBefore = new Date(Date.now() - CLAIM_STALE_MS).toISOString();
+  const reclaimedFailed = await supabase
+    .from("hike_photo_gallery_sends")
+    .update({ status: "pending", created_at: now })
+    .eq("company_id", companyId)
+    .eq("customer_id", customerId)
+    .eq("hike_date", hikeDate)
+    .eq("status", "failed")
+    .select("id");
+  if (reclaimedFailed.data?.length) return "claimed";
+
+  const reclaimedStale = await supabase
+    .from("hike_photo_gallery_sends")
+    .update({ status: "pending", created_at: now })
+    .eq("company_id", companyId)
+    .eq("customer_id", customerId)
+    .eq("hike_date", hikeDate)
+    .eq("status", "pending")
+    .lt("created_at", staleBefore)
+    .select("id");
+  if (reclaimedStale.data?.length) return "claimed";
+
+  return "taken";
+}
+
+async function markGalleryClaim(
+  companyId: string,
+  customerId: string,
+  hikeDate: string,
+  status: "sent" | "failed"
+) {
+  const supabase = createServiceClient();
+  const { error } = await supabase
+    .from("hike_photo_gallery_sends")
+    .update({
+      status,
+      sent_at: status === "sent" ? new Date().toISOString() : null,
+    })
+    .eq("company_id", companyId)
+    .eq("customer_id", customerId)
+    .eq("hike_date", hikeDate);
+  if (error) {
+    logWarn("sms", `Gallery send claim update failed: ${error.message}`);
+  }
+}
+
 function dogNames(tags: TagRow[], customerId: string, hikeId?: string): string[] {
   const names = new Set<string>();
   for (const tag of tags) {
@@ -315,7 +445,9 @@ async function sentGalleryMessages(
 
   for (let i = 0; i < unique.length; i += 20) {
     const chunk = unique.slice(i, i + 20);
-    const filter = chunk.map((token) => `body.ilike.%/p/${token}%`).join(",");
+    const filter = chunk
+      .map((token) => `body.like.${galleryTokenLikePattern(token)}`)
+      .join(",");
     const { data, error } = await supabase
       .from("notification_log")
       .select("customer_id, notification_type, body, status, created_at")

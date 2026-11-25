@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { primaryButtonClassName, secondaryButtonClassName } from "@/features/admin/components/button-styles";
 
 export function ConfirmDialog({
@@ -9,6 +10,7 @@ export function ConfirmDialog({
   body,
   confirmLabel,
   pending = false,
+  pendingLabel = "Working…",
   onConfirm,
   onCancel,
   confirmClassName = "",
@@ -18,10 +20,17 @@ export function ConfirmDialog({
   body: string;
   confirmLabel: string;
   pending?: boolean;
+  pendingLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
   confirmClassName?: string;
 }) {
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
   useEffect(() => {
     if (!open) return;
     function onKey(event: KeyboardEvent) {
@@ -31,15 +40,15 @@ export function ConfirmDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, pending, onCancel]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-stone-900/40 p-4 sm:items-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-stone-900/40 p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        className="w-full max-w-md rounded-2xl bg-white p-5 shadow-[var(--elevation-3)]"
+        className="my-auto w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white p-5 shadow-[var(--elevation-3)]"
       >
         <h2 id="confirm-dialog-title" className="text-lg font-semibold text-stone-900">
           {title}
@@ -60,10 +69,11 @@ export function ConfirmDialog({
             disabled={pending}
             className={`${primaryButtonClassName} ${confirmClassName}`.trim()}
           >
-            {pending ? "Working…" : confirmLabel}
+            {pending ? pendingLabel : confirmLabel}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

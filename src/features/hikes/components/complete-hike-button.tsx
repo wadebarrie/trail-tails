@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 import { Badge } from "@/features/admin/components/ui";
 import { secondaryButtonClassName } from "@/features/admin/components/button-styles";
+import { sendGalleryForClosedHikeAction } from "@/features/hike-photos/actions";
 import { completeHikeAction } from "@/features/hikes/actions";
 
 export function CompleteHikeButton({
@@ -15,39 +16,65 @@ export function CompleteHikeButton({
   status: string;
 }) {
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [phase, setPhase] = useState<"idle" | "closing" | "sending">("idle");
+  const [closed, setClosed] = useState(status === "completed");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
-  if (status === "completed") {
-    return <HikeStatusBadge status={status} />;
-  }
-
-  function handleComplete() {
+  async function handleComplete() {
     setError(null);
-    startTransition(async () => {
-      const result = await completeHikeAction(hikeId);
-      if (result.error) {
-        setError(result.error);
-        return;
-      }
-      setOpen(false);
-      router.refresh();
-    });
+    setPhase("closing");
+    const result = await completeHikeAction(hikeId);
+    if (result.error) {
+      setPhase("idle");
+      setError(result.error);
+      return;
+    }
+
+    setClosed(true);
+    setOpen(false);
+    setPhase("sending");
+    const sms = await sendGalleryForClosedHikeAction(hikeId);
+    setPhase("idle");
+    if (sms.ok) setNotice(sms.message);
+    else setError(sms.error);
+    router.refresh();
   }
 
   const label =
     status === "in_progress" ? "Mark hike complete" : "Close out hike";
+
+  if (closed && phase !== "closing") {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <HikeStatusBadge status="completed" />
+        {phase === "sending" ? (
+          <p className="max-w-xs text-right text-xs text-stone-600">
+            Sending gallery texts…
+          </p>
+        ) : null}
+        {notice ? (
+          <p className="max-w-xs text-right text-xs text-stone-600">{notice}</p>
+        ) : null}
+        {error ? (
+          <p className="max-w-xs text-right text-xs text-red-600" role="alert">
+            {error}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-end gap-1">
       <button
         type="button"
         onClick={() => setOpen(true)}
-        disabled={pending}
+        disabled={phase !== "idle"}
         className={secondaryButtonClassName}
       >
-        {pending ? "Saving…" : label}
+        {phase === "closing" ? "Closing out…" : label}
       </button>
       {error ? (
         <p className="max-w-xs text-right text-xs text-red-600" role="alert">
@@ -59,9 +86,10 @@ export function CompleteHikeButton({
         title={label}
         body="Open stops will be marked picked up or dropped off. If gallery texts are on, each owner with tagged photos gets one text for that day's photos."
         confirmLabel={label}
-        pending={pending}
+        pending={phase === "closing"}
+        pendingLabel="Closing out…"
         onCancel={() => {
-          if (!pending) setOpen(false);
+          if (phase === "idle") setOpen(false);
         }}
         onConfirm={handleComplete}
       />

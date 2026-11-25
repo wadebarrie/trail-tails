@@ -44,6 +44,54 @@ export type GalleryDeliveryRow = {
 };
 
 /**
+ * LIKE pattern for a share token inside an SMS body.
+ * `_` and `%` are wildcards in LIKE/ILIKE; base64url tokens include `_`.
+ */
+export function galleryTokenLikePattern(token: string): string {
+  const escaped = token
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_");
+  return `%/p/${escaped}%`;
+}
+
+/** Shared SMS wait for a bulk close-out, not 12s times the number of routes. */
+export const BULK_GALLERY_SMS_BUDGET_MS = 18_000;
+
+export function gallerySendBudgetExceeded(
+  now: number,
+  deadlineMs: number | undefined
+): boolean {
+  return deadlineMs != null && now >= deadlineMs;
+}
+
+export function bulkCloseOutConfirmBody(input: {
+  routeCount: number;
+  galleryTextsOn: boolean;
+  galleryRecipientCount: number | null;
+}): string {
+  const routes =
+    input.routeCount === 1
+      ? "1 incomplete route"
+      : `${input.routeCount} incomplete routes`;
+  const base = `This cannot be undone. Close out ${routes}? Open stops will be marked picked up or dropped off.`;
+  if (!input.galleryTextsOn) {
+    return `${base} Gallery texts are off in Settings, so no owners will be texted.`;
+  }
+  if (input.galleryRecipientCount == null) {
+    return `${base} Gallery texts will go to owners with tagged photos who have not already received a link.`;
+  }
+  if (input.galleryRecipientCount === 0) {
+    return `${base} No tagged photos on these routes, so no gallery texts will be sent.`;
+  }
+  const owners =
+    input.galleryRecipientCount === 1
+      ? "1 owner"
+      : `${input.galleryRecipientCount} owners`;
+  return `${base} Gallery texts will go to up to ${owners} with tagged photos who have not already received a link.`;
+}
+
+/**
  * True when a sent gallery text, or a drop-off text that already included a
  * gallery link, covers one of this day's share tokens. Failed and pending
  * rows do not count, so a Twilio failure can be retried.
