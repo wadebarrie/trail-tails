@@ -268,9 +268,10 @@ export function TimeToPetAlternativePageContent() {
             </h2>
             <p className="mt-4 text-stone-600">
               PackRoute tracks dogs and completed hikes, generates CAD invoice
-              drafts, and still exports CSV when you want QuickBooks or Xero.
-              Online card pay links are next — so you can move off Time to Pet
-              for the hiking day without waiting on a full ledger rebuild.
+              drafts, and exports CSV for QuickBooks or Xero so you can bill
+              however you like (e.g. e-Transfer). Online card pay links are next
+              — so you can move off Time to Pet for the hiking day without
+              waiting on a full ledger rebuild.
             </p>
           </div>
         </section>

@@ -57,7 +57,7 @@ export const PRICING_INCLUDED_FEATURES = [
   "Pickup route planning, group hike time slots, and driver Today view",
   "Unlimited office logins",
   "Schedule-change texts with office approval",
-  "CAD invoices from completed hikes, plus CSV export for QuickBooks or Xero",
+  "CAD invoices from completed hikes; CSV export for QuickBooks or Xero so you can bill however you like (e.g. e-Transfer)",
   "Onboarding screenshare + email support",
 ] as const;
 

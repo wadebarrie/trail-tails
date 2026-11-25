@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/components/login-form";
 import { AUTH_ROUTES } from "@/features/auth/constants";
 import { getLoginRedirect, canAccessDriver } from "@/features/auth/access";
 import { getCurrentProfile } from "@/features/auth/queries";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to PackRoute for office or driver access.",
+};
 
 export default async function LoginPage({
   searchParams,

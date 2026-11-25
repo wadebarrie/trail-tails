@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { LegalPageShell } from "@/features/legal/components/legal-page-shell";
 import { privacyDocument } from "@/features/legal/content/privacy";
-import { getSiteUrl } from "@/lib/site-url";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: privacyDocument.title,
   description: privacyDocument.description,
-  alternates: { canonical: `${getSiteUrl()}/legal/privacy` },
-};
+  path: "/legal/privacy",
+});
 
 export default function PrivacyPage() {
   return <LegalPageShell document={privacyDocument} />;

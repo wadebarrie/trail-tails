@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { LegalPageShell } from "@/features/legal/components/legal-page-shell";
 import { termsDocument } from "@/features/legal/content/terms";
-import { getSiteUrl } from "@/lib/site-url";
+import { buildPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: termsDocument.title,
   description: termsDocument.description,
-  alternates: { canonical: `${getSiteUrl()}/legal/terms` },
-};
+  path: "/legal/terms",
+});
 
 export default function TermsPage() {
   return <LegalPageShell document={termsDocument} />;
